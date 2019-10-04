@@ -1,0 +1,37 @@
+{
+    "name": "envrin/apex",
+    "description": "Powerful PHP based platform to efficiently develop quality, robust, streamlined, and professional online operations.",
+    "keywords": ["apex", "framework", "platform", "infrastructure"],
+    "type": "project", 
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Envrin Group",
+            "email": "matt@envrin.com",
+            "role": "Creator / Main Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "cboden/ratchet": "*", 
+        "textalk/websocket": "1.0.*", 
+        "michelf/php-markdown": ">=1.8.0", 
+        "php-mime-mail-parser/php-mime-mail-parser": "*", 
+        "league/flysystem": "*",  
+        "guzzlehttp/guzzle": ">=6.0.0",
+        "phpunit/phpunit": ">=7.3.0", 
+        "php-amqplib/php-amqplib": "*",     
+        "ext-mysqli": "*", 
+        "ext-openssl": "*",
+        "ext-curl": "*", 
+        "ext-json": "*", 
+        "ext-mbstring": "*", 
+        "ext-zip": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "apex\\": "src/"
+        }
+    }
+}
+
