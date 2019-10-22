@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex;
 
 use apex\app;
+use apex\svc\components;
 use apex\app\sys\apex_cli;
-use apex\services\utils\components;
 
 /**
  * Check the cwd and ensure we're currently inside an Apex installation 

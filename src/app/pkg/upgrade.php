@@ -300,7 +300,8 @@ public function compile($upgrade_id)
     }
 
     // Archive file
-    $archive_file = sys_get_temp_dir() . '/apex_upgrade_' . $upgrade['package'] . '_' . str_replace(".", "_", $upgrade['version']) . ".zip";
+    $zip_file = 'apex_upgrade_' . $upgrade['package'] . '-' . str_replace(".", "_", $upgrade['version']) . ".zip";
+    $archive_file = sys_get_temp_dir() . '/' . $zip_file;
     io::create_zip_archive($this->upgrade_dir, $archive_file);
 
     // Clean up
@@ -310,7 +311,7 @@ public function compile($upgrade_id)
     debug::add(4, tr("Successfully compiled upgrade, and archived it at {1}", $archive_file));
 
     // Return
-    return $archive_file;
+    return $zip_file;
 
 }
 
@@ -419,20 +420,17 @@ public function publish(int $upgrade_id)
     debug::add(2, tr("Starting to publish upgrade for package {1}, version {2}", $upgrade['package'], $upgrade['version']));
 
     // Compile upgrade
-    $archive_file = $this->compile($upgrade_id);
+    $zip_file = $this->compile($upgrade_id);
 
     // Set request
     $request = array(
-        'version' => $upgrade['version'],
-        'contents' => new CurlFile($archive_file, 'application/gzip')
+        'version' => $upgrade['version'], 
+        'contents' => new CurlFile(sys_get_temp_dir() . '/' . $zip_file, 'application/gzip', $zip_file)
     );
 
     // Send request to repo
-    $network = new network();
-    $vars = $network->send_repo_request((int) $repo['id'], $upgrade['package'], 'publish_upgrade', $request);
-
-    // Delete archive file
-    unlink($archive_file);
+    $network = app::make(network::class);
+    $vars = $network->send_repo_request((int) $repo['id'], $upgrade['package'], 'publish_upgrade', $request, false, $zip_file);
 
     // Update database
     db::query("UPDATE internal_upgrades SET status = 'published' WHERE id = %i", $upgrade_id);
@@ -477,7 +475,7 @@ public function install(string $pkg_alias)
     debug::add(3, tr("Contacting repository, and requesting available upgrades for package {1}", $pkg_alias));
 
     // Send request to repo
-    $client = new network();
+    $client = app::make(network::class);
     $response = $client->send_repo_request((int) $row['repo_id'], $pkg_alias, 'download_upgrade', $request);
     if (!isset($response['upgrades'])) { return; }
 
@@ -536,10 +534,8 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     debug::add(4, tr("Installing upgrade, loaded upgrade class file, package {1}, version {2}", $pkg_alias, $version));
 
     // Run install SQL, if needed
-    if (file_exists("$this->upgrade_dir/install.sql")) { 
-        $sql_lines = SqlParser::parse(file_get_contents("$this->upgrade_dir/install.sql"));
-        foreach ($sql_lines as $sql) { db::query($sql); }
-    }
+    io::execute_sqlfile("$this->upgrade_dir/install.sql");
+ 
 
     // Execute PHP, if needed
     if (method_exists($upgrade, 'install_before')) { 
@@ -548,9 +544,9 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
 
     // Set variables
     $new_toc = array(
-        'files' => array(),
-        'delete' => array(),
-        'add' => array()
+    'files' => array(),
+    'delete' => array(),
+    'add' => array()
     );
     $new_num = 1;
 
@@ -568,12 +564,14 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
         }
 
         // Save file
-        if (file_exists(SITE_PATH . '/' . $file)) { @unlink(SITE_PATH . '/' . $file); }
-        io::create_dir(dirname(SITE_PATH . '/' . $file));
-        if (!file_exists("$this->upgrade_dir/files/$file_num")) { 
-            file_put_contents(SITE_PATH . '/' . $file, '');
-        } else { 
-            copy("$this->upgrade_dir/files/$file_num", SITE_PATH . '/' . $file);
+        if (!(file_exists(SITE_PATH . '/' . $file) && preg_match("/views\/tpl\/public\//", $file))) { 
+            if (file_exists(SITE_PATH . '/' . $file)) { @unlink(SITE_PATH . '/' . $file); }
+            io::create_dir(dirname(SITE_PATH . '/' . $file));
+            if (!file_exists("$this->upgrade_dir/files/$file_num")) { 
+                file_put_contents(SITE_PATH . '/' . $file, '');
+            } else { 
+                copy("$this->upgrade_dir/files/$file_num", SITE_PATH . '/' . $file);
+            }
         }
     }
 
@@ -583,10 +581,10 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     // Go through components
     $components = json_decode(file_get_contents("$this->upgrade_dir/components.json"), true);
     foreach ($components as $row) { 
-        if ($row['type'] == 'template') { $comp_alias = $row['alias']; }
-        else { $comp_alias = $row['parent'] == '' ? $pkg_alias . ':' . $row['alias'] : $pkg_alias . ':' . $row['parent'] . ':' . $row['alias']; }
+        if ($row['type'] == 'view') { $comp_alias = $row['alias']; }
+        else { $comp_alias = $row['parent'] == '' ? $row['package'] . ':' . $row['alias'] : $row['package'] . ':' . $row['parent'] . ':' . $row['alias']; }
 
-        pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num']);
+        pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num'], $pkg_alias);
     }
 
     // Delete needed components

@@ -244,14 +244,15 @@ public function compile(string $pkg_alias):string
 
     // Create archive
     $version = db::get_field("SELECT version FROM internal_packages WHERE alias = %s", $pkg_alias);
-    $archive_file = sys_get_temp_dir() . '/' . $pkg_alias . '-' . str_replace(".", "_", $version) . '.zip';
+    $zip_file = 'apex_package_' . $pkg_alias . '-' . str_replace(".", "_", $version) . '.zip';
+    $archive_file = sys_get_temp_dir() . '/' . $zip_file;
     io::create_zip_archive($tmp_dir, $archive_file);
 
     // Debug
     debug::add(3, tr("Successfully compiled package for publication, {1}", $pkg_alias));
 
     // Return
-    return $archive_file;
+    return $zip_file;
 
 }
 
@@ -273,7 +274,7 @@ public function publish(string $pkg_alias, string $version = ''):bool
     if ($version == '') { $version = $row['version']; }
 
     // Compile
-    $archive_file = $this->compile($pkg_alias);
+    $zip_file = $this->compile($pkg_alias);
 
     // Load package
     $client = new package_config($pkg_alias);
@@ -289,16 +290,12 @@ public function publish(string $pkg_alias, string $version = ''):bool
         'name' => $pkg->name,
         'description' => $pkg->description,
         'readme' => $readme, 
-        'version' => $version,
-        'contents' => new CurlFile($archive_file, 'application/gzip', $archive_file)
+        'version' => $version
     );
 
     // Send HTTP request
-    $network = new network();
-    $vars = $network->send_repo_request((int) $row['repo_id'], $pkg_alias, 'publish', $request);
-
-    // Delete archive file
-    unlink($archive_file);
+    $network = app::make(network::class);
+    $vars = $network->send_repo_request((int) $row['repo_id'], $pkg_alias, 'publish', $request, false, $zip_file);
 
     // Debug
     debug::add(1, tr("Successfully published the package to repository, {1}", $pkg_alias));
@@ -348,7 +345,7 @@ public function download(string $pkg_alias, int $repo_id = 0)
     debug::add(3, tr("Starting download of package, {1}", $pkg_alias));
 
     // Initialize
-    $network = new network();
+    $network = app::make(network::class);
 
     // Get repo, if needed
     if ($repo_id == 0) { 
@@ -368,11 +365,10 @@ public function download(string $pkg_alias, int $repo_id = 0)
 
     // Send request
     $vars = $network->send_repo_request((int) $repo_id, $pkg_alias, 'download');
-
-// Save contents
+    // Download zip file
     $zip_file = sys_get_temp_dir() . '/apex_' . $pkg_alias . '.zip';
     if (file_exists($zip_file)) { @unlink($zip_file); }
-    file_put_contents($zip_file, base64_decode($vars['contents']));
+    io::download_file($vars['download_url'], $zip_file);
 
     // Unpack zip file
     $tmp_dir = sys_get_temp_dir() . '/apex_' . $pkg_alias;

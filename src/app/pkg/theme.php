@@ -150,13 +150,12 @@ public function publish(string $theme_alias)
         'author_url' => ($theme->author_url ?? ''),
         'envato_item_id' => ($theme->envato_item_id ?? ''),
         'envato_username' => ($theme->envato_username ?? ''),
-        'envato_url' => ($theme->envato_url ?? ''),
-        'contents' => new CurlFile($zip_file, 'application/gzip', $theme_alias . '.zip')
+        'envato_url' => ($theme->envato_url ?? '')
     );
 
     // Send repo request
     $client = app::make(network::class);
-    $vars = $client->send_repo_request((int) $row['repo_id'], $theme_alias, 'publish', $request);
+    $vars = $client->send_repo_request((int) $row['repo_id'], $theme_alias, 'publish', $request, false, 'apex_theme_' . $theme_alias . '.zip');
 
     // Debug
     debug::add(1, tr("Successfully published theme to repository, {1}", $theme_alias));
@@ -297,7 +296,7 @@ throw RepoException('not_exists', $repo_id);
     // Save zip file
     $zip_file = sys_get_temp_dir() . '/apex_theme_' . $theme_alias . '.zip';
     if (file_exists($zip_file)) { @unlink($zip_file); }
-    file_put_contents($zip_file, base64_decode($vars['contents']));
+    io::download_file($vars['download_url'], $zip_file);
 
     // Debug
     debug::add(4, tr("Successfully downloaded theme, {1}", $theme_alias));

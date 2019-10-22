@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
+use apex\svc\db;
 use apex\svc\redis;
 use apex\svc\debug;
 
@@ -37,4 +38,8 @@ use apex\svc\debug;
  * $data = cache::get('some_id');
  *
  */
+class storage
+{
+
+
 

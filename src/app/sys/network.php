@@ -267,10 +267,11 @@ public function check_upgrades(array $packages = array())
  * @param string $action The action being performed
  * @param array $request The contents of the POST request
  * @param bool $noerror If true, will return false instead of triggering an error
+ * @param string $zip_file Optional zip file to upload with the package / theme / upgrade.
  *
  * @return mixed Array of the JSON response, or false if failed
  */
-public function send_repo_request(int $repo_id, string $alias, string $action, array $request = array(), bool $noerror = false)
+public function send_repo_request(int $repo_id, string $alias, string $action, array $request = array(), bool $noerror = false, string $zip_file = '')
 { 
 
     // Get repo
@@ -279,7 +280,7 @@ public function send_repo_request(int $repo_id, string $alias, string $action, a
         throw new RepoException('not_exists', $repo_id);
     }
 
-    // Set request
+    //  Set request
     $request['alias'] = $alias;
     if ($repo['username'] != '') { $request['username'] = encrypt::decrypt_basic($repo['username']); }
     if ($repo['password'] != '') { $request['password'] = encrypt::decrypt_basic($repo['password']); }
@@ -301,6 +302,23 @@ public function send_repo_request(int $repo_id, string $alias, string $action, a
     if ($vars['status'] != 'ok') { 
         if ($noerror === true) { return false; }
         throw new RepoException('remote_error', 0, '', $vars['errmsg']);
+    }
+
+    // Upload cheunked file, if needed
+    if ($zip_file != '') { 
+
+        // Get repo host
+        $host = $repo['is_ssl'] == 1 ? 'https://' : 'http://';
+        $host .= $repo['host'];
+
+        // Get local file
+        $local_file = sys_get_temp_dir() . '/tmp.zip';
+        if (file_exists($local_file)) { @unlink($local_file); }
+        rename(sys_get_temp_dir() . '/' . $zip_file, $local_file);
+
+        // Upload file
+        io::send_chunked_file($host, $local_file, $zip_file);
+        @unlink($local_file);
     }
 
     // Return

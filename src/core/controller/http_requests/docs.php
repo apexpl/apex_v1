@@ -73,6 +73,11 @@ class docs
 public function process()
 { 
 
+    // Set area / theme
+    $theme = app::_config('core:theme_public');
+    app::set_area('public');
+    app::set_theme($theme);
+
     // Get URI
     $md_file = preg_replace("/\.md$/", "", implode("/", app::get_uri_segments()));
     if ($md_file == '') { $md_file = 'index'; }

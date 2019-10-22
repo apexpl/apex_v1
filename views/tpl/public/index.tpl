@@ -43,7 +43,7 @@
 
                 <ul class="arrow_list">
                     <li><a href="https://www.reddit.com/r/Apex_Platform/" target="_blank">Reddit (/r/Apex_Platform)</a></li>
-                    <li><a href="https://twitter.com/DizakMatt" target="_blank">Twitter (@DizakMatt)</a></li>
+                    <li><a href="https://twitter.com/ApexPlatform" target="_blank">Twitter (@ApexPlatform)</a></li>
                 </ul>
             </div>
         </div>

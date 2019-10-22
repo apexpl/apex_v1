@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\worker;
 
 use apex\app;
+use apex\svc\io;
 use apex\app\msg\emailer;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\EventMessageInterface as event;
@@ -47,12 +48,11 @@ public function send_sms(event $msg)
     $sms = $msg->get_params();
 
     // Set request
-    $phone = preg_replace("/[\D]/", "", $sms->get_phone());
     $request = array(
         'api_key' => app::_config('core:nexmo_api_key'),
         'api_secret' => app::_config('core:nexmo_api_secret'),
-        'from' => $sms->get_from_name,
-        'to' => $phone,
+        'from' => $sms->get_from_name(),
+        'to' => $sms->get_phone(), 
         'text' => $sms->get_message()
     );
 
@@ -62,6 +62,7 @@ public function send_sms(event $msg)
 
     // Send request
     $response = io::send_http_request($url);
+    $vars = json_decode($response, true);
 
     // Return
     $ok = preg_match("/\"error-text\":\"(.+?)\"/", $response, $match) ? false : true;

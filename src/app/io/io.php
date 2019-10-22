@@ -9,6 +9,7 @@ use apex\svc\debug;
 use apex\app\exceptions\IOException;
 use apex\app\io\SqlParser;
 use ZipArchive;
+use CurlFile;
 
 /**
  * I/O Library for File and Directory Handling.
@@ -217,7 +218,7 @@ public function send_http_request(string $url, string $method = 'GET', $request 
     debug::add(2, tr("Sending HTTP request to the URL: {1}", $url));
 
     // Send via cURL
-    $ch = curl_init();
+    $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_FAILONERROR, 1);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
@@ -240,6 +241,7 @@ public function send_http_request(string $url, string $method = 'GET', $request 
 
     // Send http request
     $response = curl_exec($ch);
+
     curl_close($ch);
 
     // Return
@@ -293,6 +295,56 @@ public function send_tor_request(string $url, string $method = 'GET', array $req
     return $response;
 
 }
+
+/**
+ * Download a remote file
+ *
+ * Downloads a file from the given URL, and stories it within the specifiled filename.  This 
+ * streams the file into its target location to ensure there are no memory issues with larger files.
+ *
+ * @param string $url The URL of the remote file to download.
+ * @param string $filename The filename to save the downloaded file to.
+ *
+ * @return bool WHther or not the operation was successful.
+ */
+public function download_file(string $url, string $filename):bool
+{
+
+    // Debug
+    debug::add(3, tr("Downloading remote file from {1} and saving to {2}", $url, $filename));
+
+    // Open file
+    if (!$fh = fopen($filename, 'w+')) { 
+        throw new IOException('file_no_write', $filename);
+    }
+
+    // Send via cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 600);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+    if (preg_match("/^https/", $url)) { curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); }
+    curl_setopt($ch, CURLOPT_FILE, $fh); 
+
+    // Send http request
+    curl_exec($ch);
+
+    // Close
+    curl_close($ch);
+    fclose($fh);
+
+    // Debug
+    debug::add(3, tr("Finished downloading file from {1}", $url));
+
+    // Return
+    return true;
+
+
+}
+
+
 
 /**
  * Generate a random string. 
@@ -440,6 +492,95 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
 
     // Return
     return true;
+
+}
+
+/** 
+ * Get a chunked file upload.
+ *
+ * Will retrive a large file upload using chunks.  Checks 
+ * if upload is already in progress, and if so, appends to existing temporary 
+ * file, otherwise starts a new upload and returns the filename.  Once upload 
+ * is done, will dispatch the 'core.fils. chunk_upload' event message to listner / workers.
+ *
+ * @param string $file_id Any unique ID# that will be passed back to the listner / worker to identify the file upload completion.
+ */
+public function get_chunk_upload(string $file_id)
+{
+
+    // Return unique filename, if needed
+    if (!app::has_post('chunk_file')) { 
+        $filename = uniqid() . '_' . $file_id;
+        return $filename;
+    }
+
+}
+
+/**
+ * Send a chunked file
+ * 
+ * @parma string $url The URL to send the file to.
+ * @param string $filename The full path of the file to send.
+ * @param string $remote_filename The remote filename to send with the request
+ */
+public function send_chunked_file(string $url, string $filename, string $remote_filename)
+{
+
+    // Ensure file exists
+    if (!file_exists($filename)) { 
+        throw new IOException('file_not_exists', $filename);
+    }
+
+    // Get size of file
+    $size = filesize($filename);
+    $total_chunks = ceil($size / 524288);
+
+    // Get URL
+    $url = rtrim($url, '/') . '/upload_chunk/' . $remote_filename . '/';
+
+    // Open file
+    if (!$fh = fopen($filename, 'rb')) { 
+        throw new IOException('file_no_read', $filename);
+    }
+
+    // Set variables
+    $count = 0;
+    $chunk_num = 1;
+    $contents = '';
+
+    // Go through file
+    while ($buffer = fread($fh, 1024)) { 
+        $contents .= $buffer;
+        $count++;
+
+        // Send request, if needed
+        if ($count >= 512) { 
+
+            // Set request
+            $request = array(
+                'contents' => base64_encode($contents)
+            );
+
+            // Send http request
+            $response = $this->send_http_request($url . $chunk_num . '/' . $total_chunks, 'POST', $request);
+
+            // Update variables, as needed
+                $contents = '';
+                $count = 0;
+                $chunk_num++;
+        }
+
+    }
+
+    // Send last chunk, if needed
+    if (!empty($contents)) {
+        $request = array('contents' => base64_encode($contents));
+        $this->send_http_request($url . $chunk_num . '/' . $total_chunks, 'POST', $request);
+    }
+
+    // Return
+    return true;
+
 
 }
 

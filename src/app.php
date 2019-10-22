@@ -187,46 +187,6 @@ private function initialize()
 }
 
 /**
- * Private.  Build the container. 
- *
- * Builds the dependency injection container suing the popular php-di package, 
- * plus retrieves service definitions based on request type, and initializes 
- * the various singletons. 
- *
- * @param string $reqtype The type of request (http, cli, test)
- */
-private function build_container_old(string $reqtype)
-{ 
-
-    // Set request type
-    self::$reqtype = $reqtype;
-    self::$reqtype_original = $reqtype;
-
-    // Build container
-    $builder = new \DI\ContainerBuilder();
-    $builder->useAnnotations(true);
-    $this->container = $builder->build();
-    $this->set(app::class, $this);
-
-    // Get service definitions
-    $this->services = require(__DIR__ . '/../bootstrap/' . $reqtype . '.php');
-
-    // Initialize services
-    foreach ($this->services as $service => $vars) { 
-        $class = "\\apex\\services\\" . str_replace("/", "\\", $service);
-        if ($this->has($class)) { 
-            $class::set_app($this);
-        }
-
-        // Assign service, if autowire
-        if (isset($vars['autowire']) && $vars['autowire'] === true) { 
-            $this->assign_service($service);
-        }
-    }
-
-}
-
-/**
  * Private.  Unpack the HTTP request. 
  *
  * Unpack the request.  Sanitizes the input arrays, checks which controller 
@@ -253,7 +213,7 @@ private function unpack_request()
 
     // Set request body
     if (php_sapi_name() != "cli") { 
-        self::$request_body = file_get_contents('php://stdin');
+        self::$request_body = file_get_contents('php://input');
     }
 
     // Get uploaded files

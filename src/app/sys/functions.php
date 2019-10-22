@@ -174,8 +174,6 @@ function tr(...$args):string
 function fdate(string $date, bool $add_time = false):string
 { 
 
-$d = $date == '2019-03-02 06:55:02' ? 1 : 0;
-
     // Get timezone data
     list($offset, $dst) = app::get_tzdata();
 

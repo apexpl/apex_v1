@@ -18,21 +18,21 @@ class RepoException   extends ApexException
 
     // Properties
     private $error_codes = array(
-    'not_exists' => "No repository exists within the database with ID# {id}",
-    'invalid_repo' => "No valid repository exists at the URL, {url}",
-    'no_repos_exist' => "There are no repositories currently listed in the database.  Please add at least one repository (eg. php apex.php add_repo URL) before continuing.",
-    'host_not_exists' => "No repository exists in this system with the host {url}",
-    'remote_error' => "Repository returned error: {error}",
+        'not_exists' => "No repository exists within the database with ID# {id}",
+        'invalid_repo' => "No valid repository exists at the URL, {url}",
+        'no_repos_exist' => "There are no repositories currently listed in the database.  Please add at least one repository (eg. php apex.php add_repo URL) before continuing.",
+        'host_not_exists' => "No repository exists in this system with the host {url}",
+        'remote_error' => "Repository returned error: {error}",
 
-    // Repo API exceptions
-    'not_enabled' => "This repository is not enabled, hence all API communication is disallowed.  If you are the site administrator, you may enable the repository via the Devel Kit-&gt;Settings menu of the administration panel",
-    'no_api_method' => "The method {method} is not supported by this repository.  Please check the method name, and try again.",
-    'no_upload' => "You did not upload a zip file to publish.",
-    'no_auth' => "Invalid username or password.  Please check your login credentials, and try again.",
-    'no_package_access' => "You do not have access to this package / theme.  If you believe this message is in error, please contact customer support for further details.",
-    "package_not_exists" => "The requested package / theme does not exist on this repositroy.  Please check the alias, and try again.",
-    'package_inactive' => "The requested package / theme does exist on this repository, but is not currently active.  Please try again later, or contact customer support for further information.",
-    'zipfile_not_exists' => "This package exists within the database, but the zip file containg the package does not.  Please contact customer support for further information."
+        // Repo API exceptions
+        'not_enabled' => "This repository is not enabled, hence all API communication is disallowed.  If you are the site administrator, you may enable the repository via the Devel Kit-&gt;Settings menu of the administration panel",
+        'no_api_method' => "The method {method} is not supported by this repository.  Please check the method name, and try again.",
+        'no_upload' => "You did not upload a zip file to publish.",
+        'no_auth' => "Invalid username or password.  Please check your login credentials, and try again.",
+        'no_package_access' => "You do not have access to this package / theme.  If you believe this message is in error, please contact customer support for further details.",
+        "package_not_exists" => "The requested package / theme does not exist on this repositroy.  Please check the alias, and try again.",
+        'package_inactive' => "The requested package / theme does exist on this repository, but is not currently active.  Please try again later, or contact customer support for further information.",
+        'zipfile_not_exists' => "This package exists within the database, but the zip file containg the package does not.  Please contact customer support for further information."
     );
 
 
