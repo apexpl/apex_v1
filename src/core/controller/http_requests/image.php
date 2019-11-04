@@ -3,13 +3,17 @@ declare(strict_types = 1);
 
 namespace apex\core\controller\http_requests;
 
-use apex\DB;
-use apex\registry;
-use apex\core\images;
-use apex\rpc;
+use apex\app;
+use apex\svc\db;
+use apex\svc\debug;
+use apex\svc\images;
 
 
-class image extends \apex\core\controller\http_requests
+/**
+ * HTTP controller that handles the retrieval and siplaying of 
+ * images from the apex\svc\images library.
+ */
+class image
 {
 
 
@@ -22,14 +26,11 @@ public function process()
 { 
 
     // Get size
-    $size = 'full';
-    //$size = strtolower(preg_replace("/\..+$/", "", $parts[3]));
+    $parts = app::get_uri_segments();
+    $size = isset($parts[2]) ? preg_replace("/\.(.+)$/", "", $parts[2]) : 'full';
 
     // Display image
-    images::display(registry::$uri[0], registry::$uri[1], $size);
-
-    // Echo response
-    registry::echo_response();
+    images::display($parts[0], $parts[1], $size);
 
 }
 

@@ -14,7 +14,7 @@ use Ratchet\WebSocket\WsServer;
 
 
 /**
-  * Web socket server class.
+ * Web socket server class.
  */
 class websocket
 {

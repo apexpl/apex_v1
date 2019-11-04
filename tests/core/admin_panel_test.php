@@ -144,6 +144,8 @@ public function test_page_settings_general()
         'site_facebook' => 'unit_fb',
         'site_twitter' => 'unit_twit',
         'site_linkedin' => 'unit_linked',
+        'site_youtube' => 'unit_youtube', 
+        'site_reddit' => 'unit_reddit', 
         'site_instagram' =>'unit_instagram',
         'submit' => 'site_info'
     );

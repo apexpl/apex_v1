@@ -1128,6 +1128,9 @@ public static function echo_response()
     // Debug
     debug::add(2, "Outputting response to web browser");
 
+    // Finish debug session
+    debug::finish_session();
+
     // Set HTTP status code
     http_response_code(self::$res_status);
 

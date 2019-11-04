@@ -18,8 +18,6 @@ class ws_server implements MessageComponentInterface
 {
 
 
-
-
     // Set properties
     protected $clients;
 
@@ -37,7 +35,7 @@ public function __construct()
  * @param ConnectionInterface $conn The connection that is being opened.
  */
 public function onOpen(ConnectionInterface $conn)
-{ 
+{
     $this->clients->attach($conn);
 }
 

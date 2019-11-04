@@ -290,7 +290,7 @@ public function publish(string $pkg_alias, string $version = ''):bool
         'name' => $pkg->name,
         'description' => $pkg->description,
         'readme' => $readme, 
-        'version' => $version
+        'version' => $version 
     );
 
     // Send HTTP request
@@ -441,6 +441,18 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
 
     // Debug
     debug::add(4, tr("Installing package, loaded configuration and executed any needed PHP for package, {1}", $pkg_alias));
+
+    // Install dependeencies
+    foreach ($pkg->dependencies as $alias) { 
+
+        // Check if installed
+        if ($irow = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $alias)) { 
+            continue;
+        }
+
+        // Install package
+        $this->install($alias);
+    }
 
     // Install configuration
     $client->install_configuration();

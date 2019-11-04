@@ -1,9 +1,9 @@
 
 # Controller Component
 
-&nbsop; | &nbsp;
+&nbsp; | &nbsp;
 ------------- |-------------
-**Description:** | Used to implement a standardized flow for a process that differs depending on some tpye / controller.  For example, http_requests are one set of controllers that handle all incoming HTTP requests to Apex depending on the first element of the URI.  Another is the various transaction types available (deposit, withdraw, fee, commission, membership_fee) which all need to follow the same logic, but handle the transactions slightly differently.
+**Description:** | Used to implement a standardized flow for a process that differs depending on some type / controller.  For example, http_requests are one set of controllers that handle all incoming HTTP requests to Apex depending on the first element of the URI.  Another is the various transaction types available (deposit, withdraw, fee, commission, membership_fee) which all need to follow the same logic, but handle the transactions slightly differently.
 **Create Command:** Parent: `php apex.php create controller PACKAGE:ALIAS`<br />Child: `php apex.php create controller PACKAGE:PARENT:ALIAS OWNER`
 **File Location:** | Parent: /src/PACKAGE/controller/ALIAS.php<br />Child: /src/PACKAGE/controller/PARENT/ALIAS.php
 **Namespace:** | Parent: `\apex\PACKAGE\controller\ALIAS`<br />Child: `\apex\PACKAGE\controller\PARENT\ALIAS`
@@ -46,6 +46,12 @@ abstract public function lose(float $amount);
 
 Every child controller created will extends this class, meaning must include the above methods with the same parameters.  This 
 allows you to define the standard process flow, while allowing each game to act differently.
+
+
+### Default Code
+
+Within the child controller, you may define a public property of `$default_code`, which is a BASE64 encoded string, 
+and will be used as the default class of every child controller created.  For an example of this, look at the */src/core/controller/notifications.php / http_requests.php* files.
 
 
 ## Child Controllers

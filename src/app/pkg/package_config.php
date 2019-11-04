@@ -78,7 +78,9 @@ public function load()
         'boxlists',
         'placeholders',
         'notifications', 
-        'dashboard_items'
+        'dashboard_items', 
+        'dependencies', 
+        'composer_dependencies'
     );
 
     foreach ($vars as $var) { 
@@ -130,6 +132,9 @@ public function install_configuration($pkg = '')
 
     // Install dashboard items
     $this->install_dashboard_items($pkg);
+
+    // Install composer dependencies
+    $this->install_composer_dependencies($pkg);
 
     // Debug
     debug::add(2, tr("Completed configuration install / scan of package, {1}", $this->pkg_alias));
@@ -756,6 +761,31 @@ public function install_notifications($pkg)
         $client = new notification();
         $client->create($data);
     }
+
+}
+
+/**
+ * Install composer dependencies
+ *
+ * @param object $pkg The loaded package objct.
+ */
+public function install_composer_dependencies($pkg)
+{
+
+    // Initial check
+    if (!isset($pkg->composer_dependencies)) { return; }
+    if (!$is_array($pkg->composer_dependencies)) { return; }
+
+    // Get composer.json file
+    $vars = json_decode(file_get_contents(SITE_PATH . '/composer.json'), true);
+
+    // Go through dependencies
+    foreach ($pkg->composer_dependencies as $key => $value) { 
+        $vars['require'][$key] = $value;
+    }
+
+    // Save composer.json file
+    file_put_contents(SITE_PATH . '/composer.json', json_encode($vars, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
 }
 

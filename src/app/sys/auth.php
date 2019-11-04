@@ -56,6 +56,7 @@ class auth implements AuthInterface
     private $user_type;
     private $is_invalid = false;
     private $session_id;
+    private $auth_hash = '';
 
     // Configuration properties
     private $expire_secs;
@@ -181,6 +182,7 @@ private function check_for_session()
     if (!$row = redis::hgetall($chk_hash)) { 
         return false;
     }
+    $this->auth_hash = hash('sha512', $this->session_id);
 
     // Debug
     debug::add(3, tr("Found authenticated session, userid: {1}, uri: {2}", $row['userid'], app::get_uri()));
@@ -210,6 +212,13 @@ private function check_for_session()
     return array($chk_hash, $row);
 
 }
+
+/**
+ * Get hash
+ *
+ * @return sting the auth hash
+ */
+public function get_hash():string { return $this->auth_hash; }
 
 /**
  * Login a user. 
@@ -607,15 +616,15 @@ public function recaptcha()
 
     // Set request
     $request = array(
-        'secret' => app::_config('recaptcha_secret_key'),
+        'secret' => app::_config('core:recaptcha_secret_key'),
         'response' => app::_post('g-recaptcha-response'),
         'remoteip' => app::get_ip()
     );
 
     // Send request
-    //$response = io::send_http_request('https://www.google.com/recaptcha/api/siteverify', 'POST', $request);
+    $response = io::send_http_request('https://www.google.com/recaptcha/api/siteverify', 'POST', $request);
 
-    // Decode JSON
+    // Decode JSON  
     if (!$vars = json_decode($response, true)) { 
     return false;
     }

@@ -6,6 +6,7 @@ use apex\app\interfaces\DBInterface;
 use apex\app\interfaces\msg\DispatcherInterface;
 use apex\app\interfaces\ViewInterface;
 use apex\app\interfaces\AuthInterface;
+use apex\app\interfaces\CacheInterface;
 use apex\app\msg\emailer;
 use apex\app\sys\components;
 use apex\app\sys\encrypt;
@@ -15,6 +16,7 @@ use apex\app\utils\hashes;
 use apex\app\utils\images;
 use apex\app\utils\geoip;
 use apex\app\io\io;
+use apex\app\io\cache;
 
 
 return [
@@ -23,7 +25,8 @@ return [
     DebuggerInterface::class => [apex\app\sys\debug::class], 
     DispatcherInterface::class => [apex\app\msg\dispatcher::class, ['channel_name' => 'apex']],
     ViewInterface::class => [apex\app\web\view::class], 
-    AuthInterface::class => [apex\app\sys\auth::class], 
+    AuthInterface::class => [apex\app\sys\auth::class],
+    CacheInterface::class => [apex\app\io\cache::class],  
 
     emailer::class => [emailer::class], 
     components::class => [components::class], 

@@ -60,10 +60,11 @@ public function process(array $data)
     } else { 
         $data = debug::get_data();
     }
+    if (!isset($data['registry'])) { return; }
 
     // Get URI
-    $uri = $data['registry']['http_controller'] == 'public' ? 'public' : $data['registry']['http_controller'];
-    $uri = '/' . $uri . '/' . $data['registry']['uri'];
+    //$uri = $data['registry']['panel'] == 'public' ? 'public' : $data['registry']['http_controller'];
+    $uri = '/' . $data['registry']['uri'];
 
     // Get authenticated user
     if ($data['registry']['userid'] > 0) { 

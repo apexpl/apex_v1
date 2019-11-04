@@ -5,8 +5,6 @@ Welcome to Apex, a powerful PHP software platform to efficiently develop, deploy
 online operations.  You  will be amazed at the simplicity for the quality.  Please take a few moments to
 browse the documentation below.
 
-Donations gratefully accepted.  Bitcoin address:  3JnYmUHhz1CKz9vgxX55qmBnzVRPirA21D or PayPal at payments@apex-platform.org.
-
 
 #### Other Documentation
 
@@ -30,7 +28,7 @@ Donations gratefully accepted.  Bitcoin address:  3JnYmUHhz1CKz9vgxX55qmBnzVRPir
 7. [Views](views.md)
 8. [Themes](themes.md)
 9. [Event Dispatchers](event_dispatchers.md)
-    1. [Listeners](listeners.md)
+    1. [Listeners](event_listeners.md)
 10. [Communication (e-mail / SMS)](communicate.md)
 11. [Error Handling, Logging / Debugging](logging.md)
 12. [Unit Tests](tests.md)
@@ -63,5 +61,6 @@ Service | Description
 [io](https://apex-platform.org/api/classes/apex.app.io.io.html) | Various methods allowing for easy manipulation and parsing of files and directories including zip archives.
 
 
+Donations gratefully accepted.  Bitcoin address:  3JnYmUHhz1CKz9vgxX55qmBnzVRPirA21D or PayPal at payments@apex-platform.org.
 
 

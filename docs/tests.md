@@ -168,8 +168,8 @@ function test_sometest()
 The below table lists all custom assertions available to your unit tests within Apex.
 
 
-Method | Description ------------- |
-------------- 
+Method | Description 
+------------- |------------- 
 `assertPageTitle($title)` | Checks the page title of the last test request sent to see if it matches `$title`.  The inverse is `assertNotPageTitle`.
 `assertPageTitleContains($text)` | Checks if the page title contains the specified `$text`.  Inverse is `assertPageTitleNotContains`. 
 `assertPageContains($text)` | Checks if the page contents anywhere contains `$text`. Inverse is `assertPageNotContains`. 

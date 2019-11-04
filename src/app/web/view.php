@@ -8,6 +8,8 @@ use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\msg;
 use apex\svc\redis;
+use apex\svc\cache;
+use apex\svc\auth;
 use apex\svc\components;
 use apex\app\web\html_tags;
 use apex\core\admin;
@@ -152,6 +154,10 @@ public function parse():string
     // Process theme components
     $this->process_theme_components();
     debug::add(5, tr("Completed processing all theme components for template"));
+
+    // Process cache assets
+    $this->cache_assets();
+    debug::add(5, "Processed cached assets for template");
 
     // Parse HTML
     $html = $this->parse_html($this->tpl_code);
@@ -686,6 +692,30 @@ protected function process_theme_components()
 }
 
 /**
+ * Load assets from cache
+ *
+ * Goes through all javascript, CSS, and image references that point internally to the server, 
+ * and either retrives them fromthe cachce, or adds them to the cache if the 
+ * item doesn't already exist.
+ */
+protected function cache_assets()
+{
+
+    // Check if cache is enabled
+    if (app::_config('core:cache') != 1) { 
+        return;
+    }
+
+    // Go through internal links
+    preg_match_all("/href=\"~theme_uri~\/(.+?)\"/si", $this->tpl_code, $tag_match, PREG_SET_ORDER);
+    foreach ($tag_match as $match) {
+        $uri = '/cache_item/theme:' . app::get_area() . ':' . $match[1];
+        $this->tpl_code = str_replace($match[0], 'href="' . $uri . '"', $this->tpl_code);
+    }
+
+}
+
+/**
  * Protected. Assign base variables 
  *
  * Assigns the base variables that are available to all templates, such as the 
@@ -740,6 +770,24 @@ public function load_base_variables()
             }
         }
     }
+
+    // Set site variables
+    $site_vars = array(
+        'domain_name' => app::_config('core:domain_name'), 
+        'name' => app::_config('core:site_name'), 
+        'address' => app::_config('core:site_address'), 
+        'address2' => app::_config('core:site_address2'), 
+        'email' => app::_config('core:site_email'), 
+        'phone' => app::_config('core:site)phone'), 
+        'tagline' => app::_config('core:site_tagline'), 
+        'facebook' => app::_config('core:site_facebook'), 
+        'twitter' => app::_config('core:site_twitter'), 
+        'linkedin' => app::_config('core:site_linkedin'), 
+        'youtube' => app::_config('core:site_youtube'), 
+        'reddit' => app::_config('core:site_reddit'), 
+        'instagram' => app::_config('core:site_instagram')
+    );
+    $this->assign('site', $site_vars);
 
 }
 
@@ -912,14 +960,15 @@ protected function add_system_javascript($html)
 
     // Get WS auth hash
     if (app::get_userid() > 0) { 
-        $ws_auth = implode(":", array(app::get_area(), app::get_uri(), 'AUTH_HASH_HERE'));
+        $ws_auth = implode(":", array(app::get_area(), app::get_uri(), auth::get_hash()));
     } else { 
         $ws_auth = implode(":", array(app::get_area(), app::get_uri(), 'public', (time() . rand(0, 99999))));
     }
 
     // Add WebSocket connection to Javascript
+    $host = preg_replace("/:(.+)$/", "", app::get_host());
     $js = "\t<script type=\"text/javascript\">\n";
-    $js .= "\t\tvar ws_conn = new WebSocket('ws://" . app::get_host() . ":8194');\n";
+    $js .= "\t\tvar ws_conn = new WebSocket('ws://" . $host . ":8194');\n";
     $js .= "\t\tws_conn.onopen = function(e) {\n";
     $js .= "\t\t\tws_conn.send(\"ApexAuth: $ws_auth\");\n";
     $js .= "\t\t}\n";

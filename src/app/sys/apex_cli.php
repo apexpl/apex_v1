@@ -100,10 +100,10 @@ public function help($vars)
     $response .= str_pad('delete TYPE PACKAGE:[PARENT:]ALIAS', 40) . "Deletes a component.  See documentation for details\n\n";
 
     // Unit ets
-    $response .= "\tUNIT ESTS / DEBUG\n";
-    $response .= str_pad('test PACKAGE [CLASS_NAME]', 40) . "Executes unit tests of specified package, and optionally class name\n";
-    $response .= str_pad('testall', 40) . "Executes all unit ests from all packages\n";
-    $response .= str_pad('debug LEVEL', 40) . "Sets current debug more, 0 = off, 1 = next request, 2 = always on\n\n";
+    $response .= "\tDebug / Cache \n";
+    $response .= str_pad('debug LEVEL', 40) . "Sets current debug more, 0 = off, 1 = next request, 2 = always on\n";
+    $response .= str_pad('enable_cache', 40) . "Turns cache on.\n";
+    $response .= str_pad('disable_cache', 40) . "Turns cache off.\n\n";
 
     // System maintenance
     $response .= "\tSYSTEM / MAINTENANCE\n";
@@ -1212,6 +1212,38 @@ public function compile_core($vars)
 
     // Return
     return  "Successfully compiled the core Apex framework, and it is located at $destdir\n\n";
+
+}
+
+/**
+ * Enable the cache
+ *
+ * @param iterable $vars Nothing.
+ */
+public function enable_cache(...$vars)
+{
+
+    // Return cache on
+    app::update_config_var('core:cache', 1);
+
+    // Return
+    return "Successfully enabled the cache.";
+
+}
+
+/**
+ * Disable the cache
+ *
+ * @param iterable $vars Nothing.
+ */
+public function disable_cache(...$vars)
+{
+
+    // Disable cache
+    app::update_config_var('core:cache', 0);
+
+    // Return
+    return "Successfully disabled the cache";
 
 }
 

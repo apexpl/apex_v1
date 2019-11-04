@@ -62,13 +62,15 @@
                         <a href="#" class="x-navigation-minimize"><span class="fa fa-dedent"></span></a>
                     </li>
                     <!-- END TOGGLE NAVIGATION -->
-                    <!--SEARCH -->
+
+
+                    <!-- 
                     <li class="xn-search">
                         <form role="form">
                             <input type="text" name="search" placeholder="Search..."/>
                         </form>
                     </li>   
-                    <!-- END SEARCH -->                    
+                    -->
                  
                     <!-- POWER OFF -->
                     <li class="xn-icon-button pull-right last">

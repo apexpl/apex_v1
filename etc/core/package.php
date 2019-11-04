@@ -10,7 +10,7 @@ class pkg_core
 {
 
 // Set package variables
-public $version = '1.2.6';
+public $version = '1.2.7';
 public $access = 'public';
 public $name = 'Core Framework';
 public $description = 'The core package of the framework, and is required for all installations of the software.';
@@ -29,7 +29,9 @@ $this->config = array(
     'encrypt_password' => '', 
     'encrypt_iv' => '', 
     'mode' => 'devel', 
-    'debug' => 3, 
+    'debug' => 0, 
+    'debug_level' => 3, 
+    'cache' => 0, 
     'date_format' => 'F j, Y', 
     'start_year' => date('Y'),
     'server_type' => '',
@@ -46,6 +48,8 @@ $this->config = array(
     'site_twitter' => 'https://twitter.com/DizakMatt', 
     'site_linkedin' => '', 
     'site_instagram' => '', 
+    'site_youtube' => '', 
+    'site_reddit' => '', 
     'domain_name' => '', 
     'session_expire_mins' => 60,  
     'session_retain_logs' => 'W2', 

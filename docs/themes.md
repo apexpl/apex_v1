@@ -91,17 +91,19 @@ Tag | Description
 The below merge fields are available system-wide and help personalize the site to the client's business.  The
 values of these fields are defined within the Settings->General menu of the administration panel, and should be self explanatory.
 
-* ~config.core:domain_name~
+* ~site.domain_name~
 * ~current_year~
-* ~config.core:site_name~
-* ~config.core:site_address~
-* ~config.core:site_address2~
-* ~config.core:site_email~
-* ~config.core:site_phone~
-* ~config.core:site_tagline~
-* ~config.core:site_facebook~
-* ~config.core:site_twitter~
-* ~config.core:site_linkedin~
-* ~config.core:site_instagram~
+* ~site.name~
+* ~site.address~
+* ~site.address2~
+* ~site.email~
+* ~site.phone~
+* ~site.tagline~
+* ~site.facebook~
+* ~site.twitter~
+* ~site.linkedin~
+* ~site.youtube~
+* ~site.reddit~
+* ~site.instagram~
 
 

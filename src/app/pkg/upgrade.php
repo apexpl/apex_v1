@@ -424,8 +424,7 @@ public function publish(int $upgrade_id)
 
     // Set request
     $request = array(
-        'version' => $upgrade['version'], 
-        'contents' => new CurlFile(sys_get_temp_dir() . '/' . $zip_file, 'application/gzip', $zip_file)
+        'version' => $upgrade['version'] 
     );
 
     // Send request to repo

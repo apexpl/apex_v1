@@ -158,7 +158,8 @@ public function process()
 
     // Apply markdown formatting
     $page_contents = MarkdownExtra::defaultTransform($md_code);
-
+    $page_contents = preg_replace("/<code (.*?)>/", "<code class=\"prettyprint\">", $page_contents);
+file_put_contents(SITE_PATH . '/t.txt', $page_contents);
     // Get HTML
     $theme_dir = SITE_PATH . '/views/themes/' . app::_config('core:theme_public') . '/sections';
     $html = file_get_contents("$theme_dir/header.tpl");

@@ -57,6 +57,8 @@ if (app::get_action() == 'update_general') {
         'site_facebook', 
         'site_twitter', 
         'site_linkedin', 
+        'site_youtube', 
+        'site_reddit', 
         'site_instagram' 
     );
 

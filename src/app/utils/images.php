@@ -1,14 +1,14 @@
 <?php
 declare(strict_types = 1);
 
-namespace apex\core;
+namespace apex\app\utils;
 
 use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
-use apex\app\utils\forms;
-use apex\app\io\io;
-
+use apex\svc\forms;
+use apex\svc\io;
+use apex\svc\cache;
 
 /**
  * Image Handling Library
@@ -55,7 +55,7 @@ class images
  *
  * @return int The ID# of the new image
  */
-public static function add(string $filename, string $contents, string $type, $record_id = '', string $size = 'full', int $is_default = 0):int
+public function add(string $filename, string $contents, string $type, $record_id = '', string $size = 'full', int $is_default = 0):int
 { 
 
     // Debug
@@ -111,7 +111,7 @@ public static function add(string $filename, string $contents, string $type, $re
  *
  * @return int The ID# of the image
  */
-public static function upload(string $form_field, string $type, $record_id = '', int $is_default = 0)
+public function upload(string $form_field, string $type, $record_id = '', int $is_default = 0)
 { 
 
     // Debug
@@ -123,7 +123,7 @@ public static function upload(string $form_field, string $type, $record_id = '',
     }
 
     // Add the file
-    $image_id = self::add($filename, $contents, $type, $record_id, 'full', $is_default);
+    $image_id = $this->add($filename, $contents, $type, $record_id, 'full', $is_default);
 
     // Return
     return $image_id;
@@ -138,24 +138,41 @@ public static function upload(string $form_field, string $type, $record_id = '',
  * @param string $size The size of the image
  * @param bool $allow_default If yes and image does not exist, will check for default image
  */
-public static function get(string $type, $record_id = '', string $size = 'full', bool $allow_default = false)
+public function get(string $type, $record_id = '', string $size = 'full', bool $allow_default = false)
 { 
+
+    // Check cache, if appropriate
+    $cache_item = implode(':', array('image', $type, $record_id, $size));
+    if (app::_config('core:cache') == 1 && $vars = cache::get($cache_item)) { 
+        return array($vars['filename'], $vars['mime_type'], $vars['width'], $vars['height'], $vars['contents']);
+    }
 
     // Check database
     if (!$row = db::get_row("SELECT * FROM images WHERE type = %s AND record_id = %s AND size = %s", $type, $record_id, $size)) { 
 
         // Check for default
-        if ($allow_default === true) { 
-            $row = db::get_row("SELECT * FROM images WHERE type = %s AND size = %s AND is_default = 1", $type, $size);
+        if ($allow_default === true && !$row = db::get_row("SELECT * FROM images WHERE type = %s AND size = %s AND is_default = 1", $type, $size)) { 
+            return false;
         }
     }
-    if (!$row) { return false; }
 
-    // Get contents
-    $contents = db::get_field("SELECT contents FROM images_contents WHERE id = %i", $row['id']);
+    // Set vars
+    $vars = array(
+        'filename' => $row['filename'], 
+        'mime_type' => $row['mime_type'], 
+        'width' => $row['width'], 
+        'height' => $row['height'], 
+        'contents' => db::get_field("SELECT contents FROM images_contents WHERE id = %i", $row['id'])
+    );
+
+    // Add to cache, if needed
+    if (app::_config('core:cache') == 1) { 
+        cache::set($cache_item, $vars);
+    }
+
 
     // Return
-    return array($row['filename'], $row['mime_type'], $row['width'], $row['height'], $contents);
+    return array($vars['filename'], $vars['mime_type'], $vars['width'], $vars['height'], $vars['contents']);
 
 }
 
@@ -169,11 +186,11 @@ public static function get(string $type, $record_id = '', string $size = 'full',
  * @param int $thumb_height The height of the thumbnail to generate.
  * @param int $is_default A (1/0) defining whether this is the default image for the image type.
  */
-public static function add_thumbnail(string $image_type, $record_id, string $size, int $thumb_width, int $thumb_height, $is_default = 0)
+public function add_thumbnail(string $image_type, $record_id, string $size, int $thumb_width, int $thumb_height, $is_default = 0)
 { 
 
     // Get contents of existing image
-    if (!list($filename, $type, $width, $height, $contents) = self::get($image_type, $record_id, 'full')) { 
+    if (!list($filename, $type, $width, $height, $contents) = $this->get($image_type, $record_id, 'full')) { 
         return false;
     }
 
@@ -242,7 +259,7 @@ public static function add_thumbnail(string $image_type, $record_id, string $siz
     imagedestroy($thumb_source);
 
     // Insert thumbnail to db
-    $thumb_id = self::add($filename, $thumb_contents, $image_type, $record_id, $size, $is_default);
+    $thumb_id = $this->add($filename, $thumb_contents, $image_type, $record_id, $size, $is_default);
 
     // Debug
     debug::add(4, tr("Created thumbnail for image of type: {1}, record_id: {2} of size: {3}", $type, $record_id, $size));
@@ -259,11 +276,11 @@ public static function add_thumbnail(string $image_type, $record_id, string $siz
  * @param mixed $record_id The ID# of the record, unique to the image type.
  * @param string $size The size of the image to display.
  */
-public static function display(string $type, $record_id = '', string $size = 'full')
+public function display(string $type, $record_id = '', string $size = 'full')
 { 
 
     // Get image
-    if (!list($filename, $mime_type, $width, $height, $contents) = self::get($type, $record_id, $size, true)) { 
+    if (!list($filename, $mime_type, $width, $height, $contents) = $this->get($type, $record_id, $size, true)) { 
         app::set_res_content_type('text/plain');
         app::set_res_body('No image exists here');
         return;

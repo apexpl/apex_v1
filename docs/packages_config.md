@@ -13,6 +13,8 @@ the arrays supported within this function.
 5. <a href="#placeholders">`$this->placeholders`</a>
 6. <a href="#boxlists">`$this->boxlists`</a>
 7. <a href="#notifications">`$this->notifications`</a>
+8. <a href="#dependencies">`$this->dependencies`</a>
+9. <a href="#composer_dependencies">`$this->composer_dependencies`</a>
 
 
 <a name="config"></a>
@@ -278,6 +280,38 @@ $this->notifications[] = array(
     'cond_group_id' => ''
 );
 ~~~
+
+
+
+<a name="dependencies"></a>
+### `$this->dependencies`
+
+A simple linear array that lists the package aliases of all dependencies for this package.  For example, 
+if the "users" package is required for this package to run correctly, you would put:
+
+~~~php
+$this->dependencies = array(
+    'users'
+);
+~~~
+
+
+
+<a name="composer_dependencies"></a>
+### `$this->composer_dependencies`
+
+An associative array that allows you to define additional composer dependencies that are required for tihs package.  Same as 
+the composer.json file, the keys are the package name, and the values are the version requirement.  Upon installation of the package, the composer.json file will be updated 
+accordingly, although you will need to manually run "composer update".  For example:
+
+~~~php
+$this->composer_dependencies = array(
+    'some/package' => '>=2.5.0', 
+    'another/package' => '*'
+);
+~~~
+
+
 
 
 

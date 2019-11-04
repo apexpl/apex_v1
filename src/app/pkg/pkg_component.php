@@ -74,9 +74,25 @@ public static function create(string $type, string $comp_alias, string $owner = 
         throw new ComponentException('php_file_exists', $type, '', $alias, $package, $parent);
     }
 
-    // Create component file
-    $code_type = ($type == 'controller' && $parent == '') ? 'controller_parent' : $type;
-    $code = base64_decode(self::$code_templates[$code_type]);
+    // Get default PHP code
+    if ($type == 'controller' && $parent != '') {
+        $class_file = SITE_PATH . '/src/' . $package . '/controller/' . $parent . '.php';
+        if (file_exists($class_file)) {
+            require_once($class_file);
+            $class_name = "apex\\" . $package . "\\controller\\" . $parent;
+            $class = new $class_name();
+            $code = $class->default_code ?? '';
+        } else { 
+            $code = self::$code_templates['controller'];
+        }
+        $code = base64_decode($code);
+
+    } else { 
+        $code_type = ($type == 'controller' && $parent == '') ? 'controller_parent' : $type;
+        $code = base64_decode(self::$code_templates[$code_type]);
+    }
+
+    // Replace merge fields in default code as needed
     $code = str_replace("~package~", $package, $code);
     $code = str_replace("~parent~", $parent, $code);
     $code = str_replace("~alias~", $alias, $code);

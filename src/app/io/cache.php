@@ -53,8 +53,13 @@ class cache implements CacheInterface
 public function get(string $key, $default_value = false)
 {
 
+    // Check if cache enabled
+    if (app::_config('core:cache') != 1) { 
+        return $default_value;
+    }
+
     // Check if exists
-    $key = 'cache: ' . $key;
+    $key = 'cache:' . $key;
     if (!redis::exists($key)) { 
         $value = $default_value;
     } else { 
@@ -76,6 +81,11 @@ public function get(string $key, $default_value = false)
 public function has(string $key):bool
 {
 
+    // Check if cache enabled
+    if (app::_config('core:cache') != 1) { 
+        return false;
+    }
+
     $ok = !redis::exists('cache:' . $key) ? false : true;
     return $ok;
 
@@ -90,6 +100,11 @@ public function has(string $key):bool
  */
 public function set(string $key, $value, int $ttl = 300)
 {
+
+    // Check if cache enabled
+    if (app::_config('core:cache') != 1) { 
+        return false;
+    }
 
     // Set item
     redis::set('cache:' . $key, serialize($value));
