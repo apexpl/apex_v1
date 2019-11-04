@@ -774,7 +774,7 @@ public function install_composer_dependencies($pkg)
 
     // Initial check
     if (!isset($pkg->composer_dependencies)) { return; }
-    if (!$is_array($pkg->composer_dependencies)) { return; }
+    if (!is_array($pkg->composer_dependencies)) { return; }
 
     // Get composer.json file
     $vars = json_decode(file_get_contents(SITE_PATH . '/composer.json'), true);
