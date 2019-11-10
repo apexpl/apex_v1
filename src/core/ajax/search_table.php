@@ -9,7 +9,10 @@ use apex\app\utils\tables;
 use apex\app\web\ajax;
 use apex\app\exceptions\ComponentException;
 
-
+/**
+ * Class that handles the AJAX based search of 
+ * data tables.
+ */
 class search_table extends ajax
 {
 

@@ -447,9 +447,6 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
 
     // Debug
     debug::add(2, tr("Unpacking zip archive {1} into the directory {2}", $zip_file, $dirname));
- 
-    // Debug
-    debug::add(3, tr("Unpacking zip archive {1} to directory {2}", $zip_file, $dirname));
 
     // Ensure archive file exists
     if (!file_exists($zip_file)) { 
@@ -457,8 +454,8 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
     }
 
     // Create directory to unpack to
-    if (is_dir($dirname)) { self::remove_dir($dirname); }
-    self::create_dir($dirname);
+    if (is_dir($dirname)) { $this->remove_dir($dirname); }
+    $this->create_dir($dirname);
 
     // Open zip file
     if (!$zip = zip_open($zip_file)) { 
@@ -482,13 +479,13 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
         debug::add(5, tr("Unpacking file from zip archive, {1}", $filename));
 
         // Save file
-        self::create_dir(dirname("$dirname/$filename"));
+        $this->create_dir(dirname("$dirname/$filename"));
         file_put_contents("$dirname/$filename", $contents);
     }
     zip_close($zip);
 
     // Debug
-    debug::add(3, tr("Successfully unpacked zip archive {1} to directory {2}", $zip_file, $dirname));
+    debug::add(2, tr("Successfully unpacked zip archive {1} to directory {2}", $zip_file, $dirname));
 
     // Return
     return true;

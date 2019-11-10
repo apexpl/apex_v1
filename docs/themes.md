@@ -99,6 +99,7 @@ values of these fields are defined within the Settings->General menu of the admi
 * ~site.email~
 * ~site.phone~
 * ~site.tagline~
+* ~site.about_us~
 * ~site.facebook~
 * ~site.twitter~
 * ~site.linkedin~

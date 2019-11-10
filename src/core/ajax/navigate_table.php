@@ -5,7 +5,6 @@ namespace apex\core\ajax;
 
 use apex\app;
 use apex\app\web\ajax;
-use apex\app\web\ajax;
 
 
 class navigate_table extends ajax

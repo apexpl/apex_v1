@@ -87,7 +87,7 @@ public function compile_language_pack()
         if (!$form = components::load('form', $row['alias'], $row['package'])) { continue; }
 
         // Go through form fields
-        Form_fields = $form->get_fields();
+        $Form_fields = $form->get_fields();
         foreach ($form_fields as $alias => $vars) { 
             if (isset($vars['label'])) { self::add_hash($vars['label'], 'system'); }
             if (isset($vars['placeholder'])) { self::add_hash($vars['placeholder']); }

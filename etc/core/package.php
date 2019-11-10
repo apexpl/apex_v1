@@ -10,7 +10,7 @@ class pkg_core
 {
 
 // Set package variables
-public $version = '1.2.10';
+public $version = '1.2.12';
 public $access = 'public';
 public $name = 'Core Framework';
 public $description = 'The core package of the framework, and is required for all installations of the software.';
@@ -24,65 +24,7 @@ public function __construct()
 {
 
 // Config variables
-$this->config = array(
-    'encrypt_cipher' => 'aes-256-cbc', 
-    'encrypt_password' => '', 
-    'encrypt_iv' => '', 
-    'mode' => 'devel', 
-    'debug' => 0, 
-    'debug_level' => 3, 
-    'cache' => 0, 
-    'date_format' => 'F j, Y', 
-    'start_year' => date('Y'),
-    'server_type' => '',
-    'server_name' => 'apex',  
-    'theme_admin' => 'limitless', 
-    'theme_public' => 'koupon', 
-    'site_name' => 'Apex', 
-    'site_address' => '', 
-    'site_address2' => '', 
-    'site_email' => 'support@envrin.com', 
-    'site_phone' => '',
-    'site_tagline' => '', 
-    'site_facebook' => '', 
-    'site_twitter' => 'https://twitter.com/DizakMatt', 
-    'site_linkedin' => '', 
-    'site_instagram' => '', 
-    'site_youtube' => '', 
-    'site_reddit' => '', 
-    'domain_name' => '', 
-    'session_expire_mins' => 60,  
-    'session_retain_logs' => 'W2', 
-    'password_retries_allowed' => 5, 
-    'require_2fa' => 0, 
-    'force_password_reset_time' => '', 
-    'nexmo_api_key' => '', 
-    'nexmo_api_secret' => '', 
-    'recaptcha_site_key' => '', 
-    'recaptcha_secret_key' => '', 
-    'openexchange_app_id' => '', 
-    'default_timezone' => 'PST', 
-    'default_language' => 'en', 
-    'log_level' => 'notice,error,critical,alert,emergency', 
-    'debug_level' => 0, 
-    'cookie_name' => 'K9dAmgkd4Uaf', 
-    'backups_enable' => 1, 
-    'backups_save_locally' => 1, 
-    'backups_db_interval' => 'H3', 
-    'backups_full_interval' => 'D1', 
-    'backups_retain_length' => 'W1', 
-    'backups_remote_service' => 'none', 
-    'backups_aws_access_key' => '', 
-    'backups_aws_access_secret' => '', 
-    'backups_dropbox_client_id' => '', 
-    'backups_dropbox_client_secret' => '', 
-    'backups_dropbox_access_token' => '', 
-    'backups_gdrive_client_id' => '', 
-    'backups_gdrive_client_secret' => '', 
-    'backups_gdrive_refresh_token' => '', 
-    'backups_next_db' => 0, 
-    'backups_next_full' => 0
-);
+$this->config = $this->define_config();
 
 // Hashes
 $this->hash = $this->define_hashes();
@@ -208,36 +150,161 @@ $this->dashboard_items = array(
 
 }
 
+/**
+ * Define config vars
+ */
+private function define_config()
+{
+
+    // General vars
+    $vars = array(
+        'encrypt_cipher' => 'aes-256-cbc', 
+        'encrypt_password' => '', 
+        'encrypt_iv' => '', 
+        'cookie_name' => 'K9dAmgkd4Uaf', 
+        'start_year' => date('Y'),
+        'date_format' => 'F j, Y',
+        'theme_admin' => 'limitless', 
+        'theme_public' => 'koupon'
+    );
+
+    // Maintenance vars
+    $maintenance_vars = array(
+        'mode' => 'devel', 
+        'debug' => 0, 
+        'cache' => 0,
+        'log_level' => 'notice,error,critical,alert,emergency', 
+        'debug_level' => 0
+    );
+    $vars = array_merge($vars, $maintenance_vars);
+
+    // Server vars
+    $server_vars = array(
+        'server_type' => '',
+        'server_name' => 'apex',  
+        'domain_name' => '', 
+        'default_timezone' => 'PST', 
+        'default_language' => 'en'
+    );
+    $vars = array_merge($vars, $server_vars);
+
+    // Site info vars
+    $site_vars = array(
+        'site_name' => 'My Company Name', 
+        'site_address' => '', 
+        'site_address2' => '', 
+        'site_email' => 'support@envrin.com', 
+        'site_phone' => '',
+        'site_tagline' => '', 
+        'site_facebook' => '', 
+        'site_twitter' => 'https://twitter.com/DizakMatt', 
+        'site_linkedin' => '', 
+        'site_instagram' => '', 
+        'site_youtube' => '', 
+        'site_reddit' => '',
+        'site_about_us' => 'You may specify the text for this section through the Settings->General->Site Info tab of the administration panel.'
+    );
+    $vars = array_merge($vars, $site_vars);
+
+    // Security vars
+    $security_vars = array(
+        'session_expire_mins' => 60,  
+        'session_retain_logs' => 'W2', 
+        'password_retries_allowed' => 5, 
+        'require_2fa' => 0, 
+        'force_password_reset_time' => ''
+    );
+    $vars = array_merge($vars, $security_vars);
+
+    // API vars
+    $api_vars = array(
+        'nexmo_api_key' => '', 
+        'nexmo_api_secret' => '', 
+        'recaptcha_site_key' => '', 
+        'recaptcha_secret_key' => '', 
+        'openexchange_app_id' => '', 
+        'twitter_api_key' => ''
+    );
+    $vars = array_merge($vars, $api_vars);
+
+    // Backup settings
+    $backup_vars = array(
+        'backups_enable' => 1,  
+        'backups_db_interval' => 'H3', 
+        'backups_full_interval' => 'D1', 
+        'backups_retain_length' => 'W1', 
+        'backups_next_db' => 0, 
+        'backups_next_full' => 0
+    );
+    $vars = array_merge($vars, $backup_vars);
+
+    // Flysystem storage vars
+    $flysystem_vars = array(
+        'flysystem_type' => 'local', 
+        'flysystem_credentials' => '[]'
+    );
+    $vars = array_merge($vars, $flysystem_vars);
+
+    // Return
+    return $vars;
+
+
+}
+
 
 /**
  * Define the hashes.
  */
-public function define_hashes() 
+private function define_hashes() 
 {
 
+    // General
+    $vars = $this->define_hashes_general();
+
+    // Settings
+    $settings = $this->define_hashes_settings();
+    $vars = array_merge($vars, $settings);
+
+    // System
+    $system = $this->define_hashes_system();
+    $vars = array_merge($vars, $system);
+
+    // Return
+    return $vars;
+
+}
+
+/**
+ * Hashes -- General
+ */
+private function define_hashes_general()
+{
+
+    // Boolean
     $vars = array();
-
-    // Require 2FA options
-    $vars['2fa_options'] = array(
-        0 => 'Disabled', 
-        1 => 'Every Login Session', 
-        2 => 'Only when New Device Recognized'
+    $vars['boolean'] = array(
+        '1' => 'Yes',
+        '0' => 'No'
     );
 
-    // Backup remote services
-    $vars['backups_remote_services'] = array(
-        'none' => 'None / Do Not Backup Remotely', 
-        'aws' => 'Amazon Web Services', 
-        'dropbox' => 'Dropbox', 
-        'google_drive' => 'Google Drive', 
-        'tarsnap' => 'Tarsnap'
+    // Time intervals
+    $vars['time_intervals'] = array(
+        'I' => 'Minute', 
+        'H' => 'Hour', 
+        'D' => 'Day', 
+        'W' => 'Week', 
+        'M' => 'Month', 
+        'Y' => 'Year'
     );
 
-
-    // Server mode
-    $vars['server_mode'] = array(
-        'devel' => 'Development', 
-        'prod' => 'Production'
+    // Form fields
+    $vars['form_fields'] = array(
+        'textbox' => 'Textbox', 
+        'textarea' => 'Textarea', 
+        'select' => 'Select List', 
+        'radio' => 'Radio List', 
+        'checkbox' => 'Checkbox List', 
+        'boolean' => 'Boolean (yes/no)'
     );
 
     // CMS - menu areas
@@ -254,37 +321,23 @@ public function define_hashes()
         'header' => 'Header / Seperator'
     );
 
-    $vars['log_levels'] = array(
-        'info,warning,notice,error,critical,alert,emergency' => 'All Levels', 
-        'notice,error,critical,alert,emergency' => 'All Levels, except INFO and NOTICE',
-        'error,critical,alert,emergency' => 'Only Errors', 
-        'none' => 'No Logging'
-    );
+    // Return
+    return $vars;
 
-    $vars['debug_levels'] = array(
-        0 => '0 - No Debugging', 
-        1 => '1 - Very Limited', 
-        2 => '2 - Limited', 
-        3 => '3 - Medium', 
-        4 => '4 - Extensive', 
-        5 => '5 - Very Extensive'
-    );
+}
 
+/**
+ * Hashes -- Settings
+ */
+private function define_hashes_settings()
+{
 
-    // Boolean
-    $vars['boolean'] = array(
-        '1' => 'Yes',
-        '0' => 'No'
-    );
-
-    // Time intervals
-    $vars['time_intervals'] = array(
-        'I' => 'Minute', 
-        'H' => 'Hour', 
-        'D' => 'Day', 
-        'W' => 'Week', 
-        'M' => 'Month', 
-        'Y' => 'Year'
+    // 2FA Options
+    $vars = array();
+    $vars['2fa_options'] = array(
+        0 => 'Disabled', 
+        1 => 'Every Login Session', 
+        2 => 'Only when New Device Recognized'
     );
 
     // Date formats
@@ -296,50 +349,13 @@ public function define_hashes()
         'd-M-Y' => '21-Mar-2019' 
     );
 
-    // Form fields
-    $vars['form_fields'] = array(
-        'textbox' => 'Textbox', 
-        'textarea' => 'Textarea', 
-        'select' => 'Select List', 
-        'radio' => 'Radio List', 
-        'checkbox' => 'Checkbox List', 
-        'boolean' => 'Boolean (yes/no)'
-    );
-
-    // Secondary secure questions
-    $vars['secondary_security_questions'] = ARRAy(
-        'q1' => "What was your childhood nickname?", 
-        'q2' => "In what city did you meet your spouse/significant other?", 
-        'q3' => "What is the name of your favorite childhood friend?", 
-        'q4' => "What street did you live on in third grade?", 
-        'q5' => "What is your oldest sibling?s birthday month and year? (e.g., January 1900)", 
-        'q6' => "What is the middle name of your oldest child?", 
-        'q7' => "What is your oldest siblings middle name?", 
-        'q8' => "What school did you attend for sixth grade?", 
-        'q9' => "What was your childhood phone number including area code? (e.g., 000-000-0000)", 
-        'q10' => "What is your oldest cousins first and last name?", 
-        'q11' => "What was the name of your first stuffed animal?", 
-        'q12' => "In what city or town did your mother and father meet?", 
-        'q13' => "Where were you when you had your first kiss?", 
-        'q14' => "What is the first name of the boy or girl that you first kissed?", 
-        'q15' => "What was the last name of your third grade teacher?", 
-        'q16' => "In what city does your nearest sibling live?", 
-        'q17' => "What is your oldest brothers birthday month and year? (e.g., January 1900)", 
-        'q18' => "What is your maternal grandmothers maiden name?", 
-        'q19' => "In what city or town was your first job?", 
-        'q20' => "What is the name of the place your wedding reception was held?", 
-        'q21' => "What is the name of a college you applied to but didnt attend?" 
-    );
-
-    // System notification actions
-    $vars['notify_system_actions'] = array(
-        '2fa' => 'Two Factor Authentication (2FA)'
-    );
-
-    // Notification content type
-    $vars['notification_content_type'] = array(
-        'text/plain' => 'Plain Text', 
-        'text/html' => 'HTML'
+    // File storage types
+    $vars['storage_types'] = array(
+        'local' => 'Local Server', 
+        'sftp' => 'sFTP', 
+        'aws3' => 'Amazon Web Servers v3', 
+        'digitalocean' => 'DigitalOcean Spaces', 
+        'dropbox' => 'DropBox'
     );
 
     // Base currencies
@@ -377,9 +393,55 @@ public function define_hashes()
         'TRY' => 'Turkish Lira (TYR)', 
     );
 
+    // System notification actions
+    $vars['notify_system_actions'] = array(
+        '2fa' => 'Two Factor Authentication (2FA)'
+    );
+
+    // Notification content type
+    $vars['notification_content_type'] = array(
+        'text/plain' => 'Plain Text', 
+        'text/html' => 'HTML'
+    );
+
     // Return
     return $vars;
 
+}
+
+/**
+ * Hashes -- System
+ */
+private function define_hashes_system()
+{
+    $vars = array();
+    // Server mode
+    $vars = array();
+    $vars['server_mode'] = array(
+        'devel' => 'Development', 
+        'prod' => 'Production'
+    );
+
+    // Log levels
+    $vars['log_levels'] = array(
+        'info,warning,notice,error,critical,alert,emergency' => 'All Levels', 
+        'notice,error,critical,alert,emergency' => 'All Levels, except INFO and NOTICE',
+        'error,critical,alert,emergency' => 'Only Errors', 
+        'none' => 'No Logging'
+    );
+
+    // Debug levels
+    $vars['debug_levels'] = array(
+        0 => '0 - No Debugging', 
+        1 => '1 - Very Limited', 
+        2 => '2 - Limited', 
+        3 => '3 - Medium', 
+        4 => '4 - Extensive', 
+        5 => '5 - Very Extensive'
+    );
+
+    // return
+    return $vars;
 
 }
 

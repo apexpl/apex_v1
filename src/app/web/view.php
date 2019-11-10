@@ -80,6 +80,7 @@ public function __construct(app $app, html_tags $html_tags, string $template_pat
     $this->app = $app;
     $this->html_tags = $html_tags;
     $this->path_is_defined = $template_path == '' ? false : true;
+    $this->layout_alias = '';
 
 }
 
@@ -130,8 +131,14 @@ public function parse():string
     // Execute any necessary PHP code
     $this->execute_php_file();
 
-    // Get tpl file
-    $tpl_file = SITE_PATH . '/views/tpl/' . $this->template_path . '.tpl';
+    // Get TPL file
+    if (check_package('demo') === true && app::get_area() == 'public' && app::get_uri() == 'index' && file_exists(SITE_PATH . '/views/themes/' . app::get_theme() . '/tpl/index.tpl')) { 
+        $tpl_file = SITE_PATH . '/views/themes/' . app::get_theme() . '/tpl/index.tpl';
+    } else { 
+        $tpl_file = SITE_PATH . '/views/tpl/' . $this->template_path . '.tpl';
+    }
+
+    // Get tpL code
     if (file_exists($tpl_file)) { 
         $this->tpl_code = file_get_contents($tpl_file);
     } elseif (file_exists(SITE_PATH . '/views/tpl/' . app::get_area() . '/404.tpl')) { 
@@ -166,9 +173,13 @@ public function parse():string
     // Add system Javascript / HTML
     $html = $this->add_system_javascript($html);
 
+    // Process page_process() function from theme.php file, if exists
+    $html = $this->process_theme_page_function($html);
+
     // Merge variables
     $html = $this->merge_vars($html);
 
+    // 
     // Debug
     debug::add(1, tr("Successfully parsed template and returning resulting HTML, {1}", $this->template_path));
 
@@ -330,6 +341,7 @@ protected function add_layout()
     if (redis::hexists('config:db_master', 'dbname') && $value = redis::hget('cms:layouts', $this->template_path)) { 
         $layout = $value;
     } else { $layout = 'default'; }
+    $this->layout_alias = $layout;
 
     // Debug
     debug::add(5, tr("Determined template layout, {1}", $layout));
@@ -724,6 +736,9 @@ protected function cache_assets()
 public function load_base_variables()
 { 
 
+    // Set theme directory, in case it changed via RPC call
+    $this->theme_dir = SITE_PATH . '/views/themes/' . app::get_theme();
+
 // Set base variables
     $this->assign('theme_uri', '/themes/' . app::get_theme());
     $this->assign('current_year', date('Y'));
@@ -779,7 +794,8 @@ public function load_base_variables()
         'address2' => app::_config('core:site_address2'), 
         'email' => app::_config('core:site_email'), 
         'phone' => app::_config('core:site)phone'), 
-        'tagline' => app::_config('core:site_tagline'), 
+        'tagline' => app::_config('core:site_tagline'),
+        'about_us' => app::_config('core:site_about_us'),  
         'facebook' => app::_config('core:site_facebook'), 
         'twitter' => app::_config('core:site_twitter'), 
         'linkedin' => app::_config('core:site_linkedin'), 
@@ -899,6 +915,12 @@ public function assign(string $name, $value)
         $this->vars[$name] = (string) $value;
     }
 
+    // Add to event queue, if inside worker
+    if (app::get_reqtype() == 'worker') { 
+        app::add_event('view_assign', array($name, $value));
+    } 
+
+
     // Debug
     debug::add(5, tr("Assigned template variable {1} to {2}", $name, $value));
 
@@ -919,6 +941,11 @@ public function add_callout(string $message, string $type = 'success')
     if (!isset($this->callouts[$type])) { $this->callouts[$type] = array(); }
     array_push($this->callouts[$type], $message);
     if ($type == 'error') { $this->has_errors = true; }
+
+    // Add to event queue, if inside worker
+    if (app::get_reqtype() == 'worker') { 
+        app::add_event('view_callout', array($message, $type));
+    } 
 
     // Return
     return true;
@@ -991,6 +1018,38 @@ protected function add_system_javascript($html)
     return $html;
 
 }
+
+/**
+ * Process process_page() function from theme.php file
+ *
+ * @param string $html The current HTML code of the page
+ *
+ * @return string The resulting HTML code
+ */
+protected function process_theme_page_function(string $html):string
+{
+
+    // Check if theme.php file exists
+    if (!file_exists($this->theme_dir . '/theme.php')) { 
+        return $html;
+    }
+
+    // Load theme file
+    require_once($this->theme_dir . '/theme.php');
+    $class_name = 'theme_' . app::get_theme();
+    $client = new $class_name();
+
+    // Check if function exists
+    if (!method_exists($client, 'process_page')) { 
+        return $html;
+    }
+
+    // Execute function and return
+    $html = $client->process_page($html, $this->layout);
+    return $html;
+
+}
+
 
 /**
  * Check for user errors. 

@@ -54,6 +54,7 @@ if (app::get_action() == 'update_general') {
         'site_email', 
         'site_phone', 
         'site_tagline', 
+        'site_about_us', 
         'site_facebook', 
         'site_twitter', 
         'site_linkedin', 
@@ -212,22 +213,52 @@ if (app::get_action() == 'update_general') {
     // User message
     view::add_callout("Successfully deleted all checked e-mail SMTP servers");
 
-// Update RabbitMQ info
-} elseif (app::get_action() == 'update_rabbitmq') { 
+// Update storage settings
+} elseif (app::get_action() == 'storage') { 
 
-    // Set vars
-    $vars = array(
-        'host' => app::_post('rabbitmq_host'), 
-        'port' => app::_post('rabbitmq_port'), 
-        'user' => app::_post('rabbitmq_user'), 
-        'pass' => app::_post('rabbitmq_pass')
-    );
+    // Initialize
+    $vars = array();
+    $type = app::_post('storage_type');
 
-    // Update redis
-    redis::hmset('config:rabbitmq', $vars);
+    // Get storage credentials
+    if ($type == 'sftp') { 
+
+        $vars = array(
+            'sftp_host' => app::_post('storage_sftp_host'), 
+            'sftp_username' => app::_post('storage_sftp_username'), 
+            'sftp_password' => app::_post('storage_sftp_password'), 
+            'sftp_port' => app::_post('storage_sftp_port'), 
+            'sftp_timeout' => 10, 
+            'sftp_root' => app::_post('storage_sftp_root'), 
+            'sftp_private_key' => app::_post('storage_sftp_private_key')
+        );
+
+    // AWS or DigitalOcean
+    } elseif ($type == 'aws3' || $type == 'digitalocean') { 
+
+        $vars = array(
+            'aws3_key' => app::_post('storage_aws3_key'), 
+            'aws3_secret' => app::_post('storage_aws3_secret'), 
+            'aws3_bucket_name' => app::_post('storage_aws3_bucket_name'), 
+            'aws3_region' => app::_post('storage_aws3_region'), 
+            'aws3_version' => app::_post('storage_aws3_version'), 
+            'aws3_prefix' => app::_post('storage_aws3_prefix')
+        );
+
+    // DropBox
+    } elseif ($type == 'dropbox') { 
+
+        $vars = array(
+            'dropbix_auth_token' => app::_post('storage_dropbox_auth_token')
+        );
+    }
+
+    // Update config
+    app::update_config_var('core:flysystem_type', $type);
+    app::update_config_var('core:flysystem_credentials', json_encode($vars));
 
     // User message
-    view::add_callout("Successuflly updated RabbitMQ connection info");
+    view::add_callout('Successfully updated remote storage settings');
 
 // Reset redis
 } elseif (app::get_action() == 'reset_redis') { 
@@ -253,17 +284,35 @@ if (app::get_action() == 'update_general') {
 
 }
 
+// Get storage vars
+$type = app::_config('core:flysystem_type');
+$storage = json_decode(app::_config('core:flysystem_credentials'), true);
+$storage['display_sftp'] = $type == 'sftp' ? 'block' : 'none';
+$storage['display_aws3'] = ($type == 'aws3' || $type == 'digitalocean') ? 'block' : 'none';
+$storage['display_dropbox'] = $type == 'dropbox' ? 'block' : 'none';
 
-// Get RabbitMQ info
-if (!$rabbitmq_vars = redis::hgetall('config:rabbitmq')) { 
-    $rabbitmq_vars = array(
-        'host' => 'localhost', 
-        'port' => '5672', 
-        'user' => 'guest', 
-        'pass' => 'guest'
-    );
+// Blank out needed storage vars
+$blank_vars = array(
+    'sftp_host', 
+    'sftp_username', 
+    'sftp_password', 
+    'sftp_port', 
+    'sftp_root', 
+    'sftp_private_key', 
+    'aws3_key', 
+    'aws3_secret', 
+    'aws3_bucket_name', 
+    'aws3_region', 
+    'aws3_version', 
+    'aws3_directory', 
+    'dropbox_auth_token'
+);
+foreach ($blank_vars as $var) { 
+    if (!isset($storage[$var])) { $storage[$var] = ''; }
 }
 
+
 // Template variables
-view::assign('rabbitmq', $rabbitmq_vars);
+view::assign('storage', $storage);
+
 

@@ -808,11 +808,7 @@ public function change_theme($vars)
     }
 
     // Update theme
-    if ($area == 'members') { 
-        app::update_config_var('users:theme_members', $theme_alias);
-    } else { 
-        app::update_config_var('core:theme_' . $area, $theme_alias);
-    }
+    app::change_theme($area, $theme_alias);
 
     // Debug
     debug::add(4, tr("CLI: Changed theme on area '{1}' to theme: {2}", $area, $theme_alias), 'info');

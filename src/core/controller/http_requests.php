@@ -27,9 +27,10 @@ class http_requests
  *    app::set_res_http_status()
  *    app::set_res_content_type()
  */
-public function process(
+public function process()
+{
 
-// Process request
+    // Process request
     $response = '';
 
     // Set response

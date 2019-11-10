@@ -48,7 +48,7 @@ public function listen()
         $msg = unserialize($request->body);
         if (!$msg instanceof EventMessageInterface) { 
             debug::add(1, tr("Invalid RPC call made, did not receive a EventMessageInterface object"), 'alert');
-        return false;
+            return false;
         }
 
         // Get response

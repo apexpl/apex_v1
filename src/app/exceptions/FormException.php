@@ -9,7 +9,6 @@ use apex\app\exceptions\ApexException;
 
 /**
  * Handles various form errors, such as simple validation errors that call for 
- * a hard error, file upload errors, etc.*/ 
  */
 class FormException   extends ApexException
 {

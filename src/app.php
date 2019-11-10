@@ -22,8 +22,6 @@ use GuzzleHttp\Psr7\UploadedFile;
 class app extends container
 {
 
-
-
     /**
      * The various input arrays, including all $_POST, $_GET, $_COOKIE, and 
      * $_SERVER variables, which are sanitized and placed in these private arrays 
@@ -95,10 +93,10 @@ class app extends container
      * Base application variables such as request type, container, services, and 
      * the app instance itself. 
      */
-
     private static $instance = null;
     private static $reqtype = 'http';
     private static $reqtype_original;
+    private static $event_queue = [];
 
 /**
  * Initialize the application. 
@@ -544,6 +542,10 @@ public static function set_area(string $area)
         self::$theme = self::_config('core:theme_' . $area);
     }
 
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_area', $area);
+    } 
 
 }
 
@@ -561,10 +563,64 @@ public static function set_theme(string $theme)
     }
     self::$theme = $theme;
 
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_theme', $theme);
+    } 
+
 }
 
 /**
- * Set the URI 
+ * Change the theme of an area.
+ *
+ * @param string $area The alias of the area (eg. admin, members, public)
+ * @param string $theme The alias of the theme to change to.
+ */
+public static function change_theme(string $area, string $theme)
+{
+
+    // ENsure valid theme directory
+    if (!is_dir(SITE_PATH . '/views/themes/' . $theme)) { 
+        throw new ApexException('error', tr("Invalid theme specified, {1}", $theme));
+    }
+
+    // Change theme
+    if ($area == 'members') { 
+        self::update_config_var('users:theme_members', $theme);
+    } else { 
+        self::update_config_var('core:' . $area, $theme);
+    }
+
+    // Update /index to homepage layout, if available.
+    if (file_exists(SITE_PATH . '/themes/views/' . $theme . '/layouts/homepage.tpl')) { 
+
+        // Update, if needed
+        if ($row = db::get_row("SELECT * FROM cms_pages WHERE area = 'public' AND filename = 'index'")) { 
+            db::query("UPDATE cms_pages SET layout = 'homepage' WHERE id = %i", $row['id']);
+        } else { 
+
+            // Add to db
+            db::insert('cms_pages', array(
+                'area' => 'public',
+                'layout' => 'homepage', 
+                'title' => '', 
+                'filename' => 'public/index')
+            );
+
+        }
+
+        // Update redis
+        redis::hset('cms:layouts', 'public/index', 'homepage');
+    }
+
+    // Return
+    return true;
+
+}
+
+
+/**
+ `* Set the URI 
  *
  * Sets the URI, which is also used by the template engine to display the 
  * correct template.  Only use this is you need to change the URI for some 
@@ -605,6 +661,12 @@ public static function set_uri(string $uri, bool $prepend_area = false, bool $lo
     self::$uri = strtolower(filter_var(trim($uri, '/'), FILTER_SANITIZE_URL));
     self::$uri_locked = $lock_uri;
 
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_uri', array(self::$uri, $lock_uri));
+    } 
+
+
 }
 
 /**
@@ -616,6 +678,12 @@ public static function set_userid(int $userid)
 { 
     self::$userid = $userid;
     self::$recipient = self::$area == 'admin' ? 'admin:' . $userid : 'user:' . $userid;
+
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_userid', $userid);
+    } 
+
 }
 
 /**
@@ -987,7 +1055,10 @@ public static function getall_config() { return self::$config; }
 /**
  * Clear all $_POST variables.  Useful to ensure HTML form is not pre-filled. 
  */
-public static function clear_post() { self::$post = array(); }
+public static function clear_post() { 
+    self::$post = array(); 
+    self::$action = '';
+}
 
 /**
  * Clear all $_GET variables.  Useful to ensure HTML form is not pre-filled. 
@@ -1007,6 +1078,11 @@ public static function set_cookie(string $name, string $value, int $expire = 0, 
 
     // Add cookie
     self::$cookie[$name] = $value;
+
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_cookie', array($name, $value, $expire, $path));
+    } 
 
     // Return, if CLI
     if (php_sapi_name() == "cli") { return true; }
@@ -1034,6 +1110,11 @@ public static function set_res_http_status(int $code)
 
     self::$res_status = $code;
 
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_res_http_status', $code);
+    } 
+
     // Debug
     debug::add(1, tr("Changed HTTP response status to {1}", $code));
 
@@ -1052,6 +1133,11 @@ public static function set_res_content_type(string $type)
 
     self::$res_content_type = $type;
 
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_res_content_type', $type);
+    } 
+
     // Debug
     debug::add(1, tr("Set response content-type to {1}", $type));
 
@@ -1063,7 +1149,18 @@ public static function set_res_content_type(string $type)
  * @param string $key The name / key of the HTTP header
  * @param string $value The value of the HTTP header
  */
-public static function set_res_header($key, $value) { self::$res_http_headers[$key] = $value; }
+public static function set_res_header($key, $value) { 
+
+    // Set header
+    self::$res_http_headers[$key] = $value; 
+
+    // Add to event queue, if inside worker
+    if (self::$reqtype == 'worker') { 
+        self::add_event('set_res_header', array($key, $value));
+    } 
+
+
+}
 
 /**
  * Set the contents of the response that will be given.  Should be used with 
@@ -1179,6 +1276,35 @@ public static function echo_template(string $uri, bool $prepend_area = false)
     exit(0);
 
 }
+
+/**
+ * Add event
+ *
+ * Used when request is being processed by an event listener.  Adds event 
+ * that will change output of request to queue, which is then 
+ * passed back to caller for processing.
+ *
+ * @param string $action The action being performed.
+ * @param mixed $data Any data necessary for the action.
+ */
+public static function add_event(string $action, $data)
+{
+
+    $vars = array(
+        'action' => $action, 
+        'data' => $data
+    );
+    self::$event_queue[] = $vars;
+
+}
+
+/**
+ * Get the event queue.
+ *
+ * @return array The event queue.
+ */
+public static function get_event_queue():array { return self::$event_queue; }
+
 
 
 

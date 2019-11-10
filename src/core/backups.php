@@ -99,52 +99,7 @@ private function backup_local(string $type)
     return $archive_file . '.gz';
 
 }
-
-/**
- * Upload a backup archive to DropBox 
- *
- * @param string $filename The name of the file within /data/backups/ to upload
- */
-private function upload_dropbox(string $filename)
-{ 
-
-    // Start client
-    $app = new DropboxApp(registry::config('core:backups:dropbox_client_id'), registry::config('core:backups_dropbox_client_secret'), registry::config('backups_dropbox_access_token'));
-    $dropbox = new Dropbox($app);
-
-    // Upload file
-    try { 
-        $dropboxFile = new DropboxFile(SITE_PATH . '/data/backups/' . $filename);
-        $uploadedFile = $dropbox->upload($dropboxFile, "/" . $filename, ['autorename' => true]);
-    } catch (Exception E)
-        throw new ApexException('error', "Unable to upload to Dropbox: " . $e->getMessage());
-    }
-
-    // Return
-    return true;
-
-}
-
-/**
- * Upload backup archive to Google Drive 
- *
- * @param string $filename The filename from the /data/backups/ directory to upload
- */
-private function upload_google_drive(string $filename)
-{ 
-
-    // Start client
-    $client = new \Google_Client();
-    $client->setClientId(registry::config('core:backups_gdrive_client_id'));
-    $client->setClientSecret(registry::config('core:backups_gdrive_client_secret');
-    $client->refreshToken(registry::config('core:backups_gdrive_refresh_token'));
-
-    // Start service
-    $service = new \Google_Service_Drive($client);
-    $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($service, 'root');
-
 }
 
 
-}
 

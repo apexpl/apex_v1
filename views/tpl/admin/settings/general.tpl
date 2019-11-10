@@ -1,4 +1,16 @@
 
+<script type="text/javascript">
+
+    function changeStorageType(box) {
+        var type = box.options[box.selectedIndex].value;
+        document.getElementById('row_storage_sftp').style.display = type == 'sftp' ? 'block' : 'none';
+        document.getElementById('row_storage_aws3').style.display = (type == 'aws3' || type == 'digitalocean') ? 'block' : 'none';
+        document.getElementById('row_storage_dropbox').style.display = type == 'dropbox' ? 'block' : 'none';
+    }
+
+</script>
+
+
 <h1>General Settings</h1>
 
 <a:form>
@@ -6,7 +18,8 @@
 <a:tab_control>
 
     <a:tab_page name="General">
-        <h3>General Settings</h3>
+var x = document.GetElementById('row_storage_sftp').style.display;
+alert("STYLE: " + x);
 
         <a:form_table>
             <a:ft_textbox name="domain_name" value="~config.core:domain_name~">
@@ -48,6 +61,7 @@
             <a:ft_textbox name="site_email" value="~config.core:site_email~" label="E-Mail Address">
             <a:ft_textbox name="site_phone" value="~config.core:site_phone~" label="Phone Number">
             <a:ft_textbox name="site_tagline" value="~config.core:site_tagline~" label="Site Tagline">
+            <a:ft_textarea name="site_about_us" label="About Us">~config.core:site_about_us~</a:ft_textarea>
             <a:ft_seperator label="Social Media Profiles">
             <a:ft_textbox name="site_facebook" value="~config.core:site_facebook~" label="Facebook">
             <a:ft_textbox name="site_twitter" value="~config.core:site_twitter~" label="Twitter">
@@ -112,18 +126,37 @@
 
     </a:tab_page>
 
-    <a:tab_page name="RabbitMQ">
-        <h3>RabbitMQ Connection Info</h3>
+    <a:tab_page name="Storage">
+        <h3>Storage Settings</h3>
 
-        <p>You may modify the RabbitMQ connection information from below.  Please note, if you have a cluster of servers / droplets 
-        for this operation, you only need to update the RabbitMQ on one system, and it will update throughout the entire cluster.<p>
+        <p>Full support for remote file storage is available, such as .zip files if you're running a repository, and others.  Below you may define where all files will be stored.</p>
 
         <a:form_table>
-            <a:ft_textbox name="rabbitmq_host" value="~rabbitmq_host~">
-            <a:ft_textbox name="rabbitmq_port" value="~rabbitmq.port~">
-            <a:ft_textbox name="rabbitmq_user" value="~rabbitmq.user~">
-            <a:ft_textbox name="rabbitmq_pass" value="~rabbitmq.pass~">
-            <a:ft_submit value="update_rabbitmq" label="Update RabbitMQ Info">
+            <a:ft_select name="storage_type" value="~config.core:flysystem_type~" data_source="hash:core:storage_types" onchange="changeStorageType~op~this~cp~;" label="Storage Engine">
+
+        <tbody id="row_storage_sftp" style="display: ~storage.display_sftp~;">
+            <a:ft_textbox name="storage_sftp_host" value="~storage.sftp_host~" label="Host">
+            <a:ft_textbox name="storage_sftp_username" value="~storage.sftp_username~" label="Username">
+            <a:ft_textbox type="password" name="storage_sftp_password" value="~storage.sftp_password~" label="Password">
+            <a:ft_textbox name="storage_sftp_port" value="~storage.sftp_port~" label="Port" width="60px">
+            <a:ft_textbox name="storage_sftp_root" value="~storage.sftp_root~" label="Root Directory">
+            <a:ft_textarea name="storage_sftp_private_key" label="Private Key">~storage.sftp_private_key~</a:ft_textarea>
+        </tbody>
+
+        <tbody id="row_storage_aws3" style="display: ~storage.display_aws3~;">
+            <a:ft_textbox name="storage_aws3_key" value="~storage.aws3_key~" label="Key">
+            <a:ft_textbox name="storage_aws3_secret" value="~storage.aws3_secret~" label="Secret">
+            <a:ft_textbox name="storage_aws3_bucket_name" value="~storage.aws3_bucket_name~" label="Buckey Name">
+            <a:ft_textbox name="storage_aws3_region" value="~storage.aws3_region~" label="Region" width="100px">
+            <a:ft_textbox name="storage_aws3_version" value="~storage.aws3_version~" label="Latest Version">
+            <a:ft_textbox name="storage_aws3_prefix" value="~storage.aws3_prefix~" label="Directory Prefix">
+        </tbody>
+
+        <tbody id="row_storage_dropbox" style="display: ~storage.display_dropbox~;">
+            <a:ft_textbox name="storage_dropbox_auth_token" value="~storage.dropbox_auth_token~" label="Authorization Token">
+        </tbody>
+
+            <a:ft_submit value="storage" label="Update Storage Settings">
         </a:form_table>
 
     </a:tab_page>

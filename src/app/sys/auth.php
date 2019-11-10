@@ -486,9 +486,15 @@ public function invalid_login(string $type = 'none')
     elseif ($type == 'inactive') { view::add_callout(tr("Your account is currently inactive, and not allowed to login.  Please contact customer support for further information."), 'error'); }
     elseif ($type == 'pending') { view::add_callout(tr("Your account is currently pending, and must first be approved by customer support.  You will receive an e-mail once your account has been activated.", 'error')); }
 
+    // Sset userid to 0
+    app::set_userid(0);
+    app::clear_post();
+
     // Set template response
     if (app::get_area() != 'admin') { app::set_area('public'); }
     app::set_uri('login', true, true);
+
+
     app::set_res_body(view::parse());
 
     // Return

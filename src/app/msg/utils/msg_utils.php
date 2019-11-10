@@ -119,6 +119,11 @@ final public function get_listeners(string $routing_key):iterable
 public function dispatch_locally(EventMessageInterface $msg):eventResponseInterface
 { 
 
+    // Set reqtype to worker, if needed
+    if (app::_config('core:server_type') != 'all') { 
+        app::set_reqtype('worker');
+    }
+
     // Initialize
     $function_name = $msg->get_function();
     $response = new event_response($msg);
@@ -149,6 +154,14 @@ public function dispatch_locally(EventMessageInterface $msg):eventResponseInterf
             $response->add_response($row['package'], $class_name, $function_name, $res);
             debug::add(5, tr("Completed execution of single RPC call to routing key: {1} for the package: {2}", $msg->get_routing_key(true), $row['package']));
         }
+    }
+
+    // Get the event queue
+    $response->add_event_queue();
+
+    // Reset reqtype to original
+    if (app::_config('core:server_type') != 'all') { 
+        app::reset_reqtype();
     }
 
     // Return

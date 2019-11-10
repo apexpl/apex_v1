@@ -31,6 +31,8 @@ class event_response extends event_message implements EventResponseInterface
     private $called = [];
     private $response = [];
     private $exception;
+    private $event_queue = [];
+
 /**
  * Constructor.  Get the EventMessageInterface, and set necessary properties. 
  *
@@ -99,6 +101,18 @@ public function set_exception($e)
 }
 
 /**
+ * Set the event queue
+ *
+ * Simply calls the app::get_event_queue() method to retrieve any 
+ * actions that occured during process that may change the 
+ * output of the request.  This is passed back to the caller for processing.
+ */
+public function add_event_queue()
+{
+    $this->event_queue = app::get_event_queue();
+}
+
+/**
  * Get status of the response 
  *
  * @return string The status of the response
@@ -139,6 +153,12 @@ public function get_response(string $package = '')
  */
 public function get_exception() { return $this->exception; }
 
+/**
+ * Get the event queue
+ *
+ * @return array The event queue
+ */
+public function get_event_queue():array { return $this->event_queue; }
 
 }
 

@@ -222,7 +222,7 @@ protected function install_hashes($pkg)
     $chk_hash = db::get_column("SELECT alias FROM internal_components WHERE type = 'hash' AND package = %s", $this->pkg_alias);
     foreach ($chk_hash as $chk) { 
         if (in_array($chk, array_keys($pkg->hash))) { continue; }
-        pkc_component::remove('hash', $this->pkg_alias . ':' . $chk);
+        pkg_component::remove('hash', $this->pkg_alias . ':' . $chk);
         redis::hdel('hash', $this->pkg_alias . ':' . $chk);
     }
 

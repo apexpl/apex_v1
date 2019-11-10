@@ -5,6 +5,7 @@ namespace apex\app\msg;
 
 use apex\app;
 use apex\svc\debug;
+use apex\svc\view;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\DispatcherInterface;
 use apex\app\interfaces\msg\EventMessageInterface;
@@ -125,8 +126,52 @@ public function dispatch(EventMessageInterface $msg)
     // Wait for response
     $this->channel->wait(false, false, 5);
 
+    // Get the event queue
+    $response = unserialize($response);
+    $event_queue = $response->get_event_queue();
+
+    // Process event queue
+    foreach ($event_queue as $vars) { 
+
+        // Set variables
+        $action = $vars['action'];
+        $data = $vars['data'];
+
+        // Process action
+        if ($action == 'set_area') { 
+            app::set_area($data);
+
+        } elseif ($action == 'set_theme') { 
+            app::set_theme($data);
+
+        } elseif ($action == 'set_uri') { 
+            app::set_uri($data[0], false, $data[1]);
+
+        } elseif ($action == 'set_userid') { 
+            app::set_userid((int) $data);
+
+        } elseif ($action == 'set_cookie') { 
+            app::set_cookie($data[0], $data[1], (int) $data[2], $data[3]);
+
+        } elseif ($action == 'set_res_http_status') { 
+            app::set_res_http_status((int) $data);
+
+        } elseif ($action == 'set_res_content_type') { 
+            app::set_res_content_type($data);
+
+        } elseif ($action == 'set_res_header') { 
+            app::set_res_header($data[0], $data[1]);
+
+        } elseif ($action == 'view_assign') { 
+            view::assign($data[0], $data[1]);
+
+        } elseif ($action == 'view_callout') { 
+            view::add_callout($data[0], $data[1]);
+        }
+    }
+
     // Return
-    return unserialize($response);
+    return $response;
 
 }
 

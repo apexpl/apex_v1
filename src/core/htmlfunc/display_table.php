@@ -93,7 +93,7 @@ public function process(components $components, tables $utils, string $html, arr
 
     // Go through table rows
     foreach ($details['rows'] as $row) { 
-        $tpl_code .= "<tr> `\n";
+        $tpl_code .= "<tr>\n";
 
         // Add form field, if needed
         if ($form_field == 'radio' || $form_field == 'checkbox') { 

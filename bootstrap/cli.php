@@ -17,6 +17,7 @@ use apex\app\utils\images;
 use apex\app\utils\geoip;
 use apex\app\io\io;
 use apex\app\io\cache;
+use apex\app\io\storage;
 
 
 return [
@@ -36,6 +37,7 @@ return [
     hashes::class => [hashes::class], 
     images::class => [images::class], 
     io::class => [io::class], 
+    storage::class => [storage::class],  
     geoip::class => [geoip::class]
 ];
 

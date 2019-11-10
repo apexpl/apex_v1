@@ -57,7 +57,7 @@ public function dispatch_notification(string $recipient, string $message, string
     // Get redis key
     $redis_key = 'alerts:' . $recipient;
     redis::lpush($redis_key, json_encode($vars));
-    redis::ltrim($redis_key, 0, 9);
+    redis::ltrim($redis_key, 0, 20);
     $unread_alerts = redis::hincrby('unread:alerts', $recipient, 1);
 
     // Get HTML of dropdown item

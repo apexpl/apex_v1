@@ -5,9 +5,11 @@ namespace apex\core\ajax;
 
 use apex\app;
 use apex\app\web\ajax;
-use apex\app\web\ajax;
 
-
+/**
+ * Class that handles the AJAX based sorting of 
+ * data tables.
+ */
 class sort_table extends ajax
 {
 
@@ -21,7 +23,7 @@ class sort_table extends ajax
  * the 'table' component, and displays them in the browser. Used when clicking 
  * the up/down sort arrows in a data table column header. 
  */
-public function process() extends ajax
+public function process()
 { 
 
     // Set variables
