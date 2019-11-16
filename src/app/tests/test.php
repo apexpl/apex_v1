@@ -6,6 +6,7 @@ namespace apex\app\tests;
 use apex\app;
 use apex\svc\db;
 use apex\svc\view;
+use apex\app\exceptions\ApexException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit_Framework_Constraint_IsEqual;
 
@@ -89,6 +90,21 @@ public function invoke_method($object, string $method_name, array $params = [])
 
     // Call method, and return results
     return $method->invokeArgs($object, $params);
+
+}
+
+/**
+ * Wait for an exception
+ *
+ * @param string $message Partial message that will be contained within exception
+ */
+public function waitException(string $message)
+{
+
+    // Expect exception
+    $this->expectException(ApexException::class);
+    $this->expectExceptionCode(500);
+    $this->expectExceptionMessage($message);
 
 }
 

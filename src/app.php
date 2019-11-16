@@ -588,7 +588,7 @@ public static function change_theme(string $area, string $theme)
     if ($area == 'members') { 
         self::update_config_var('users:theme_members', $theme);
     } else { 
-        self::update_config_var('core:' . $area, $theme);
+        self::update_config_var('core:theme_' . $area, $theme);
     }
 
     // Update /index to homepage layout, if available.
@@ -803,7 +803,7 @@ public static function getall_request_vars()
     );
 
     // Return
-    return array_merge($vars, $this->attributes);
+    return $vars;
 
 }
 

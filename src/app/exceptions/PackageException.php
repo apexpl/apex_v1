@@ -18,13 +18,15 @@ class PackageException   extends ApexException
 
     // Properties
     private $error_codes = array(
-    'undefined' => "You did not specify a package alias, and one is required for this action",
-    'not_exists' => "The package does not exist with alias, {alias}",
-    'exists' => "The package already exists in this system with alias, {alias}",
-    'invalid_alias' => "An invalid package alias was specified, {alias}",
-    'no_open_upgrades' => "There are no open upgrades on the package {alias} to publish.  You must first create an upgrade point with: php apex.php create_upgrade PACKAGE",
-    'config_not_exists' => "The package.php configuration file does not exist for the package, {alias}",
-    'config_no_load' => "Unable to load package configuration file for the package, {alias}"
+        'undefined' => "You did not specify a package alias, and one is required for this action",
+        'not_exists' => "The package does not exist with alias, {alias}",
+        'exists' => "The package already exists in this system with alias, {alias}",
+        'invalid_alias' => "An invalid package alias was specified, {alias}",
+        'no_open_upgrades' => "There are no open upgrades on the package {alias} to publish.  You must first create an upgrade point with: php apex.php create_upgrade PACKAGE",
+        'config_not_exists' => "The package.php configuration file does not exist for the package, {alias}",
+        'config_no_load' => "Unable to load package configuration file for the package, {alias}", 
+        'git_already_init' => "A local Github repository has already been initialized for the package, {alias}.  If you need to re-initialize the repo, delete the directory at /src/{alias}/git", 
+        'git_undefined_repo_url' => "No Github repo URL defined.  Please first define a repo URL within the properties of the /etc/{alias]/package.php file, and try again."
     );
 /**
  * Construct 

@@ -14,12 +14,10 @@ use apex\app\exceptions\ApexException;
 class ServiceException   extends ApexException
 {
 
-
-
     // Properties
     private $error_codes = array(
-    'no_instance' => "No instance has yet been defined for the service {service}",
-    'no_method' => "The service {service} does not have the called method, {method}"
+        'no_instance' => "No instance has yet been defined for the service {service}",
+        'no_method' => "The service {service} does not have the called method, {method}"
     );
 
 /**

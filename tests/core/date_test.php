@@ -7,6 +7,7 @@ use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
 use apex\app\utils\date;
+use apex\app\exceptions\ApexException;
 use apex\app\tests\test;
 
 
@@ -114,13 +115,78 @@ public function provider_interval()
         array('D4', 345600),  
         array('D17',1468800),  
         array('W1', 604800),  
-        array('W3', 1814400),  
-        array('M1', 2592000),  
-        array('M3', 7776000)
+        array('W3', 1814400)  
     );
 
     // Return
     return $results;
+
+}
+
+/**
+ * Test add / subtrqact interval -- from date
+ */
+public function test_add_subtract_from_date()
+{
+
+    // Initialize
+    $client = new date();
+    $from_date = '2019-10-15 13:45:20';
+
+    // Assert
+    $this->assertEquals('2019-10-16 13:45:20', $client->add_interval('D1', $from_date));
+    $this->assertEquals('2019-10-15 14:05:20', $client->add_interval('I20', $from_date));
+    $this->assertEquals('2019-10-29 13:45:20', $client->add_interval('W2', $from_date));
+
+    // Check subtract interval
+    $this->assertEquals('2019-10-14 13:45:20', $client->subtract_interval('D1', $from_date));
+    $this->assertEquals('2019-10-15 13:25:20', $client->subtract_interval('I20', $from_date));
+    $this->assertEquals('2019-10-01 13:45:20', $client->subtract_interval('W2', $from_date));
+
+}
+
+/**
+ * Test add interval -- throw exception.
+ */
+public function test_add_interval_exception()
+{
+
+    // Expect exception
+    $this->waitException('Invalid date interval');
+
+    // Add interval
+    $client = new date();
+    $client->add_interval('junk');
+
+}
+
+/**
+ * Test add interval -- throw exception.
+ */
+public function test_subtract_interval_exception()
+{
+
+    // Expect exception
+    $this->waitException('Invalid date interval');
+
+    // Add interval
+    $client = new date();
+    $client->subtract_interval('junk');
+
+}
+
+/**
+ * Test parse_interval
+ */
+public function test_parse_date_interval()
+{
+
+    // Test
+    $client = new date();
+    $this->assertEquals('', $client->parse_date_interval('junk'));
+    $this->assertEquals('', $client->parse_date_interval('A18'));
+    $this->assertEquals('1 Week', $client->parse_date_interval('W1'));
+    $this->assertEquals('3 Months', $client->parse_date_interval('M3'));
 
 }
 

@@ -16,6 +16,7 @@ use apex\app\pkg\package;
 use apex\app\pkg\theme;
 use apex\app\pkg\upgrade;
 use apex\app\pkg\pkg_component;
+use apex\app\pkg\github;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\PackageException;
 use apex\app\exceptions\ComponentException;
@@ -1285,6 +1286,68 @@ private function get_repo()
 
 }
 
+/**
+ * Git initialize repo
+ *
+ * Will initialize a local Github repository for the specified 
+ * package within the /src/PACKAGE/git/ directory.  This requires 
+ * a $github_repo_url variable to defined within the package 
+ * configuration at /etc/PACKAGE/package.php file.
+ */
+private function git_init($vars)
+{
+
+    // Initialize GIthub repo
+    $client = app::make(github::class);
+    $client->init($vars[0]);
+
+    // Set response
+    $response = "Successfully initialized local Github repo for package $vars[0].  To complete initialization, please run the following command in termina.\n\n";
+    $response .= "\tcd " . SITE_PATH . "/src/$vars[0]/git; ./git.sh\n\n";
+
+    // Return
+    return $response;
+
+}
+
+/**
+    * Sync local code from GIthub repository.
+ *
+ * Downloads the GIthub repository for the specified package into a tmp 
+ * directory, and copies / updates all local code within the local 
+ * Apex installation with any newer code.
+ */
+public function git_sync($vars)
+{
+
+    // Initialize
+    $pkg_alias = strtolower($vars[0]);
+    $is_cloned = $vars[1] ?? 0;
+    $tmp_dir = sys_get_temp_dir() . '/apex_git_' . $pkg_alias;
+
+    // Load package
+    $client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
+    $pkg = $client->load();
+    $repo_url = $pkg->github_repo_url ?? '';
+
+    // Check for 'system' function
+    if ($is_cloned != 1 && !function_exists('system')) { 
+        $response = "The 'system' PHP function is not available on this server.  To continue, and sync the Github repository with \n";
+        $response .= "the code on the local server, please run the following two commands:\n\n";
+        $response .= "\tgit clone $repo_url $tmp_dir\n";
+        $response .= "\tphp apex.php git_sync $pkg_alias 1\n\n";
+        return $response;
+    }
+
+    // Clone GIthub repo, if needed
+    if ($is_cloned == 0) {
+        system("rm -rf $tmp_dir"); 
+        system("git clone $repo_url $tmp_dir > /dev/null 2>&1");
+    }
+
+    echo "Cloned: $tmp_dir\n"; exit;
+
+}
 
 }
 

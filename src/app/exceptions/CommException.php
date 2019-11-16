@@ -14,16 +14,15 @@ use apex\app;
 class CommException   extends ApexException
 {
 
-
-
     // Properties
     private $error_codes = array(
-    'invalid_email' => "Invalid e-mail address was specified, {email}",
-    'invalid_content_type' => "Invalid content-type specified for the e-mail message, {content_type}",
-    'no_sender' => "Unable to determine sender to send e-mail notification, {recipient}",
-    'no_recipient' => "Unable to determin recipient information for e-mail notification, {recipient}",
-    'not_exists' => "Notification does not exist in database, ID# {id}"
+        'invalid_email' => "Invalid e-mail address was specified, {email}",
+        'invalid_content_type' => "Invalid content-type specified for the e-mail message, {content_type}",
+        'no_sender' => "Unable to determine sender to send e-mail notification, {recipient}",
+        'no_recipient' => "Unable to determin recipient information for e-mail notification, {recipient}",
+        'not_exists' => "Notification does not exist in database, ID# {id}"
     );
+
 /**
  * Construct 
  *

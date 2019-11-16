@@ -249,7 +249,7 @@ if (app::get_action() == 'update_general') {
     } elseif ($type == 'dropbox') { 
 
         $vars = array(
-            'dropbix_auth_token' => app::_post('storage_dropbox_auth_token')
+            'dropbox_auth_token' => app::_post('storage_dropbox_auth_token')
         );
     }
 

@@ -19,4 +19,15 @@ define('COMPONENT_TYPES', array(
     'worker')
 );
 
+// Package configuration files
+define('PACKAGE_CONFIG_FILES', array(
+    'package.php', 
+    'install.sql', 
+    'remove.sql',   
+    'reset.sql', 
+    'components.json')
+);
+
+
+
 

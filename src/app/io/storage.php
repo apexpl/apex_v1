@@ -354,7 +354,7 @@ public function copy(string $from, string $dest):bool
     debug::add(3, tr("Copying remote file {1} to {2}", $from, $dest));
 
     // Rename file
-    if (!$response = $this->fs->rename($from, $dest)) { 
+    if (!$response = $this->fs->copy($from, $dest)) { 
         throw new StorageException('no_copy_file', $this->adapter_type, $from, $dest);
     }
 

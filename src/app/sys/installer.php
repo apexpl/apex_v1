@@ -517,6 +517,8 @@ private function complete_install()
     $init_file = file_get_contents(SITE_PATH . '/bootstrap/apex');
     $init_file = str_replace("~site_path~", SITE_PATH, $init_file);
     file_put_contents(SITE_PATH . '/bootstrap/apex', $init_file);
+    chmod(SITE_PATH . '/bootstrap/apex', 0755);
+    chmod(SITE_PATH . '/apex', 0755);
 
     // Give success message
     $admin_url = 'http://' . $this->domain_name . '/admin/';

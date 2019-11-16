@@ -18,8 +18,7 @@
 <a:tab_control>
 
     <a:tab_page name="General">
-var x = document.GetElementById('row_storage_sftp').style.display;
-alert("STYLE: " + x);
+        <h3>General</h3>
 
         <a:form_table>
             <a:ft_textbox name="domain_name" value="~config.core:domain_name~">
@@ -55,7 +54,7 @@ alert("STYLE: " + x);
         <p>Enter your site and contact information below, including URLs to your social media profiles.  This information will be displayed on the public web site in the appropriate places.</p>
 
         <a:form_table>
-            <a:ft_textbox name="site_name" value="~config.core:site_name~" label="Company Nmae">
+            <a:ft_textbox name="site_name" value="~config.core:site_name~" label="Company Name">
             <a:ft_textbox name="site_address" value="~config.core:site_address~" label="Street Address">
             <a:ft_textbox name="site_address2" value="~config.core:site_address2~" label="Street Address 2">
             <a:ft_textbox name="site_email" value="~config.core:site_email~" label="E-Mail Address">

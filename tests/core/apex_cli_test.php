@@ -458,7 +458,7 @@ protected function verify_component_created($type, $comp_alias, $owner, $files)
     // Load component, if needed
     if ($ok === true) { 
         if (!$client = components::load($type, $alias, $package, $parent)) { 
-            $this->asserttrue(false, "Unable to load component, type: $type, package: $package, parent: $Parent, alias: $alias");
+            $this->asserttrue(false, "Unable to load component, type: $type, package: $package, parent: $parent, alias: $alias");
         } else { $this->asserttrue(true); }
     }
 
@@ -932,6 +932,16 @@ public function test_create_theme()
     $this->assertnotfalse($row);
     $this->assertisarray($row);
 
+    // Set theme
+    $old_theme = app::get_theme();
+    app::set_theme('utest');
+    $this->assertEquals('utest', app::get_theme());
+    app::set_theme($old_theme);
+
+    // Set invalid theme, triger exception
+    $this->waitException('Invalid theme specified');
+    app::set_theme('junk23423523532');
+
 }
 
 /**
@@ -1034,10 +1044,18 @@ public function test_change_theme()
     $response = $this->send_cli('change_theme', array('public', 'utest'));
     $this->assertStringContains($response, "Successfully changed the theme");
     $this->assertequals('utest', app::_config('core:theme_public'));
+    app::update_config_var('core:theme_public', $old_theme);
 
-    // Finish up
-    app::update_config_var('core:theme_public', 'koupon');
+    // Update members
+    app::change_theme('members', app::_config('users:theme_members'));
+    app::change_theme('public', 'koupon');
+
+    // Delete theme
     $this->send_cli('delete_theme', array('utest'));
+
+    // Trigger exception
+    $this->waitException('Invalid theme specified');
+    app::change_theme('public', 'junk891252152');
 
 }
 

@@ -80,29 +80,5 @@ public function get_rows(int $start = 0, string $search_term = '', string $order
 
 }
 
-/**
- * Formats a single row for display within the web browser. 
- *
- * Has one database table row passed to it, an associative array, which can 
- * then be formatted as necessary for display within the web brwoser.  This 
- * takes the raw contents from the database and converts it to displable 
- * format. 
- *
- * @param array $row The row from the database.
- *
- * @return array The resulting array that should be displayed to the browser.
- */
-public function format_row(array $row):array
-{ 
-
-    // Format row
-
-
-    // Return
-    return $row;
-
-}
-
-
 }
 

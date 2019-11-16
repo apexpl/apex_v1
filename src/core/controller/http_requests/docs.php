@@ -159,19 +159,26 @@ public function process()
     // Apply markdown formatting
     $page_contents = MarkdownExtra::defaultTransform($md_code);
     $page_contents = preg_replace("/<code (.*?)>/", "<code class=\"prettyprint\">", $page_contents);
-file_put_contents(SITE_PATH . '/t.txt', $page_contents);
+
     // Get HTML
-    $theme_dir = SITE_PATH . '/views/themes/' . app::_config('core:theme_public') . '/sections';
-    $html = file_get_contents("$theme_dir/header.tpl");
-    $html .= "<<PAGE_CONTENTS>>";
-    $html .= file_get_contents("$theme_dir/footer.tpl");
+    $theme_dir = SITE_PATH . '/views/themes/' . app::_config('core:theme_public');
+    $html = file_get_contents("$theme_dir/layouts/default.tpl");
+
+    // Go through theme sections
+    preg_match_all("/<a:theme section=\"(.+?)\">/i", $html, $theme_match, PREG_SET_ORDER);
+    foreach ($theme_match as $match) { 
+        $temp_html = file_get_contents("$theme_dir/sections/$match[1]");
+        $html = str_replace($match[0], $temp_html, $html);
+    }
+    $html = str_replace("<a:page_contents>", "<<<page_contents>>>", $html);
 
     // Parse HTML
     view::load_base_variables();
     $html = view::parse_html($html);
 
     // Display
-    echo str_replace("<<PAGE_CONTENTS>>", $page_contents, $html);
+    $html = preg_replace("/<h1>(.+?)<\/h1>/", "", $html, 1);
+    echo str_replace("<<<page_contents>>>", $page_contents, $html);
     exit(0);
 
 }

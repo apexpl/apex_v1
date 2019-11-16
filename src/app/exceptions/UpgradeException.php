@@ -13,14 +13,12 @@ use apex\app;
 class UpgradeException   extends ApexException
 {
 
-
-
     // Properties
     private $error_codes = array(
-    'not_exists' => "No upgrade exists within the database with the ID# {id}",
-    'invalid_version' => "Unable to create upgrade as version is invalid.  Must be in format x.x.x, in all digigs",
-    'not_open' => "This upgrade is not open, hence can not be compiled or published, ID# {id}",
-    'no_rollback' => "No rollback information exists for the package {package}, version {version}"
+     'not_exists' => "No upgrade exists within the database with the ID# {id}",
+     'invalid_version' => "Unable to create upgrade as version is invalid.  Must be in format x.x.x, in all digigs",
+     'not_open' => "This upgrade is not open, hence can not be compiled or published, ID# {id}",
+     'no_rollback' => "No rollback information exists for the package {package}, version {version}"
     );
 /**
  * Construct 

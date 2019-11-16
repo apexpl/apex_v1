@@ -4,7 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
+use apex\svc\db;
 use apex\app\utils\hashes;
+use apex\app\exceptions\ApexException;
 
 
 /**
@@ -35,19 +37,7 @@ use apex\app\utils\hashes;
 class date
 {
 
-
-
-
     // Properties
-    private $secs_hash = array(
-    'I' => 60,
-    'H' => 3600,
-    'D' => 86400,
-    'W' => 604800  ,
-    'M' => 2592000 ,
-    'Y' => 31536000
-    );
-
     // Names
     private $names = array(
         'I' => 'Minute', 
@@ -64,7 +54,7 @@ class date
  * Get date for log files.  This ensures the date is formatted to 
  * DEFAULT_TIMEZONE, instead of UTC or the authenticated user's timezone. 
  */
-public function get_logdate()
+public function get_logdate():string
 { 
 
     // Get timezone data
@@ -89,7 +79,7 @@ public function get_logdate()
  *
  * @return string The new date.
  */
-public function add_interval(string $interval, $from_date = 0, $return_datestamp = true)
+public function add_interval(string $interval, $from_date = '', $return_datestamp = true)
 { 
 
     // Parse interval
@@ -98,20 +88,17 @@ public function add_interval(string $interval, $from_date = 0, $return_datestamp
     }
 
     // Get start date / time
-    if (preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 
-        $from_date = mktime((int) $d[4], (int) $d[5], (int) $d[6], (int) $d[2], (int) $d[3], (int) $d[1]);
-    } elseif ($from_date == 0) { 
-        $from_date = time();
+    if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 
+        $secs = $from_date == '' ? time() : $from_date;
+        $from_date = date('Y-m-d H:i:s', $secs);
     }
 
-    // Modify date as needed
-    $secs = ($this->secs_hash[$match[1]] * $match[2]);
+    // Get function name
+    $func_name = "date_add('$from_date', interval $match[2] " . $this->names[$match[1]] . ")";
+    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
 
-    $from_date += $secs;
-
-    // Return
-    if ($return_datestamp === true) { $from_date = date('Y-m-d H:i:s', $from_date); }
-    return $from_date;
+    // Get date
+    return db::get_field("SELECT $func_name"); 
 
 }
 
@@ -124,7 +111,7 @@ public function add_interval(string $interval, $from_date = 0, $return_datestamp
  *
  * @return string The new date.
  */
-public function subtract_interval(string $interval, $from_date = 0, $return_datestamp = true)
+public function subtract_interval(string $interval, $from_date = '', $return_datestamp = true)
 { 
 
     // Parse interval
@@ -132,20 +119,18 @@ public function subtract_interval(string $interval, $from_date = 0, $return_date
         throw new ApexException('error', "Invalid date interval specified, {1}", $interval);
     }
 
-    // Get start date / time
-    if (preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 
-        $from_date = mktime((int) $d[4], (int) $d[5], (int) $d[6], (int) $d[2], (int) $d[3], (int) $d[1]);
-    } elseif ($from_date == 0) { 
-        $from_date = time();
+        // Get start date / time
+    if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 
+        $secs = $from_date == 0 ? time() : $from_date;
+        $from_date = date('Y-m-d H:i:s', $secs);
     }
 
-    // Modify date as needed
-    $secs = ($this->secs_hash[$match[1]] * $match[2]);
-    $from_date -= $secs;
+    // Get function name
+    $func_name = "date_sub('$from_date', interval $match[2] " . $this->names[$match[1]] . ")";
+    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
 
-    // Return
-    if ($return_datestamp === true) { $from_date = date('Y-m-d H:i:s', $from_date); }
-    return $from_date;
+    // Get date
+    return db::get_field("SELECT $func_name"); 
 
 }
 
@@ -207,9 +192,6 @@ public function parse_date_interval(string $interval)
     return $name;
 
 }
-
-
-
 
 }
 

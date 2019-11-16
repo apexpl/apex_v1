@@ -97,6 +97,41 @@ public function test_page_settings_general()
     // Check if page loads
     $html = $this->http_request('/admin/settings/general');
     $this->assertPageTitle('General Settings');
+    $this->assertHasHeading(3, 'General');
+    $this->assertHasHeading(3, 'Site Info');
+    $this->assertHasHeading(3, 'Admin Panel Security');
+    $this->assertHasHeading(3, 'Database Servers');
+    $this->assertHasHeading(3, 'E-Mail Servers');
+    $this->assertHasHeading(3, 'Storage Settings');
+    $this->assertHasHeading(3, 'Reset Redis');
+
+    // Assert submit buttons
+    $this->assertHasSubmit('update_general', 'Update General Settings');
+    $this->assertHasSubmit('site_info', 'Update Site Info');
+    $this->assertHasSubmit('security', 'Update Security Settings');
+    $this->assertHasSubmit('delete_database', 'Delete Checked Databases');
+    $this->assertHasSubmit('delete_email', 'Delete Checked E-Mail Servers');
+    $this->assertHasSubmit('storage', 'Update Storage Settings');
+    $this->assertHasSubmit('reset_redis', 'Reset Redis Database');
+    $this->assertHasSubmit('add_database', 'Add Database');
+    $this->assertHasSubmit('add_email', 'Add SMTP Server');
+
+
+    // Assert form fields
+    $this->assertHasFormField(array('site_name','site_address','site_address2','site_email','site_phone','site_email'));
+    $this->assertHasFormField(array('site_facebook','site_twitter','site_linkedin','site_youtube','site_reddit','site_instagram'));
+    $this->assertHasFormField(array('dbname','dbuser','dbpass','dbhost','dbport'));
+    $this->assertHasFormField(array('email_host','email_user','email_pass','email_port'));
+    $this->assertHasFormField(array('storage_sftp_host','storage_sftp_username','storage_sftp_password','storage_sftp_port'));
+
+    // Assert additional
+    $this->assertHasTable('core:db_servers');
+    $this->assertHasTable('core:email_servers');
+    $this->assertHasHeading(4, 'Add Database Server');
+    $this->assertHasHeading(4, 'Add SMTP E-Mail Server');
+
+
+
 
     // Get current config vars
     $orig_config = app::getall_config();
@@ -141,6 +176,7 @@ public function test_page_settings_general()
         'site_email' => 'support@unit-test.com',
         'site_phone' => '582-666-3251',
         'site_tagline' => 'Unit tests are here to stay',
+        'site_about_us' => 'unit_about', 
         'site_facebook' => 'unit_fb',
         'site_twitter' => 'unit_twit',
         'site_linkedin' => 'unit_linked',
@@ -269,6 +305,22 @@ public function test_page_settings_general()
     $vars = json_decode(redis::lindex('config:db_slaves', 0), true);
     $this->assertequals($vars['dbuser'], 'unit_test', "Deleting slave servers didn't work");
 
+    // Delete slaves servers, update read-only info
+    redis::del('config:db_slaves');
+    redis::hmset('config:db_master', array('dbuser_readonly' => 'read_test', 'dbpass_readonly' => 'read_pass'));
+
+    // Test read-only user
+    $vars = $this->invoke_method($connections, 'get_server_info', array('type' => 'read'));
+    $this->assertEquals($vars['dbuser'], 'read_test');
+    $this->assertEquals($vars['dbpass'], 'read_pass');
+
+    // Check write connection
+    $vars = $this->invoke_method($connections, 'get_server_info', array('type' => 'write'));
+    $this->assertNotEquals($vars['dbuser'], 'read_test');
+    $this->assertNotEquals($vars['dbpass'], 'read_pass');
+    redis::hmset('config:db_master', array('dbuser_readonly' => '', 'dbpass_readonly' => ''));
+
+
     // Set SMTP server vars
     $vars = array(
         'email_is_ssl' => 1,
@@ -303,21 +355,24 @@ public function test_page_settings_general()
     $vars = json_decode(redis::lindex('config:email_servers', 0), true);
     $this->assertequals($vars['username'], 'email2', "Unable to correctly delete SMTP e-mail servers");
 
-    // Update RabbitMQ info
-    $vars = array(
-        'rabbitmq_host' => '10.0.1.6',
-        'rabbitmq_port' => '8311',
-        'rabbitmq_user' => 'unit_test',
-        'rabbitmq_pass' => 'mypassword',
-        'submit' => 'update_rabbitmq'
+    // Set storage vars
+    $request = array(
+        'storage_type' => 'dropbox', 
+        'storage_dropbox_auth_token' => 'unit_test', 
+        'submit' => 'storage'
     );
-    $html = $this->http_request('/admin/settings/general', 'POST', $vars);
-    $this->assertPageContains('Successuflly updated RabbitMQ connection info');
-    $this->assertHasCallout('success', 'Successuflly updated RabbitMQ connection info');
+    $html = $this->http_request('admin/settings/general', 'POST', $request);
+    $this->assertPageTitle('General Settings');
+    $this->assertHasCallout('success', 'Successfully updated remote storage');
 
-    // Verify RabbitMQ data updates
-    $user = redis::hget('config:rabbitmq', 'user');
-    $this->assertequals($user, 'unit_test', "Unable to update RabbitMQ info");
+    // Check storage config
+    //$chk_vars = json_decode(app::_config('core:flysystem_credentials'), true);
+    $this->assertEquals('dropbox', app::_config('core:flysystem_type'));
+    //$this->assertArrayHasKey('dropbox_auth_token', $chk_vars);
+    //$this->assertEquals('unit_test', $chk_vars['dropbox_auth_token']);
+    app::update_config_var('core:flysystem_type', 'local');
+
+
 
     // Reset redis -- validation error
     $vars = array(
@@ -701,17 +756,7 @@ public function test_page_admin_maintenance_backup_manager()
 
     // Set vars
     $vars = array(
-        'backups_enable' => 1,
-        'backups_save_locally' => 0,
-        'backups_remote_service' => 'dropbox',
-        'backups_aws_access_key' => 'unit_test',
-        'backups_aws_access_secret' => 'unit_test',
-        'backups_dropbox_client_id' => 'unit_test',
-        'backups_dropbox_client_secret' => 'unit_test',
-        'backups_dropbox_access_token' => 'unit_test',
-        'backups_gdrive_client_id' => 'unit_test',
-        'backups_gdrive_client_secret' => 'unit_test',
-        'backups_gdrive_refresh_token' => 'unit_test'
+        'backups_enable' => 1
     );
 
     // Set request

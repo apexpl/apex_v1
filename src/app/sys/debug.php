@@ -78,8 +78,8 @@ public function add(int $level, string $message, $log_level = 'debug', $is_syste
 
     // Get caller file and line number
     $trace = debug_backtrace();
-    $file = trim(str_replace(SITE_PATH, '', $trace[1]['file']), '/') ?? '';
-    $line_number = $trace[1]['line'] ?? 0;
+    $file = trim(str_replace(SITE_PATH, '', $trace[0]['file']), '/') ?? '';
+    $line_number = $trace[0]['line'] ?? 0;
 
     // Add log
     if ($log_level != 'debug') { 
@@ -100,11 +100,8 @@ public function add(int $level, string $message, $log_level = 'debug', $is_syste
         'time' => time()
     );
     array_unshift($this->notes, $vars);
-
     // Add log
-    if ($log_level == 'debug') { 
-        log::add_system_log($log_level, 0, $file, $line_number, $message);
-    }
+    log::add_system_log('debug', 0, $file, $line_number, $message);
 
 }
 
@@ -130,9 +127,13 @@ public function finish_session()
 
     // Check if we're debugging
     if (app::_config('core:debug') < 1 && app::_config('core:mode') != 'devel') { 
-        return;
+        return false;
     }
-    if (app::get_http_controller() == 'admin' && app::get_uri() == 'admin/devkit/debugger') { return; }
+
+    // Check if we're viewing the Devel Kit->Debugger menu in admin panel
+    if (app::get_uri() == 'admin/devkit/debugger') { 
+        return false;
+    }
 
     // Set data array
     $data = array(
@@ -163,22 +164,22 @@ public function finish_session()
     );
     $this->data = $data;
 
-    // Return if we're not saving
-    if (app::_config('core:debug') < 1) { return; }
-
     // Save json to redis
     redis::set('config:debug_log', json_encode($data));
     redis::expire('config:debug_log', 10800);
 
-    // Save response output
-    if (is_writeable($this->log_dir . '/response.txt')) { 
-        file_put_contents($this->log_dir . '/response.txt', app::get_response());
+    // save out.html file
+    if ((is_writeable($this->log_dir . '/output.html')) || (is_writeable($this->log_dir) && !file_exists($this->log_dir . '/output.html'))) { 
+        file_put_contents($this->log_dir . '/output.html', app::get_res_body());
     }
 
     // Update config, as needed
     if (app::_config('core:debug') != 2) { 
         app::update_config_var('core:debug', '0');
     }
+
+    // Return
+    return true;
 
 }
 

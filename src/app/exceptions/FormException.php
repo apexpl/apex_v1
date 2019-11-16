@@ -13,11 +13,9 @@ use apex\app\exceptions\ApexException;
 class FormException   extends ApexException
 {
 
-
-
     // Properties
     private $error_codes = array(
-    'field_required' => "The form field {field} was left blank, and is required"
+        'field_required' => "The form field {field} was left blank, and is required"
     );
 
 /**

@@ -1045,7 +1045,7 @@ protected function process_theme_page_function(string $html):string
     }
 
     // Execute function and return
-    $html = $client->process_page($html, $this->layout);
+    $html = $client->process_page($html, $this->layout_alias);
     return $html;
 
 }

@@ -17,16 +17,12 @@ use apex\svc\view;
 class ApexException   extends \Exception
 {
 
-
-
-
     // Properties
     protected $log_level;
     protected $message;
     protected $is_system = 0;
     protected $is_generic = 0;
     protected $sql_query;
-
 
 /**
  * Construct 
@@ -47,6 +43,7 @@ public function __construct(string $log_level, string $message, ...$vars)
     }
 
     // FOrmat message
+    $this->code = 500;
     $this->message = tr($message, ...$vars);
 
 }

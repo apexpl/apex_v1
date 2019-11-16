@@ -12,6 +12,7 @@ control, click on the below links.
 1. [Package Structure](packages_structure.md)
 2. [Package Configuration](packages_config.md)
 3. [Upgrades and Version Control](upgrades.md)
+4. [Github Integration](github.md)
 
 
 <a name="#components"></a>

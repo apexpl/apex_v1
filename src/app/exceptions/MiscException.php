@@ -14,11 +14,9 @@ use apex\app\exceptions\ApexException;
 class MiscException   extends ApexException
 {
 
-
-
     // Properties
     private $error_codes = array(
-    'no_admin' => "No administrator exists within the database with ID# {id}"
+        'no_admin' => "No administrator exists within the database with ID# {id}"
     );
 
 /**

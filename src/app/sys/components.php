@@ -320,6 +320,39 @@ public function get_all_files(string $type, string $alias, string $package, stri
 
 }
 
+/**
+ * Get filename for Github repo.
+ *
+ * @param string $file The filename retrived from other methodfs within this class (eg. get_all_files()).
+ * @param string $pkg_alias The package alias the file belongs to.
+ *
+ * @return string The relative file path within the Github repo.
+ */
+public function get_github_file(string $file, string $pkg_alias):string
+{
+
+    // Get the Github file
+    $git_file = '';
+    if (preg_match("/^src\/(.+?)\/(.+)$/", $file, $match)) { 
+        $git_file = $match[1] == $pkg_alias ? 'src/' : 'child/' . $match[1] . '/';
+        $git_file .= $match[2];
+
+    } elseif (preg_match("/^tests\/$pkg_alias\/(.+)$/", $file, $match)) { 
+        $git_file = 'tests/' . $match[1];
+
+    } elseif (preg_match("/^views\/(.+)$/", $file, $match)) { 
+        $git_file = $file;
+    }
+
+    // Return
+    return $git_file;
+
+}
+
+
+
+
+
 
 }
 

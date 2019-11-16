@@ -491,28 +491,6 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
     return true;
 
 }
-
-/** 
- * Get a chunked file upload.
- *
- * Will retrive a large file upload using chunks.  Checks 
- * if upload is already in progress, and if so, appends to existing temporary 
- * file, otherwise starts a new upload and returns the filename.  Once upload 
- * is done, will dispatch the 'core.fils. chunk_upload' event message to listner / workers.
- *
- * @param string $file_id Any unique ID# that will be passed back to the listner / worker to identify the file upload completion.
- */
-public function get_chunk_upload(string $file_id)
-{
-
-    // Return unique filename, if needed
-    if (!app::has_post('chunk_file')) { 
-        $filename = uniqid() . '_' . $file_id;
-        return $filename;
-    }
-
-}
-
 /**
  * Send a chunked file
  * 

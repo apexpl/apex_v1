@@ -17,8 +17,6 @@ use apex\app\exceptions\ApexException;
 function handle_exception($e)
 {
 
-
-
     // ApexException
     if ($e instanceof ApexException) { 
         $e->process();
