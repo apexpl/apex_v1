@@ -251,6 +251,29 @@ public function install(string $theme_alias, int $repo_id = 0, string $purchase_
     }
     io::remove_dir("$theme_dir/public");
 
+    // Copy over .tpl files, if needed
+    if (is_dir("$theme_dir/tpl") && ($vars['area'] == 'public' || $vars['area'] == 'members')) { 
+
+        // Get setup to copy
+        $tpl_dir = SITE_PATH . '/views/tpl/' . $vars['area'];
+        $tpl_files = io::parse_dir("$theme_dir/tpl");
+
+        // Create tpl_bak directory
+        io::remove_dir("$theme_dir/tpl_bak");
+        io::create_dir("$theme_dir/tpl_bak");
+
+        // Copy over files
+        foreach ($tpl_files as $file) {
+
+            // Rename, if exists 
+            if (file_exists("$tpl_dir/$file")) {
+                io::create_dir(dirname("$theme_dir/tpl_bak/$file"));
+                rename("$tpl_dir/$file", "$theme_dir/tpl_bak/$file");
+            }
+            copy("$theme_dir/tpl/$file", "$tpl_dir/$file");
+        }
+    }
+
     // Add to database
     db::insert('internal_themes', array(
         'is_owner' => 0,
