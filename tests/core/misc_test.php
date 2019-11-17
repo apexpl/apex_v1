@@ -115,17 +115,6 @@ public function test_app_set_area()
 
 }
 
-/**
-    * app::set_urio() -- Exception
- */
-public function test_app_set_uri_exception()
-{
-
-    // Wait for exception
-    $this->waitException('Invalid URI specified');
-    app::set_uri('/somedir/ ^id/page');
-
-}
 
 /**
  * app::getall_request_vars()

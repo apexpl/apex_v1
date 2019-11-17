@@ -4,7 +4,7 @@
 Last thing before we publish our package to the repository, we need to make sure the code works be developing a 
 quick unit test.  Within terminal, type:
 
-`php apex.php create test training:admin`
+`./apex create test training:admin`
 
 This will create a new file at */tests/training/admin_test.php*.  Open the file, and enter the following contents:
 

@@ -14,7 +14,7 @@ clients.
 You can easily create a new package any time.  Within terminal change to the Apex installation directory, and
 type:
 
-`php apex.php create_package PACKAGE_ALIAS`
+`./apex create_package PACKAGE_ALIAS`
 
 Where `PACKAGE_ALIAS` is the alias of the new package.  That's it, your new package is now created and ready
 for development.
@@ -61,9 +61,9 @@ components and unit tests.  For a quick example of how to add a library and view
 terminal you could type:
 
 ~~~
-php apex.php create lib casino:games
+./apex create lib casino:games
 
-php apex.php create view admin/casino/bets casino
+./apex create view admin/casino/bets casino
 ~~~
 
 The above commands would add the components, and create the necessary blank files for you to develop.  For
@@ -83,12 +83,12 @@ private repository, please see the [Repositories](repos) page of this documentat
 
 To publish your package, in terminal change to the installation directory, and type:
 
-`php apex.php publish PACKAGE_ALIAS`
+`./apex publish PACKAGE_ALIAS`
 
 That's it.  The package will then be published to the repository, and can then be installed on any Apex system
 by typing:
 
-`php apex.php install PACKAGE_ALIAS`
+`./apex install PACKAGE_ALIAS`
 
 
 

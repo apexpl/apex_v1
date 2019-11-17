@@ -35,13 +35,13 @@ executed to handle any specific actions for that individual view.
 You must create all views via the apex.php script to ensure they are properly assigned to the correct package,
 and included with the package when publishing to a repository.  To create a new view, within terminal type:
 
-`php apex.php create view URI PACKAGE`
+`./apex create view URI PACKAGE`
 
 You need to specify the URI without .tpl extension, and the package you want the view included in during
 publication.  For example, if developing a package called "casino", and you want to create a view at
 http://localhost/admin/casino/games, you would use:
 
-`php apex.php create view admin/casino/games casino`
+`./apex create view admin/casino/games casino`
 
 This would create blank view files at */views/tpl/admin/casino/games.tpl* and
 */views/php/admin/casino/games.php*, which you may modify as desired.  The URI is immediately active, and will

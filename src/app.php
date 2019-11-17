@@ -446,8 +446,17 @@ public static function get_currency_data(string $currency):array
 public static function update_config_var(string $var, $value)
 { 
 
+if ($var == 'bitcoin_company_userid') { 
+    $t = debug_backtrace();
+    print_r($t[0]); exit;
+}
     // Debug
     debug::add(5, tr("Updating configuration variable {1} to value: {2}", $var, $value));
+
+    // Check format
+    if (!preg_match("/^(.+?):(.+)$/", $var, $match)) { 
+        throw new ApexException('error', tr("Unable to update configuration variable '{1}', as it is not in the correct format of PACKAGE:ALIAS", $var));
+    }
 
     redis::hset('config', $var, $value);
     self::$config[$var] = $value;
@@ -1064,6 +1073,11 @@ public static function clear_post() {
  * Clear all $_GET variables.  Useful to ensure HTML form is not pre-filled. 
  */
 public static function clear_get() { self::$get = array(); }
+
+/**
+ * Clear all $_COOKIE variables
+ */
+public static function clear_cookie() { self::$cookie = []; }
 
 /**
  * Set a new cookie

@@ -26,7 +26,7 @@ Class](https://apex-platform.org/api/apex.app.web.ajax.html) page of the develop
 You can create [AJAX Components](../components/ajax.md) which can be executed by clicking on a link / button
 within the web page, and modify the DOM elements as desired.  For example, within terminal you can type:
 
-`php apex.php create ajax casino:place_bet`
+`./apex create ajax casino:place_bet`
 
 A new file will be created at */src/casino/ajax/place_bet.php* where you can add any necessary PHP code
 including calls to the AJax library to modify the DOM elements within the web page.  Within the .tpl file of

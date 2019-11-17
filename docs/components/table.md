@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |------------- 
 **Description:** | Data tables are quality, stylish tables with full AJAX functionality including pagination, sort, search and row deletion, that allow you to easily display any data from the database.  Flexible, customizable, and can be easily developed in a few short minutes.
-**Create Command:** | `php apex.php create table PACKAGE:ALIAS`
+**Create Command:** | `./apex create table PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE?table/ALIAS.php
 **Namespace:** | apex\PACKAGE\table
 **HTML Tag:** | `<e:function alias="display_table" table="PACKAGE:ALIAS">`

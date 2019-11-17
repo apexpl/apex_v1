@@ -4,7 +4,7 @@
 You can easily integrate any HTML / CSS theme available on the internet from places such as ThemeForest.  It
 should generally only take about 30 minutes to integrate an existing theme.  To do so, follow the below steps.
 
-1. In terminal, move to the Apex installation directory, and type `php apex.php create theme theme_alias`
+1. In terminal, move to the Apex installation directory, and type `./apex create theme theme_alias`
 2.  Upload all necessary CSS, Javascript and image files to the /public/themes/theme_alias/ directory.
 3. Slice the main page into a header.tpl and footer.tpl files while removing the actual page contents.  Place these files in the /views/themes/theme_alias/sections/ directory.
 4. Within the header.tpl and footer.tpl place the `~theme_uri ~` where needed, generally in the paths to Javascript and CSS files.  For example, `<script src="~theme_uri~/js/myscript.js" type="text/javascript">`
@@ -28,7 +28,7 @@ should generally only take about 30 minutes to integrate an existing theme.  To 
 
 That's it.  To activate the theme, open terminal, change to the installation directory and type:
 
-`php apex.php change_theme public THEME_ALIAS`
+`./apex change_theme public THEME_ALIAS`
 
 The theme will now be active on the public web site.
 

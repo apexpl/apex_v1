@@ -4,14 +4,14 @@
 First thing is first, visit the [Installation Guide](../install.md) and get an install of Apex up and running.
 Once done, install a few base packages we will need with:
 
-`php apex.php install webapp users transaction support devkit`
+`./apex install webapp users transaction support devkit`
 
 
 ### Create Package
 
 Next, we need to create our new package which we will call "training".  You can do this in terminal with:
 
-`php apex.php create_package training`
+`./apex create_package training`
 
 When prompted to select a repository, enter 2 to specify the local repository that was installed with the
 devkit package.  This will create our new package including two directories at:
@@ -100,7 +100,7 @@ $this->menus[] = array(
 We will explain the above code in detail just below, but every time you modify a package.php file, you must scan the
 package to update the database as necessary.  In terminal, simply type:
 
-`php apex.php scan training`
+`./apex scan training`
 
 Once done, if you login to either the administration panel or member's area, you will see the new menus we
 added.

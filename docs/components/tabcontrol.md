@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | Dynamic and expandable tab controls.  Static tab controls within the TPL code are available, but this component should be used if you believe other packages may want to add additional tab pages to it.  For example, the tab control when managing a user account is dynamic, allowing other packages to easily add additional tab pages to it as needed.
-**Create Command:** | `php apex.php create tabcontrol PACKAGE:ALIAS`
+**Create Command:** | `./apex create tabcontrol PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE/tabcontrol/ALIAS.php<br />/views/tabpage/PACKAGE/ALIAS/ (directory)
 **Namespace:** | `apex\PACKAGE\tabcontrol\ALIAS`
 **HTML Tag:** | `<e:function alias="display_tabcontrol" tabcontrol="PACKAGE:ALIAS">`

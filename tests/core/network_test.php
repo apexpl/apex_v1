@@ -75,7 +75,7 @@ public function test_check_package()
 { 
 
     // Go through packages
-    $packages = array('users', 'transaction', 'support', 'devkit', 'digitalocean', 'bitcoin');
+    $packages = array('users', 'transaction', 'support', 'devkit', 'digitalocean');
     foreach ($packages as $alias) { 
 
         // Check package

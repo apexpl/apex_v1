@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | Used to receive and process incoming messages from RabbitMQ.  See the [Messaging (RabbitMQ)](../messaging.md) page for more details about RabbitMQ and horizontal scaling.
-**Create Command:** | `php apex.php create worker PACKAGE:ALIAS ROUTING_KEY_ALIAS`
+**Create Command:** | `./apex create worker PACKAGE:ALIAS ROUTING_KEY_ALIAS`
 **File Location:** | /src/PACKAGE/worker/ALIAS.php
 **Namespace:** | `apex\PACKAGE\worker`
 
@@ -14,7 +14,7 @@
 When creating a worker you need to define a routing key alias, which is used within the routing key upon sending / receiving messages to / form RabbitMQ.  This can 
 be anything you want, and the resulting routing key to call a method within the worker will be *PACKAGE.ROUTING_KEY_ALIAS.METHOD*.  
 
-For example, a worker was created with `php apex.php create worker users:user users.profile`, meaning the PHP class file created 
+For example, a worker was created with `./apex create worker users:user users.profile`, meaning the PHP class file created 
 is located at */src/users/worker/user.php*.  When any messages are sent to RabbitMQ with the routing key users.profile.*, this PHP class will be loaded, and the 
 method name of the third segment of the routing key will be executed.
 

@@ -4,13 +4,13 @@
 &nbsp; | &nbsp;
 ------------- |------------- 
 **Description:** | The views / individual pages that are displayed within the administration panel, public web site, and member's area.
-**Create Command:** | `php apex.php create view URI PACKAGE 
+**Create Command:** | `./apex create view URI PACKAGE 
 **File Location:** | /views/tpl/URI.tpl<br />/views/php/URI.php
 **Namespace:** | `apex`
 
 #### Example
 
-`php apex.php create view /admin/settings/blog myblog`
+`./apex create view /admin/settings/blog myblog`
 
 The above will create a view accessible via web browser at http://localhost/admin/settings/blog, with two files located at:
 

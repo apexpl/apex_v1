@@ -4,14 +4,14 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | One of the main components in Apex, and simply a blank PHP class file allowing you to develop andything you need / wish.
-**Create Command:** | `php apex.php create lib PACKAGE:ALIAS`
+**Create Command:** | `./apex create lib PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE/ALIAS.php
 **Namespace:** | `\apex\PACKAGE\ALIAS`
 
 
 For example, if you create a library with:
 
-`php apex.php create lib myblog:post`
+`./apex create lib myblog:post`
 
 A new file will be located at /src/myblog/post.php that looks like:
 

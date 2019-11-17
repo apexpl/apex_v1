@@ -3,7 +3,7 @@
 
 &nbsp; | &nbsp;
 **Description:** | Automatically executes at a specified time interval (eg. every 30 minutes, 7 days, etc.), and is used for any automated processes you need to run.
-**Create Command:** | `php apex.php create cron PACKAGE:ALIAS`
+**Create Command:** | `./apex create cron PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE?cron/ALIAS>php
 **Namespace:** | `\apex\PACKAGE\cron\ALIAS`
 

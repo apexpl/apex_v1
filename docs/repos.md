@@ -6,7 +6,7 @@ existing public packages over to develop them on your own, or anything else you 
 repository, first ensure the Development Toolkit package is installed on your server.  Within terminal change
 to the installation directory, and type:
 
-`php apex.php install devkit`
+`./apex install devkit`
 
 Once installed, visit the Devel Kit->Repositories menu of the administration panel, and you will see one
 repository listed.  Manage that repository, and change the settings as desired such as the name of the
@@ -20,7 +20,7 @@ multiple hostnames pointing to the system, and can setup one repository on each 
 If you have access to other repositories, you may easily configure them on any individual system.  In
 terminal, type:
 
-`php apex.php add_repo HOSTNAME USER PASS`
+`./apex add_repo HOSTNAME USER PASS`
 
 Obviously, change the hostname, username and password above as needed.  Once added, upon searching for or
 installing packages, the system will also begin contacting the new repository as well.  The same applies if

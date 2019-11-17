@@ -4,14 +4,14 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | A single tab page within an existing tab control.  Useful if your package wants to add an extra tab page to for example, the manage user account tab control.
-**Create Command:** | `php apex.php create tabpage PACKAGE:PARENT:ALIAS OWNER`
+**Create Command:** | `./apex create tabpage PACKAGE:PARENT:ALIAS OWNER`
 **File Location:** | /src/PACKAGE/tabcontrol/PARENT/ALIAS.php<br />/views/tabpage/PACKAGE/PARENT/ALIAS.tpl
 **Namespace:** | `apex\PACKAGE\tabcontrol\PARENT\ALIAS`
 
 
 When creating a tab page, you must define the owner package, so it is correctly included when publishing your package.  For example:
 
-`php apex.php create tabpage users:manage:bets casino`
+`./apex create tabpage users:manage:bets casino`
 
 This would add a new "bets" tab page to the existing "users:manage" tab control, which is displayed when managing a user's account.  This tab page will be 
 owned by the "casino" package, and included when publishing the package.

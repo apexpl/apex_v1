@@ -88,7 +88,6 @@ public function add(int $level, string $message, $log_level = 'debug', $is_syste
 
     // Check debug level
     if ($level > app::_config('core:debug_level')) { return false; }
-    if (app::_config('core:mode') != 'devel') { return false; }
     if (app::get_uri() == '500') { return false; }
 
     // Add entry to notes array
@@ -100,6 +99,7 @@ public function add(int $level, string $message, $log_level = 'debug', $is_syste
         'time' => time()
     );
     array_unshift($this->notes, $vars);
+
     // Add log
     log::add_system_log('debug', 0, $file, $line_number, $message);
 

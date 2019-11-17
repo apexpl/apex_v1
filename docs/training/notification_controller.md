@@ -5,7 +5,7 @@ As you will notice, within our library class, we used dependency injection via a
 then called the `$emailer->processor_emails()` method within our `pick_winner()` method.  Let's create the notifications 
 controller to send out the e-mails.  Within terminal, type:
 
-`php apex.php create controller core:notifications:lottery training`
+`./apex create controller core:notifications:lottery training`
 
 This will create a new PHP file at */src/core/controller/notifications/lottery.php*, and will assign it to the "training" package, so 
 upon publishing the package this PHP file will be included.  Open this file, and enter the following contents:

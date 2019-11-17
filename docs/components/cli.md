@@ -3,7 +3,7 @@
 
 &nbsp; | &nbsp;
 **Description:** | CLI Command that is performed within the terminal / console by the apex.php script (pr apex phar archive).
-**Create Command:** | `php apex.php create cli PACKAGE:ALIAS`
+**Create Command:** | `./apex create cli PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE?cli/ALIAS>php
 **Namespace:** | `\apex\PACKAGE\cli\ALIAS`
 

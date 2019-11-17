@@ -44,7 +44,7 @@ At times you will need to create your own HTTP controller, allowing all incoing 
 certain way.  For example, you may want all requests to the /invoice/ URI to be routed through a different controller.  To do this you 
 would createa  new controller, for example if the package you're developing is "mycart" in terminal you would type:
 
-`php apex.php create controller core:http_requests:invoice mycard`
+`./apex create controller core:http_requests:invoice mycard`
 
 This will create a new PHP file at */src/core/controller/http_requests/invoice.php*, and will be packaged with the "mycart" package.  Simply 
 modify this file as desired, and add a `process()` method, which will be executed for every incoming HTTP request.  More than likely, the 
@@ -85,13 +85,13 @@ Through the /apex.php script (or "apex" phar archive), you can develop and execu
 a "cli" component for each command.  For example, if developing a package named "mycard", and you want a custom CLI command 
 named "archive_orders", you could create a cli component within terminal with:
 
-`php apex.php create cli mycard:archive_orders`
+`./apex create cli mycard:archive_orders`
 
 This will create a new PHP file at */src/mycard/cli/archive_orders.php*, and simply add a `process()` method into the PHP class, 
 which will be executed every time the CLI command is performed.  You can then run the CLI command any time 
 via terminal with:
 
-`php apex.php mycard.archive_orders`
+`./apex mycard.archive_orders`
 
 The above will execute the `process()` method within the */src/mycard/cli/archive_orders.php* PHP class.
 

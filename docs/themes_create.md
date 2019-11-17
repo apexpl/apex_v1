@@ -10,7 +10,7 @@ within the installation directory.  The commands available are explained below.
 This will createa  new theme on the system with the specified alias.  For example, if you wanted to create the
 theme "mycooltheme", within terminal change to the installation directory, and type:
 
-`php apex.php create_theme mycooltheme`
+`./apex create_theme mycooltheme`
 
 This will create new directories at /views/themes/mycooltheme, and /public/themes/mycooltheme, where you can start
 placing all relevant theme files.  There will also be a file at /views/themes/mycooltheme/theme.php with several
@@ -31,7 +31,7 @@ Changes the currently actie theme, and you will probably want to use this after 
 can be either "public" or "members", and then the alias of the theme to switch to.  For example, to switch to
 our newly created "mycooltheme" theme we would use:
 
-`php apex.php change_theme public mycooltheme`
+`./apex change_theme public mycooltheme`
 
 Done.  Now when you view your site at http://localhost/, it will be displayed with the "mycooltheme" theme.
 
@@ -46,7 +46,7 @@ download it into Apex.
 
 For example, with our "mycooltheme" theme, within terminal we would type:
 
-`php apex.php publish_theme mycooltheme`
+`./apex publish_theme mycooltheme`
 
 
 ### `install_theme THEME_ALIAS [PURCHASE_CODE]`
@@ -55,7 +55,7 @@ Will download and install a theme from the appropriate repository.  If an Envato
 define the purchase code which can be found by downloading your license key file from ThemeForest in plain
 text.  For example:
 
-`php apex.php install_theme mycooltheme`
+`./apex install_theme mycooltheme`
 
 
 ### `delete_theme THEME_ALIAS`

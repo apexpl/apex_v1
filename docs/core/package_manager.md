@@ -22,7 +22,7 @@ When you visit this menu, Apex will query all repositories configured on your sy
 available packages that are not installed on your system, and display them here.  If you ever want to install
 an available package, simply login to your server via SSH, change to the installation directory, and type:
 
-`php apex.php install PACKAGE_ALIAS`
+`./apex install PACKAGE_ALIAS`
 
 This will download the package from the necessary repository, and install it on your server.
 
@@ -33,7 +33,7 @@ You can view a list of all available upgrades via the first tab of the Maintenan
 and when you wish to install the availalbe upgrades, simply login to your server via SSH, change to the
 installation directory, and type:
 
-`php apex.php upgrade`
+`./apex upgrade`
 
 This will download all available upgrades from the necessary repositories, and install them on your server.
 Please note, it is highly recommended you keep your system up to date, as all depending on development

@@ -9,7 +9,7 @@ This is actually quite simplistic in Apex, as an RPC call is made every time a v
 additional PHP code on an existing view, simply create a worker with the routing key `core.template`.  For
 example, if developing a package named "casino", within terminal you would type something like:
 
-`php apex.php create worker casino:parse_template core.template`
+`./apex create worker casino:parse_template core.template`
 
 This will create a new file at */src/casino/worker/parse_template.php*.  Open this file up, and create a
 `parse(EventMessageInterface $msg)` method within it, which will be executed every time a template is displayed within the

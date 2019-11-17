@@ -112,7 +112,7 @@ public function test_execute_sqlfile()
     $io->execute_sqlfile(SITE_PATH . '/utest/test.sql');
 
     // Check database trable
-    $tables = db::show_tables();
+    $tables = db::get_column("SHOW TABLES");
     $this->assertContains('unit_test', $tables);
     db::query("DROP TABLE unit_test");
 

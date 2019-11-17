@@ -4,7 +4,7 @@
 Now that are package is developed and published, we will want to maintain it by releasing occassional upgrades.  To do this, we need to 
 first create an upgrade point, so in terminal type:
 
-`php apex.php create_upgrade training`
+`./apex create_upgrade training`
 
 This will hash all files and components within the "traning" package.  You can then go ahead and may any desired changes 
 to the package, and it will be automatically tracked upon publishing the upgrade.  You will also notice a new directory at */etc/training/upgrades/1.0.1* that contains a couple SQL files, plus a package.php file 
@@ -16,12 +16,12 @@ that is executed upon installation of the upgrade.
 
 Once you've completed the desired modifications to your package, you can publish the upgrade to the repository at anytime within terminal with:
 
-`php apex.php publish_upgrade training`
+`./apex publish_upgrade training`
 
 This will compre the hash created upon creating the upgrade point with the files and components currently in the package, compile the 
 upgrade as necessary, and upload it to the repository.  From there, the upgrade can be instantly installed on any system with the package installed with:
 
-`php apex.php upgrade`
+`./apex upgrade`
 
 
 

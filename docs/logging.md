@@ -148,7 +148,7 @@ the web browser a tab control will be displayed showing full details on the requ
 diagnose the issue.
 
 At times you will also want to save a debug session for later inspection.  To do this, within terminal type:
-`php apex.php debug 1`.  The debug session of the next request will be saved, and can be viewed any time via
+`./apex debug 1`.  The debug session of the next request will be saved, and can be viewed any time via
 the *Devel Kit-&gt;Debugger* menu of the administration panel.  The system only retains one debug session at a
 time, so upon saving another session the prior one will be overwritten.
 
@@ -164,7 +164,7 @@ control providing all debugger information on the request.
 You can easily switch between development / production modes via the Settings->General menu of the
 administration panel, or via the terminal by running:
 
-`php apex.php mode [devel|prod] [DEBUG_LEVEL]`.
+`./apex mode [devel|prod] [DEBUG_LEVEL]`.
 
 The DEBUG_LEVEL can be 0 - 5 and defines how extensive of logging you would like to view within the debugger.
 Generally, a debug level of 3 should be sufficient to pinpoint any errors / bugs.

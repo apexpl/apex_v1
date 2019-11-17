@@ -6,6 +6,8 @@ namespace apex\app\tests;
 use apex\app;
 use apex\svc\db;
 use apex\svc\view;
+use apex\users\user;
+use apex\core\admin;
 use apex\app\exceptions\ApexException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit_Framework_Constraint_IsEqual;
@@ -105,6 +107,76 @@ public function waitException(string $message)
     $this->expectException(ApexException::class);
     $this->expectExceptionCode(500);
     $this->expectExceptionMessage($message);
+
+}
+
+/**
+ * Get demo user / admin
+ *
+ * @Returns the ID# of the demo user / administrator, and if they don't exists, 
+ * will automatically create them.
+ * 
+ * @param string $type The type of user to get, either 'user' or 'admin'.
+ *
+ * @return int the ID# of the user / admin.
+ */
+public function get_demo_user(string $type = 'user'):int
+{
+
+// Set variables
+    if ($type == 'user') { 
+        $table_name = 'users';
+        $username = $_SERVER['apex_test_username'];
+    } else { 
+        $table_name = 'admin';
+        $username = $_SERVER['apex_admin_username'];
+    }
+
+    // Check for existing user
+    if ($userid = db::get_field("SELECT id FROM $table_name WHERE username = %s", $username)) { 
+        return $userid;
+    }
+
+    // Set profile
+    $profile = array(
+        'username' => ($type == 'admin' ? $_SERVER['apex_admin_username'] : $_SERVER['apex_test_username']), 
+        'password' => ($type == 'admin' ? $_SERVER['apex_admin_password'] : $_SERVER['apex_test_password']), 
+        'password2' => ($type == 'admin' ? $_SERVER['apex_admin_password'] : $_SERVER['apex_test_password']), 
+        'full_name' => 'Demo Account', 
+        'first_name' => 'Demo', 
+        'last_name' => 'Account', 
+        'email' => 'demo@demo.com', 
+        'phone_country' => '', 
+        'phone' => '', 
+        'require_2fa' => 0, 
+        'require_2fa_phone' => 0, 
+        'submit' => 'create'
+    );
+
+    // Update config, if needed
+    if ($type == 'user') { 
+        app::update_config_var('users:username_column', 'username');
+    app::update_config_var('username:phone_verification', 2);
+    app::update_config_var('users:email_verification', 2);
+    }
+    app::clear_cookie();
+
+    // Create user
+    $uri = $type == 'admin' ? 'admin/index' : '/register2';
+    $html = $this->http_request($uri, 'POST', $profile);
+
+    // Check for userid
+    if (!$userid = db::get_field("SELECT id FROM $table_name WHERE username = %s", $username)) { 
+        throw new ApexException('error', tr("Unable to create test {1} account with username {2}", $type, $username));
+    }
+
+    // Update bitcoin company_userid, if needed
+    if ($type == 'user' && check_package('bitcoin') === true) { 
+        app::update_config_var('bitcoin:company_userid', $userid);
+    }
+
+    // Return
+    return $userid;
 
 }
 

@@ -5,7 +5,7 @@
 &nbsp; | &nbsp;
 ------------- |------------
 **Description** | Quality, customizable, flexible HTML forms, easy to implement Javascript validation, can be displayed blank, with values from the database, or values from previously POSTed data in case of user submission error, plus more.
-**Create Command:** | php apex.php create form PACKAGE:ALIAS
+**Create Command:** | ./apex create form PACKAGE:ALIAS
 **Namespace:** | `apex\PACKAGE\form`
 **File Location:** | /src/PACKAGE/form/ALIAS.php
 **HTML Tag:** | `<e:function alias="display_form" form="PACKAGE:ALIAS">`

@@ -1060,9 +1060,17 @@ public function update_repo($vars)
         throw new RepoException('host_not_exists', 0, $vars[0]);
     }
 
-    // Get username / password
-    echo "Username: "; $username = trim(readline());
-    echo "Password: "; $password = trim(readline());
+    // Check vars
+    $username = $vars[1] ?? '';
+    $password = $vars[2] ?? '';
+
+    // Get username / password, if needed
+    if ($username == '') { 
+        echo "Username: "; $username = trim(readline());
+    }
+    if ($password == '') { 
+        echo "Password: "; $password = trim(readline());
+    }
 
     // Update database
     db::update('internal_repos', array(

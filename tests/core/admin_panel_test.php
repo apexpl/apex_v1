@@ -70,7 +70,11 @@ public function test_login()
     if (!check_package('devkit')) { 
         echo "Unable to run unit tests, as they require the 'devkit' package to be installed.  You may install it by typing: php apex.php install devkit\n";
         exit;
+    } elseif (!$admin_id = db::get_field("SELECT id FROM admin WHERE username = %s", $_SERVER['apex_admin_username'])) { 
+        echo "Unable to execute unit tests, as no administrator with the username $_SERVER[apex_admin_username] exists.  You must first create an administrator, and ensure the login details match those within the environments variables within the /phpunit.xml file.\n\n";
+        exit;
     }
+
     // Get login form
     $html = $this->http_request('/admin');
     $this->assertPageTitle('Login Now');

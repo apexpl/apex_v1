@@ -314,6 +314,22 @@ protected function write(string $level, string $line)
 
 }
 
+/**
+ * Terminate the session
+ */
+public function terminate()
+{
+
+    // Close all open streams
+    foreach ($this->streams as $stream) { 
+        if (!is_resource($stream)) { continue; }
+    fclose($stream);
+    }
+    $this->streams = [];
+
+}
+
+
 
 }
 

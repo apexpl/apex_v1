@@ -32,6 +32,9 @@ public function setUp():void
     }
     $this->app = $app;
 
+    // Ensure repo is updated
+    $response = $this->send_cli('update_repo', array(app::_config('core:domain_name'), $_SERVER['apex_test_username'], $_SERVER['apex_test_password']));
+
     // Set repo variables
     $this->repo_id = db::get_field("SELECT id FROM internal_repos WHERE is_local = 1 AND host = %s", app::_config('core:domain_name'));
     $this->pkg_alias = 'unit_test';
@@ -92,6 +95,9 @@ public function test_search()
  */
 public function test_add_repo()
 {
+
+    // Get demo user
+    $userid = $this->get_demo_user();
 
     // Send request
     $response = $this->send_cli('add_repo', array(app::_config('core:domain_name'), $_SERVER['apex_test_username'], $_SERVER['apex_test_password']));

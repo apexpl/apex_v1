@@ -16,7 +16,7 @@ the Apex repository, which is verified as a valid purchase via Envato's API befo
 First you need to visit the [Apex Registration Form](https://apex-platform.org/register), and signup for a free account.  Next do an 
 [installation](install.md) of Apex on your local server, and in termins update the repository with:
 
-`php apex.php update_repo apex-platform.org`
+`./apex update_repo apex-platform.org`
 
 When prompted, enter the username and password you created your Apex account with.  That's it, you are now ready to 
 publish themes to the Apex public repository.
@@ -28,8 +28,8 @@ Integrating your themes is very simple, and once you have Apex locally installed
 creating the theme named "mycooltheme", at the prompt you would type:
 
 ~~~
-php apex.php create_theme mycooltheme
-php apex.php change_theme public mycooltheme
+./apex create_theme mycooltheme
+./apex change_theme public mycooltheme
 ~~~
 
 Next, open up the file located at /themes/mycooltheme/theme.php, and update the variables as necessary.  Make
@@ -42,7 +42,7 @@ Themes(themes_integrate.md) page of this manual.  Since you've already changed t
 
 Once integrated, simply publish the theme to the main Apex repository by typing the following at terminal:
 
-`php apex.php publish_theme mycooltheme`
+`./apex publish_theme mycooltheme`
 
 That's it!  Your theme is now listed within the Maintenance->Theme Manager menu of all Apex users, with a link
 to it on ThemeForest.  If any user decides to use your theme, they will first be required to purchase it from

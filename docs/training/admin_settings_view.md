@@ -4,7 +4,7 @@
 Within our */etc/training/package.php* file, we defined a Settings->Lottery menu within the administration panel, 
 to allow the administrator to define the daily lottery award.  Let's go ahead and develop that menu, so within terminal type:
 
-`php apex.php create view admin/settings/lottery training`
+`./apex create view admin/settings/lottery training`
 
 This will create two new files at:
 

@@ -4,7 +4,7 @@
 We will want a data table to display the previous winners of all daily lotters, plus any lotters the user themselves has won while they 
 are logged into the member's area.  Within terminal, type:
 
-`php apex.php create table training:lotteries`
+`./apex create table training:lotteries`
 
 This will create a new file at */src/training/table/lotteries.php*.  Open this file, and enter the following contents:
 

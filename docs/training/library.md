@@ -4,7 +4,7 @@
 Let's create a quick library for our lottery package.  Libraries and simply blank PHP files which can 
 coonnain any and all code you wish.  Within terminal, type:
 
-`php apex.php create lib training:lottery`
+`./apex create lib training:lottery`
 
 This will create a new blank PHP file at */src/training/lottery.php*.  Open the 
 file, and enter the following contents.

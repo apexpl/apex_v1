@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | Standard auto-suggest/complete boxes where users enter a few characters, and a list of suggestions is automatically presented to them in a list to choose from.  Useful for things such as searching for a specific user.  No Javascript required, and only minutes to easily implement.
-**Create Command:** | `php apex.php create autosuggest PACKAGE:ALIAS`
+**Create Command:** | `./apex create autosuggest PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE/autosuggest/ALIAS.php
 **Namespace:** | `apex\PACKAGE\autosuggest`
 **HTML Tag:** | `<e:function alias="display_autosuggest" autosuggest="PACKAGE:ALIAS">`

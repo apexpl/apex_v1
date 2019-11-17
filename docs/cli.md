@@ -3,7 +3,7 @@
 
 Within the installation directory Apex comes with both, an apex.php script and an `apex` phar archive.  Both are
 the exact same, but you may move the `apex` phar archive within your environment path (ie. /usr/bin/) allowing
-you to simply type "apex" instead of "php apex.php" to perform CLI commands.
+you to simply type "apex" instead of "./apex" to perform CLI commands.
 
 Various CLI commands are built into Apex which help facilitate development and package / upgrade / theme
 management.  You can view a list of all availble commands by typing "apex.php help" within terminal, and below
@@ -25,14 +25,14 @@ upgrade packages / themes, plus more.  Below describes all general CLI commands 
 
 **Description:** Lists all packages available to the system from all repositories configured on the system.
 
-**Usage:** `php apex.php list_packages`
+**Usage:** `./apex list_packages`
 
 
 #### `search TERM`
 
 **Description** Searches all repositories configured on the system for a specific search term.
 
-**Example:** `php apex.php search mailing list`
+**Example:** `./apex search mailing list`
 
 
 #### `install PACKAGE1 PACKAGE2...`
@@ -40,7 +40,7 @@ upgrade packages / themes, plus more.  Below describes all general CLI commands 
 **Description:** Downloads a package from a repository, and installs it on the system. This command allows you
 to specify multiple packages at one time as well.
 
-**Example:** `php apex.php install webapp users transaction support`
+**Example:** `./apex install webapp users transaction support`
 
 
 #### `upgrade [PACKAGE]`
@@ -50,7 +50,7 @@ desired, you may optionally specify a single package to upgrade. Otherwise, all 
 upgraded.  It's recommended to run this command about once a week to ensure your packages are always up to
 date.
 
-**Example:** `php apex.php upgrade`
+**Example:** `./apex upgrade`
 
 
 #### `check_upgrades [PACKAGE]`
@@ -66,14 +66,14 @@ what upgrades are available.
 
 **Description:** Lists all themes available from all repositories configured on this system.
 
-**Example:** `php apex.php list_themes`
+**Example:** `./apex list_themes`
 
 
 #### `install_theme THEME_ALIAS`
 
 **Description:** Downloads the specified theme from the repository, and installs it on the system.
 
-**Example:** `php apex.php install_theme mydesign`
+**Example:** `./apex install_theme mydesign`
 
 
 #### `change_theme AREA THEME_ALIAS`
@@ -82,7 +82,7 @@ what upgrades are available.
 "public" or "members", and then the alias of the theme you would like to activate.  The theme must already be
 installed on the system.
 
-**Example:** `php apex.php change_theme public mydesign`
+**Example:** `./apex change_theme public mydesign`
 
 
 
@@ -99,7 +99,7 @@ within repositories.  Below explains all CLI commands available for package / up
 to a repository.  This creates the necessary directories within /etc/ and /src/, and upon creation, you can
 begin creting components on the package via the apex.php script.
 
-**Example:** `php apex.php create_package casino`
+**Example:** `./apex create_package casino`
 
 
 #### `scan PACKAGE`
@@ -108,7 +108,7 @@ begin creting components on the package via the apex.php script.
 Use this during development, after you have updated the package.php file with new information such as config
 variables or menus, run this to reflect the changes within the database and system.
 
-**Example:** `php apex.php scan casino`
+**Example:** `./apex scan casino`
 
 
 #### `publish PACKAGE`
@@ -117,7 +117,7 @@ variables or menus, run this to reflect the changes within the database and syst
 will compile the package, and upload it to the repository,.  Once done, you can then begin installing the
 package on other systems via the `install PACKAGE` command.
 
-**Example:** `php apex.php publish casino`
+**Example:** `./apex publish casino`
 
 
 #### `delete_package PACKAGE`
@@ -126,7 +126,7 @@ package on other systems via the `install PACKAGE` command.
 does not remove the package from any repositories it has been previously uploaded to, and only removes it from
 the local system.
 
-**Example:** `php apex.php delete_package casino`
+**Example:** `./apex delete_package casino`
 
 
 #### `create_upgrade PACKAGE [VERSION]`
@@ -138,7 +138,7 @@ and upon publishing the package, these hashes will be checked allowing the syste
 modifications made to the package since the upgrade point was created.  This allows for virtually hands free
 version control.
 
-**Example:** `php apex.php create_upgrade casino`
+**Example:** `./apex create_upgrade casino`
 
 
 #### `publish_upgrade [PACKAGE]`
@@ -147,7 +147,7 @@ version control.
 it to the repository using this command.  Once uploaded, all systems with the package installed can install
 the upgrade on their system with the `apex.php upgrade` command.
 
-**Example:** `php apex.php publish_upgrade casino`
+**Example:** `./apex publish_upgrade casino`
 
 
 #### `create_theme THEME_ALIAS`
@@ -156,7 +156,7 @@ the upgrade on their system with the `apex.php upgrade` command.
 creates the necessary directory structure within the /views/themes/ and /public/themes/ directories, from
 which you can begin creating the theme.
 
-**Example:** `php apex.php create_theme mydesign`
+**Example:** `./apex create_theme mydesign`
 
 
 #### `publish_theme THEME_ALIAS`
@@ -164,7 +164,7 @@ which you can begin creating the theme.
 **Description:** Will publish the specified theme to the repository.  Once published, it can be installed on
 any system with the `apex.php install_theme THEME_ALIAS` command.
 
-**Example:** `php apex.php publish_theme mydesign`
+**Example:** `./apex publish_theme mydesign`
 
 
 #### `delete_theme THEME_ALIAS`
@@ -172,7 +172,7 @@ any system with the `apex.php install_theme THEME_ALIAS` command.
 **Description:** Deletes the specified theme from the system, including all files and directories.  Please
 note, this only deletes the theme from your local system, and not any repositories.
 
-**Example:** `php apex.php delete_theme mydesign`
+**Example:** `./apex delete_theme mydesign`
 
 
 
@@ -212,13 +212,13 @@ rules:
 * The `OWNER` variable is also required for the "worker" component type, but instead of being the owner package, is the routing key for the worker.  This defines which messages to route to the worker.  For more information, please visit the [worker Component](components/worker.md) page of this manual.
 * For the "view" component type, the `PACKAGE:PARENT:ALIAS` element of the command is simply the URI of the new template (eg. admin/users/some_page)
 
-**Example (lib:** `php apex.php create lib casino:games`
+**Example (lib:** `./apex create lib casino:games`
 
-**Example (view:** `php apex.php create view admin/games/bets casino`
+**Example (view:** `./apex create view admin/games/bets casino`
 
-**Example (worker):** `php apex.php create worker casino:user users.user`
+**Example (worker):** `./apex create worker casino:user users.user`
 
-**Example (controller):** `php apex.php create controller core:http_requests:games casino`
+**Example (controller):** `./apex create controller core:http_requests:games casino`
 
 
 #### `delete TYPE PACKAGE:[PARENT:]ALIAS`
@@ -226,11 +226,11 @@ rules:
 **Description:** Deletes a component from the system.  The two variables passed are the exact same as the
 `create` command above.  This will permanently remove the component from the filesystem and database.
 
-**Example (lib):** `php apex.php delete lib casino:games`
+**Example (lib):** `./apex delete lib casino:games`
 
-**Example (view):** `php apex.php delete view admin/casino/bets`
+**Example (view):** `./apex delete view admin/casino/bets`
 
-**Example (controller):** `php apex.php delete controller core:http_requests:games`
+**Example (controller):** `./apex delete controller core:http_requests:games`
 
 
 #### `scan PACKAGE`
@@ -239,7 +239,7 @@ rules:
 Use this during development, after you have updated the package.php file with new information such as config
 variables or menus, run this to reflect the changes within the database and system.
 
-**Example:** `php apex.php scan casino`
+**Example:** `./apex scan casino`
 
 
 
@@ -257,17 +257,17 @@ explains all system maintenance commands available.
 upgrades.  The HOSTNAME is the base hostname of the repository, and you may optionally specify a username and
 password in case of a private repository, which will be provided to you by the owner of the repository.
 
-**Example:** `php apex.php add_repo repo.somevendor.com myuser mypassword`
+**Example:** `./apex add_repo repo.somevendor.com myuser mypassword`
 
 
-#### `update_repo HOSTNAME`
+#### `update_repo HOSTNAME [USERNAME] [PASSWORD]`
 
 **Description:** Allows you to update an existing repository already in the system with a username and
 password.  Specify the hostname of the repo, and assuming it is already configured on the system, you will be
 prompted for a username and password, which will be provided to you by the owner of the repository.  This is
 to gain access to any private packages you may have purchased.
 
-**Example:** `php apex.php update_repo repo.somevendor.com`
+**Example:** `./apex update_repo repo.somevendor.com`
 
 
 #### `mode [DEVEL|PROD] [DEBUG_LEVEL]`
@@ -275,7 +275,7 @@ to gain access to any private packages you may have purchased.
 **Description:** Changes the server mode between either development or products, and allows you to change the
 debug level between 0 -5.
 
-**Example:** `php apex.php mode devel 4`
+**Example:** `./apex mode devel 4`
 
 
 #### `debug NUM`
@@ -288,7 +288,7 @@ following:
 * 1 - Debugging on, but only for next request
 * 2 - Debugging on for all future requests until turned off
 
-**Example:** `php apex.php debug 1`
+**Example:** `./apex debug 1`
 
 
 
@@ -297,7 +297,7 @@ following:
 **Description:** Changes the server type of the installation.  The TYPE must be one of the following:  `all,
 web, app, dbm, dbs, msg`.
 
-**Example:** `php apex.php server_type web`
+**Example:** `./apex server_type web`
 
 
 #### `update_masterdb`
@@ -306,7 +306,7 @@ web, app, dbm, dbs, msg`.
 database information has changed, as upon that happening, you will no longer be able to access the software
 and this information is stored within redis versus a plain text file.
 
-**Example:** `php apex.php update_masterdb`
+**Example:** `./apex update_masterdb`
 
 
 #### `clear_dbslaves`
@@ -317,7 +317,7 @@ updated in the software, as it will result in various connection errors by the s
 clearing the slave database servers, you must enter the necessary slaves again via the Settings->General menu
 of the administration panel.
 
-**Example:** `php apex.php clear_dbslaves`
+**Example:** `./apex clear_dbslaves`
 
 
 #### `update_rabbitmq`
@@ -332,7 +332,7 @@ information is stored within redis versus a plain text file.
 **Description:** Should never be needed, and compiles the core Apex framework for the Github repository.
 Places the Github repo of Apex within the system /tmp/ directory.
 
-**Example:** `php apex.php compile_core`
+**Example:** `./apex compile_core`
 
 
 

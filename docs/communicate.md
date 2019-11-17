@@ -97,7 +97,7 @@ define their own set of e-mail notifications, and have them automatically sent w
 within the software.  For example, you may be creating a lottery package, and want various notifications sent
 when people enter or win the lottery.  To do this, within terminal create the controller by typing:
 
-`php apex.php create controller core:notifications:lottery lottery`
+`./apex create controller core:notifications:lottery lottery`
 
 This will create a notification controller with the alias "lottery", and include it within the package
 "lottery", and a new PHP file will be located at */src/core/controller/notifications/lottery.php*.  Below

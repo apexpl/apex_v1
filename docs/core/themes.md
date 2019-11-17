@@ -8,7 +8,7 @@ your system, and retrieve a list of all available themes, some of which are free
 Simply find the theme you would like, then within SSH at the terminal prompt within the installation
 directory, type:
 
-`php apex.php install_theme THEME_ALIAS`
+`./apex install_theme THEME_ALIAS`
 
 Naturally, replace `THEME_ALIAS` with the alias of the theme you want to install, which you will find via the
 Maintenace->Theme Manager menu.  If it's a free theme, it will be automatically downloaded from the

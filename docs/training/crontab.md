@@ -4,7 +4,7 @@
 Let's create our crontab job that will execute once every 24 hours, and randomly 
 pick a winner using our `pick_inner()` method we created in the previous library.  Within tyerminal, type:
 
-`php apex.php create cron training:pick_winner`
+`./apex create cron training:pick_winner`
 
 This will create a new file at */src/training/cron/pick_winner.php*.  Open the file, and enter the following contents.
 

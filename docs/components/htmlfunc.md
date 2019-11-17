@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | Basically a widget.  Allows you to place a simple `<e:function>` tag within any template, and have it replaced with any TPL / HTML code desired, plus also execute any desired PHP code.  For example, you may want to develop a search bar that is placed in various templates and locations throughout the system.
-**Create Command:** | `php apex.php create htmlfunc PACKAGE:ALIAS`
+**Create Command:** | `./apex create htmlfunc PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE/htmlfunc/ALIAS.php<br />/views/htmlfunc/PACKAGE/ALIAS.tpl
 **Namespace:** | `apex\PACKAGE\htmlfunc\ALIAS`
 **HTML Tag:** | `<e:function alias="PACKAGE:ALIAS">`
@@ -39,7 +39,7 @@ Variable | Type | Description
 
 For example, you may create a HTML functions with:
 
-`php apex.php create htmlfunc casino:wallet_summary`
+`./apex create htmlfunc casino:wallet_summary`
 
 This will create a PHP file at /etc/casino/htmlfunc/wallet_summary.php.  It can then be executed within any template within Apex by placing the HTML tag:
 

@@ -4,7 +4,7 @@
 &nbsp; | &nbsp;
 ------------- |-------------
 **Description:** | A modal / popup that when opened, opaques the browser screen, and displays the contents of the modal in the center of the browser.
-**Create Command:** | `php apex.php create modal PACKAGE:ALIAS`
+**Create Command:** | `./apex create modal PACKAGE:ALIAS`
 **File Location:** | /src/PACKAGE/modal/ALIAS.php<br />/views/modal/PACKAGE/ALIAS.tpl
 **Namespace:** | `apex\PACKAGE\modal\ALIAS`
 **HTML Call:** | `<a href="javascript:open_modal(PACKAGE:ALIAS', 'somevar=124&anothervar=abc');">Open Modal</a>`

@@ -4,7 +4,7 @@
 Last aspect of the actual development is the Lottery->Manage Lotteries menu within the admin panel that we defined within the 
 */etc/training/package.php* file.  Within terminal, type:
 
-`php apex.php create view admin/lottery/manage training`
+`./apex create view admin/lottery/manage training`
 
 This will create two new files at the below locations, which are assigned to the "training" package, hence will 
 be included upon publishing the package to a repository.

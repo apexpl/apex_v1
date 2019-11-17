@@ -4,7 +4,7 @@
 Within our library class you will notice we added a transaction to the winner's account with the controller "lottery_win", so let's 
 go ahead and create that controller now.  Within terminal,  type:
 
-`php apex.php create controller transaction:transaction:lottery_win training`
+`./apex create controller transaction:transaction:lottery_win training`
 
 This will create a new PHP file at */src/transaction/controller/transaction/lottery_win.php*, and will assign it to our "training" package, so 
 it's included during publishing to a repository.  Open this file, and enter the following contents:

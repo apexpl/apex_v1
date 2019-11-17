@@ -4,7 +4,7 @@
 Within the */etc/training/package.php* file we defined one menu in the member's area at Financial->View Lotteries, so let's go ahead and 
 developm that view now.  Within terminal, type:
 
-`php apex.php create view members/financial/lottery training*
+`./apex create view members/financial/lottery training*
 
 This will create two new files at the below locations, and assign them to the "training" package, so they are 
 included when the package is published to a repository.

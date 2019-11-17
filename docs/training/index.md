@@ -8,7 +8,7 @@ an amount defined by the administrator.
 
 If desired, you may download the completed training project by installing the "training" package into your Apex installation.  In termal, simply type:
 
-`php apex.php install training`
+`./apex install training`
 
 This training guide is an introduction into Apex, and more training guides will follow in the 
 near future to cover all aspects of Apex.  Below shows the table of contents for this training guide, and natrually, start at the [Getting

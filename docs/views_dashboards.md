@@ -61,12 +61,12 @@ $this->dashboard_items = array(
 
 Then as always, we need to scan the package again in order to add the dashboard item to the database.  Within terminal type:
 
-`php apex.php scan my_package`
+`./apex scan my_package`
 
 
 Last, we need to add the necessary PHP code.  To do this you must create a 'dashboard' library within your package, with for example:
 
-`php apex.php create lib my_package:dashboard`
+`./apex create lib my_package:dashboard`
 
 This will create a new file at */src/my_package/dashboard.php* which needs one method added to it that will return the contents of 
 our dashboard item.  The name of the method must be AREA_TYPE_ALIAS, so in the above example, we would have:
@@ -107,7 +107,7 @@ That's it, done, and the new dashboard item is fully developed and operational. 
 For any tab page items created, you must also create a tab page within the "core:dashboard" tab control.  Again, ,alias of the tab page must be AREA_ALIAS.  For 
 example, if you created a tab page named "support_tickets", you would create a tab page with:
 
-`php apex.php create tabpage core:dashboard:admin_support_tickets my_package`
+`./apex create tabpage core:dashboard:admin_support_tickets my_package`
 
 Then simply develop the tab page as normal, and that's it.
 

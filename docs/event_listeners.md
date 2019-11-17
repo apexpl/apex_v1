@@ -10,7 +10,7 @@ package alias, the second any alias you wish for the listener, and the third is 
 listener class.  You can create a new listener by creating a new [worker Component](components/worker.md), and
 for example within terminal type:
 
-``php apex.php create worker casino.games casino.games`
+``./apex create worker casino.games casino.games`
 
 This will create a blank PHP class at */src/casino/worker/games.php* which you can fill with any methods you
 desire.  For example, maybe you add a `place_bets()` method, such as:
@@ -90,7 +90,7 @@ routing keys they support.  For another example, say we want to execute PHP code
 registered, which we can do via the "users.profile.created" routing key.  First, create a new worker /
 listener, and in terminal type:
 
-`php apex.php create worker casino:users users.profile~
+`./apex create worker casino:users users.profile~
 
 This will create a blank PHP listener class at */src/casino/worker/users.php*, and will begin receiving all
 messages dispatched to the "users.profile.*" routing key.  Within the PHP class, add a `created()` method such
