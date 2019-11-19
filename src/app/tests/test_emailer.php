@@ -24,14 +24,6 @@ use apex\app\exceptions\CommException;
 class test_emailer extends emailer
 {
 
-
-
-    /**
-     * @Inject
-     * @var app
-     */
-    private $app;
-
     // Properties
     private $queue = [];
 
@@ -45,7 +37,7 @@ public function dispatch(EmailMessageInterface $msg)
 { 
 
     // Add to queue
-    $this->queue[] = $msg;
+    redis::rpush('test:email_queue', serialize($msg));
 
     // Return
     return true;
@@ -69,9 +61,13 @@ public function dispatch(EmailMessageInterface $msg)
 public function search_queue(string $to_email = '', string $from_email = '', string $subject = '', string $message = '')
 {
 
-    // Go through queue
+    // Initialize
     $results = array();
-    foreach ($this->queue as $msg) { 
+    $queue = redis::lrange('test:email_queue', 0, -1);
+
+    // Go through queue
+    foreach ($queue as $data) { 
+        $msg = unserialize($data);
 
         // Search
         if ($to_email != '' && $msg->get_to_email() != $to_email) { continue; }
@@ -93,12 +89,29 @@ public function search_queue(string $to_email = '', string $from_email = '', str
  *
  * @return array The current queue of messages.
  */
-public function get_queue() { return $this->queue; }
+public function get_queue() { 
+
+    // Get queue
+    $messages = array();
+    $queue = redis::lrange('test:email_queue', 0, -1);
+    foreach ($queue as $data) { 
+        $results[] = unserialize($data);
+    }
+
+    // Return
+    return $messages;
+
+}
 
 /**
  * Clear the queue
  */
-public function clear_queue() { $this->queue = []; }
+public function clear_queue() { 
+
+    $this->queue = []; 
+    redis::del('test:email_queue');
+
+}
 
 
 

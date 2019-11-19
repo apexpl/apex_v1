@@ -159,7 +159,7 @@ public function get_demo_user(string $type = 'user'):int
     app::update_config_var('username:phone_verification', 2);
     app::update_config_var('users:email_verification', 2);
     }
-    app::clear_cookie();
+    ////app::clear_cookie();
 
     // Create user
     $uri = $type == 'admin' ? 'admin/index' : '/register2';

@@ -40,9 +40,7 @@ public function process(components $components, tables $utils, string $html, arr
     }
 
     // Load component
-    if (!$table = $components->load('table', $alias, $package, '', $data)) { 
-        return "<B>ERROR:</b> The table component '$data[table] does not exist.";
-    }
+    $table = $components->load('table', $alias, $package, '', $data); 
 
     // Execute get_attributes method, if exists
     if (method_exists($table, 'get_attributes')) { 

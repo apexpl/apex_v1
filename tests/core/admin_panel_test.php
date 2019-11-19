@@ -538,6 +538,16 @@ public function test_page_admin_settings_notifications()
     $this->assertHasTable('core:notifications');
     $this->assertHasSubmit('create', 'Create E-Mail Notification');
 
+    // Send invalid controller to get code ocverage
+    $vars = array(
+        'controller' => 'some_junk_controller_that_will_never_exist', 
+        'submit' => 'create'
+    );
+    //$html = $this->http_request('/admin/settings/notifications_create', 'POST', $vars);
+    //$this->assertPageTitle('Create Notification');
+    //$this->assertPageContains('The notification controller');
+    //$this->assertPageContains('does not exist');
+
     // Send request to create e-mail notification
     $vars = array(
         'controller' => 'users',

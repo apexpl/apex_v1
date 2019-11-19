@@ -10,6 +10,7 @@ use apex\svc\io;
 use apex\svc\components;
 use apex\app\sys\apex_cli;
 use apex\app\pkg\package_config;
+use apex\users\user;
 use apex\app\tests\test;
 
 
@@ -95,6 +96,12 @@ public function test_search()
  */
 public function test_add_repo()
 {
+
+    // Delete demo user, if exists
+    if ($userid = db::get_field("SELECT id FROM users WHERE username = %s", $_SERVER['apex_test_username'])) { 
+        $user = app::make(user::class, ['id' => (int) $userid]);
+    $user->delete();
+    }
 
     // Get demo user
     $userid = $this->get_demo_user();

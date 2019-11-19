@@ -7,7 +7,7 @@ requirements with the following command via SSH.
 
 ~~~
 sudo apt-get update
-sudo apt-get install redis rabbitmq-server libfreetype6-dev php php-mbstring php-json php-curl php-zip php-mysqli php-tokenizer php-redis php-bcmath php-gd php-gmp composer git
+sudo apt-get install redis libfreetype6-dev php-tokenizer php-redis php-gd composer git
 ~~~
 
 Once done, install Apex by running the following commands:

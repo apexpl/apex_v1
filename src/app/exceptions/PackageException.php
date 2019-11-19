@@ -26,7 +26,8 @@ class PackageException   extends ApexException
         'config_not_exists' => "The package.php configuration file does not exist for the package, {alias}",
         'config_no_load' => "Unable to load package configuration file for the package, {alias}", 
         'git_already_init' => "A local Github repository has already been initialized for the package, {alias}.  If you need to re-initialize the repo, delete the directory at /src/{alias}/git", 
-        'git_undefined_repo_url' => "No Github repo URL defined.  Please first define a repo URL within the properties of the /etc/{alias]/package.php file, and try again."
+        'git_undefined_repo_url' => "No Github repo URL defined.  Please first define a repo URL within the properties of the /etc/{alias]/package.php file, and try again.", 
+        'git_no_remote_archive' => 'No remote archive file found within git repository for the package {alias}'
     );
 /**
  * Construct 

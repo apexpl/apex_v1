@@ -10,24 +10,25 @@ use apex\svc\view;
 use apex\svc\redis;
 use apex\app\utils\hashes;
 
-
+/**
+ * The deubber tab control, which is automaticalyl displayed on 
+ * error templates when in 'devel' more, and also can be viewed via 
+ * the Devel Kit->Devugger menu of the admin panel.
+ */
 class debugger 
 {
-
-
-
 
     private $app;
     private $hashes;
 
     // Define tab pages
     public $tabpages = array(
-    'general' => 'General',
-    'trace' => 'Trace',
-    'line_items' => 'Line Items',
-    'input' => 'Input Arrays',
-    'server' => 'Server',
-    'sql' => 'SQL Queries'
+        'general' => 'General',
+        'trace' => 'Trace',
+        'line_items' => 'Line Items',
+        'input' => 'Input Arrays',
+        'server' => 'Server',
+        'sql' => 'SQL Queries'
     );
 
 /**
@@ -71,7 +72,9 @@ public function process(array $data)
         $table = $data['registry']['area'] == 'admin' ? 'admin' : 'users';
         $auth_user = db::get_field("SELECT username FROM $table WHERE id = %i", $data['registry']['userid']);
         $auth_user .= ' (ID# ' . $data['registry']['userid'] . ')';
-    } else { $auth_user = 'Not Logged In'; }
+    } else { 
+        $auth_user = 'Not Logged In'; 
+    }
 
     // Set request info
     $req = array(

@@ -340,8 +340,19 @@ private function install_checks()
         if (!is_writable(SITE_PATH . '/' . $file)) { $errors[] = "Unable to write to $file which is required."; }
     }
 
+    // Set required extensions
+    $extensions = array(
+        'mysqli', 
+        'openssl', 
+        'curl', 
+        'json', 
+        'mbstring', 
+        'redis', 
+        'tokenizer', 
+        'gd'
+    );
+
     // Check PHP extensions
-    $extensions = array('openssl', 'curl', 'gmp', 'json', 'mysqli', 'zip', 'mbstring', 'redis');
     foreach ($extensions as $ext) { 
         if (!extension_loaded($ext)) {
             $errors[] = "The PHP extension '$ext' is not installed, and is required.";

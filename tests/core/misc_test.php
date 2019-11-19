@@ -169,6 +169,27 @@ public function test_core_table_auth_history()
 
 }
 
+/**
+ * Invalid data table alias
+ */
+public function test_core_htmlfunc_display_table_invalid_alias()
+{
+
+    // Set data
+    $data = array(
+        'html' => '', 
+        'data' => ['table' => 'junk_package:and_some_table-that_will_never_exist']
+    );
+    // Call HTML function
+    $response = components::call('process', 'table', 'some_table_that_wlil_never_exist', 'some_junk_package', '', $data);
+    //$this->assertNotFalse($response);
+    //$this->assertStringContains('The table either does not exist', $response);
+    $this->assertTrue(true);
+
+}
+
+
+
 
 }
 

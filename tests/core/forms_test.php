@@ -6,6 +6,7 @@ namespace tests\core;
 use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
+use apex\svc\auth;
 use apex\app\utils\forms;
 use apex\app\tests\test;
 
@@ -27,6 +28,13 @@ public function setUp():void
     if (!$app = app::get_instance()) { 
         $app = new app('test');
     }
+
+    // Ensure logged out
+    auth::logout();
+    app::set_area('public');
+    app::set_userid(0);
+    app::clear_cookie();
+
 
 }
 

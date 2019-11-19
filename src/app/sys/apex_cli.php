@@ -1330,30 +1330,36 @@ public function git_sync($vars)
 
     // Initialize
     $pkg_alias = strtolower($vars[0]);
-    $is_cloned = $vars[1] ?? 0;
-    $tmp_dir = sys_get_temp_dir() . '/apex_git_' . $pkg_alias;
 
-    // Load package
-    $client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
-    $pkg = $client->load();
-    $repo_url = $pkg->github_repo_url ?? '';
+    // Sync the repo
+    $client = app::make(github::class);
+    $client->sync($pkg_alias);
 
-    // Check for 'system' function
-    if ($is_cloned != 1 && !function_exists('system')) { 
-        $response = "The 'system' PHP function is not available on this server.  To continue, and sync the Github repository with \n";
-        $response .= "the code on the local server, please run the following two commands:\n\n";
-        $response .= "\tgit clone $repo_url $tmp_dir\n";
-        $response .= "\tphp apex.php git_sync $pkg_alias 1\n\n";
-        return $response;
-    }
+    // Return
+    return "Successfully synced package with its git repository, $pkg_alias\n";
 
-    // Clone GIthub repo, if needed
-    if ($is_cloned == 0) {
-        system("rm -rf $tmp_dir"); 
-        system("git clone $repo_url $tmp_dir > /dev/null 2>&1");
-    }
 
-    echo "Cloned: $tmp_dir\n"; exit;
+}
+
+/**
+ * Compare git repos.
+ *
+ * Downloads the remote git repo, compares it to the local filesystem, and generates the necessary 
+ * git.sh file to add all necessary files to the next push / commit, and 
+ * ensure the git repo is a mirror copy of the local filesystem.
+ */
+public function git_compare($vars) 
+    {
+
+    // Initialize
+    $pkg_alias = strtolower($vars[0]);
+
+    // Compare git repo
+    $client = app::make(github::class);
+    $client->compare($pkg_alias);
+
+    // Return
+    return "Successfully compared git repo with local filesystem for package, $pkg_alias.  There is now a new file located at /src/$pkg_alias/git/git.sh, to be executd and will ensure the git repo is a mirror of the local filesystem.\n";
 
 }
 

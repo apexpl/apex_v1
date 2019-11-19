@@ -56,6 +56,10 @@ public function test_add()
     if (file_exists($debug_file)) { @unlink($debug_file); }
     if (file_exists($info_file)) { @unlink($info_file); }
 
+    // Update log levels
+    app::update_config_var('core:log_level', 'info,warning,notice,error,critical,alert,emergency');
+    log::set_log_levels(explode(",", app::_config('core:log_level')));
+
     // Update config, as needed
     app::update_config_var('core:debug_level', 3);
     app::update_config_var('core:mode', 'devel');
@@ -64,7 +68,7 @@ public function test_add()
     // Add level 2
     $client->add(2, tr("unit test 2 {1} {2}", "matt", "was", "here"), 'info');
     $this->assertFileContains($debug_file, 'unit test 2 matt was');
-    //$this->assertFileContains($info_file, 'unit test 2 matt was');
+    $this->assertFileContains($info_file, 'unit test 2 matt was');
 
     // Add debug level 3
     $client->add(3, 'unit test 3');
@@ -101,6 +105,7 @@ $ok = $client->finish_session();
     $this->assertFalse($ok);
 
     // Check URI at debugger page.
+    app::update_config_var('core:debug', 1);
     app::set_uri('admin/devkit/debugger');
     $ok = $client->finish_session();
     $this->assertFalse($ok);
@@ -218,6 +223,28 @@ public function test_debugger_tabcontrol()
     // Send http request
     $html = $this->http_request('admin/devkit/debugger');
     $this->assertPageTitle('Debugger');
+    $this->assertHasHeading(3, 'Request Details');
+    $this->assertHasHeading(3, 'Backtrace');
+    $this->assertHasHeading(3, 'Line Items');
+    $this->assertHasHeading(3, 'POST');
+    $this->assertHasHeading(3, 'GET');
+    $this->assertHasHeading(3, 'COOKIE');
+    $this->assertHasHeading(3, 'SQL Queries');
+    $this->assertPageContains('/register');
+    $this->assertPageContains('public');
+
+    // Start debugger again
+    $client = new debug();
+    $client->add(2, 'unit test');
+
+    // Get tabcontrol with userid
+    $html = $this->http_request('admin/settings/general');
+    $this->assertPageTitle('General Settings');
+    $client->finish_session();
+
+    // Send http request
+    $html = $this->http_request('admin/500');
+    $this->assertPageTitle('Error');
     $this->assertHasHeading(3, 'Request Details');
     $this->assertHasHeading(3, 'Backtrace');
     $this->assertHasHeading(3, 'Line Items');

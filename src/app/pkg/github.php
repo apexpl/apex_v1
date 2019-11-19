@@ -25,6 +25,16 @@ class github
     // Properties
     private $default_readme = 'CiMgfm5hbWV+CgpUaGlzIGlzIHRoZSBHaXRodWIgcmVwb3NpdG9yeSBmb3IgdGhlIH5uYW1lfiBwYWNrYWdlLCBkZXZlbG9wZWQgZm9yIHRoZSBBcGV4IFNvZnR3YXJlIFBsYXRmb3JtIChodHRwczovL2FwZXgtcGxhdGZvcm0ub3JnLykuCgpQbGVhc2UgZG8gbm90IHRyeSB0byB1c2UgdGhpcyBwYWNrYWdlIHNlcGFyYXRlbHkuICBJbnN0ZWFkLCB5b3UgbXVzdCBmaXJzdCBpbnN0YWxsIEFwZXggd2l0aCB0aGUgaW5zdHJ1Y3Rpb25zIGF0OgogICAgaHR0cHM6Ly9hcGV4LXBsYXRmb3JtLm9yZy9kb2NzL2luc3RhbGwKCk9uY2UgaW5zdGFsbGVkLCB5b3UgbWF5IGluc3RhbGwgdGhpcyBwYWNrYWdlIGJ5IHJ1bm5pbmcgdGhlIGZvbGxvd2luZyBjb21tYW5kIHdpdGhpbiB0aGUgQXBleCBpbnN0YWxsYXRpb24gZGlyZWN0b3J5OgoKICAgIHBocCBhcGV4LnBocCBpbnN0YWxsIH5hbGlhc34KCgo=';
 
+    // Set destination dirs
+    private $dest_dirs = array(
+        'child' => 'src', 
+        'docs' => 'docs/~alias~', 
+        'etc' => 'etc/~alias~', 
+        'src' => 'src/~alias~', 
+        'tests' => 'tests/~alias~', 
+        'views' => 'views'
+    );
+
 
 /**
  * Initialize a local Github repo.
@@ -239,24 +249,25 @@ private function compile(string $pkg_alias)
  * modified files from the GIthub repo.
  *
  * @param string $pkg_alias The package alias being synced.
- * @param string $tmp_dir The directory which holds the cloned Github repo.
  */
-public function sync(string $pkg_alias, string $tmp_dir)
+public function sync(string $pkg_alias)
 {
 
-    // Initialize
-    $dest_dirs = array(
-        'child' => 'src', 
-        'docs' => 'docs/' . $pkg_alias, 
-        'etc' => 'etc/' . $pkg_alias, 
-        'src' => 'src/' . $pkg_alias, 
-        'tests' => 'tests/' . $pkg_alias, 
-        'views' => 'views'
-    );
+    // Get package
+    if (!$row = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $pkg_alias)) { 
+        throw new PackageException('not_exists', $pkg_alias);
+    }
+
+    // Debug
+    debug::add(2, tr("Starting to sync package with git repository, {1}", $pkg_alias));
+
+    // Download the zip file
+    $tmp_dir = $this->download_archive($pkg_alias);
 
     // Go through dest dirs
-    foreach ($dest_dirs as $source_dir => $dest_dir) { 
+    foreach ($this->dest_dirs as $source_dir => $dest_dir) { 
         if (!is_dir("$tmp_dir/$source_dir")) { continue; }
+        $dest_dir = str_replace("~alias~", $pkg_alias, $dest_dir);
 
         // Go through all files
         $files = io::parse_dir("$tmp_dir/$source_dir");
@@ -273,16 +284,144 @@ public function sync(string $pkg_alias, string $tmp_dir)
                 @unlink($dest_file);
             }
 
+            // Debug
+            debug::add(5, tr("Copying file from git repo to local, {1}", $file));
+
             // Copy file
             io::create_dir(dirname($dest_file));
             rename("$tmp_dir/$source_dir/$file", $dest_file);
         }
     }
 
+    // Clean up
+    io::remove_dir($tmp_dir);
 
+    // Debug
+    debug::add(2, tr("Successfully completed syncing git repository for package, {1}", $pkg_alias), 'info');
 
+    // Return
+    return true;
 
 }
 
+/**
+ * Compare git repo with local filesystem
+ *
+ * This assumes the local filesystem is more updated than the git repository.  It 
+ * will download the git repo, compare all files against the local filesystem, and create the 
+ * /src/PKG_ALIAS/git/git.sh file to add all updated files to the next git commit / push.
+ *
+ * Use this when you want to ensure the git repository has the exact 
+ * same code base as the local filesystem.
+ *
+ * @param string $pkg_alias The package alias to compare.
+ */
+public function compare(string $pkg_alias)
+{
 
+    // Get package
+    if (!$row = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $pkg_alias)) { 
+        throw new PackageException('not_exists', $pkg_alias);
+    }
+
+    // Debug
+    debug::add(2, tr("Starting to compare remote git repo of package, {1}", $pkg_alias));
+
+    // Download file
+    $tmp_dir = $this->download_archive($pkg_alias);
+
+    // Compile package
+    $this->compile($pkg_alias);
+
+    // Get list of files
+    $git_cmd = array();
+    $git_dir = SITE_PATH . '/src/' . $pkg_alias . '/git';
+    $files = io::parse_dir($git_dir);
+
+    // Go through files
+    foreach ($files as $file) { 
+
+        // Skip, if needed
+        if ($file == 'git.sh' || $file == 'commit.txt') { continue; }
+        if (preg_match("/^\.git\//", $file)) { continue; }
+
+        // Get hashes
+        $hash = sha1_file("$git_dir/$file");
+        $chk_hash = file_exists("$tmp_dir/$file") ? sha1_file("$tmp_dir/$file") : '';
+        if ($hash == $chk_hash) { continue; }
+
+        // Add to git cmd
+        $git_cmd[] = "git add $file";
+    }
+
+    // Delete needed files
+    $tmp_files = io::parse_dir($tmp_dir);
+    foreach ($tmp_files as $file) { 
+        if (in_array($file, $files)) { continue; }
+        $git_cmd[] = "git rm $file";
+    }
+
+    // Save git.sh file
+    $git_text = "#!/bin/sh\n" . implode("\n", $git_cmd);
+    file_put_contents("$git_dir/git.sh", $git_text);
+    chmod("$git_dir/git.sh", 0755);
+
+    // Debug
+    debug::add(2, tr("Successfully compared remote git repository for package, {1}", $pkg_alias));
+
+    // Return
+    return true;
+
+}
+
+/**
+ * Download archive from git repository.
+ *
+ * @param string $pkg_alias The package alias to download repo of.
+ *
+ * @return string The tmporary directory where archive is unpacked, or false if unsuccessful.
+ */
+private function download_archive(string $pkg_alias)
+{
+
+    // Load package
+    $client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
+    $pkg = $client->load();
+
+    // Get repo URL
+    $repo_url = $pkg->git_repo_url ?? '';
+    if ($repo_url == '') { 
+        throw new PackageException('git_undefined_repo_url', $pkg_alias);
+    }
+    $repo_url = rtrim(preg_replace("/\.git$/", "", $repo_url), '/') . '/archive/master.zip';
+
+    // Debug
+    debug::add(2, tr("Downloading archive file of git repository for package {1} from URL {2}", $pkg_alias, $repo_url));
+
+    // Get zip file
+    $zip_file = sys_get_temp_dir() . '/apex_git_' . $pkg_alias . '.zip';
+    if (file_exists($zip_file)) { @unlink($zip_file); }
+
+    // Download file
+    io::download_file($repo_url, $zip_file);
+    if (!file_exists($zip_file)) { 
+        throw new PackageException('git_no_remote_archive', $pkg_alias);
+    }
+
+    // Unpack zip file
+    $tmp_dir = sys_get_temp_dir() . '/apex_git_remote_' . $pkg_alias;
+    if (is_dir($tmp_dir)) { io::remove_dir($tmp_dir); }
+    io::unpack_zip_archive($zip_file, $tmp_dir);
+
+    // Check tmp ddir
+    if (!is_dir($tmp_dir)) { 
+        throw new PackageException('git_no_remote_archive', $pkg_alias);
+    }
+
+    // Return
+    return $tmp_dir . '/' . $pkg_alias . '-master';
+
+}
+
+}
 

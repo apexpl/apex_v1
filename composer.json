@@ -21,13 +21,7 @@
         "league/flysystem-aws-s3-v3": "*",
         "spatie/flysystem-dropbox": "*",
         "guzzlehttp/guzzle": ">=6.0.0",
-        "php-amqplib/php-amqplib": "*",
-        "ext-mysqli": "*",
-        "ext-openssl": "*",
-        "ext-curl": "*",
-        "ext-json": "*",
-        "ext-mbstring": "*",
-        "ext-zip": "*"
+        "php-amqplib/php-amqplib": "*"
     },
     "require-dev": {
         "phpunit/phpunit": ">=8.2.0",
