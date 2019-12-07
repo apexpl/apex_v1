@@ -45,6 +45,7 @@ public function __construct(string $message, $pkg_alias = '')
 
     // Get message
     $this->log_level = 'error';
+    $this->code = 500;
     $this->message = $this->error_codes[$message] ?? $message;
     $this->message = tr($this->message, $vars);
 

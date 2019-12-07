@@ -205,15 +205,37 @@ public function test_output_html_file()
 }
 
 /**
+ * Login form 
+ */
+public function test_login()
+{ 
+
+    // Ensure devkit package is installed
+    if (!check_package('devkit')) { 
+        echo "Unable to run unit tests, as they require the 'devkit' package to be installed.  You may install it by typing: php apex.php install devkit\n";
+        exit;
+    }
+
+    // Logout
+    auth::logout();
+
+    // Login
+    $vars = array(
+        'username' => $_SERVER['apex_admin_username'], 
+        'password' => $_SERVER['apex_admin_password'], 
+        'submit' => 'login'
+    );
+
+    $html = $this->http_request('/admin/login', 'POST', $vars);
+    $this->assertPageTitleContains("Welcome");
+}
+
+
+/**
  * Test debugger tab control
  */
 public function test_debugger_tabcontrol()
 {
-
-    // Login
-    $admin_id = db::get_field("SELECT id FROM admin WHERE username = %s", $_SERVER['apex_admin_username']);
-    app::set_area('admin');
-    auth::auto_login((int) $admin_id);
 
     // Send http request
     $url = 'http://' . app::_config('core:domain_name') . '/register';
@@ -233,9 +255,15 @@ public function test_debugger_tabcontrol()
     $this->assertPageContains('/register');
     $this->assertPageContains('public');
 
+    // Send http request
+    $html = $this->http_request('admin/500');
+    $this->assertPageTitle('Error');
+
     // Start debugger again
     $client = new debug();
     $client->add(2, 'unit test');
+    app::set_area('admin');
+    app::set_userid(1);
 
     // Get tabcontrol with userid
     $html = $this->http_request('admin/settings/general');
@@ -243,8 +271,8 @@ public function test_debugger_tabcontrol()
     $client->finish_session();
 
     // Send http request
-    $html = $this->http_request('admin/500');
-    $this->assertPageTitle('Error');
+    $html = $this->http_request('admin/devkit/debugger');
+    $this->assertPageTitle('Debugger');
     $this->assertHasHeading(3, 'Request Details');
     $this->assertHasHeading(3, 'Backtrace');
     $this->assertHasHeading(3, 'Line Items');
@@ -252,8 +280,7 @@ public function test_debugger_tabcontrol()
     $this->assertHasHeading(3, 'GET');
     $this->assertHasHeading(3, 'COOKIE');
     $this->assertHasHeading(3, 'SQL Queries');
-    $this->assertPageContains('/register');
-    $this->assertPageContains('public');
+    $this->assertPageContains('admin');
 
 }
 

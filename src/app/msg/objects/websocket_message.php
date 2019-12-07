@@ -81,7 +81,8 @@ public function get_json()
         'actions' => $this->ajax->results,
         'recipients' => $this->recipients,
         'area' => $this->area,
-        'uri' => trim($this->uri, '/')
+        'uri' => trim($this->uri, '/'), 
+        'reqtype' => app::get_reqtype()
     );
 
     // Return

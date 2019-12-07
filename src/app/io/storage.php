@@ -15,6 +15,8 @@ use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use Spatie\Dropbox\Client;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 use apex\app\exceptions\StorageException;
+use League\Flysystem\FileExistsException;
+use League\Flysystem\FileNotFoundException;
 
 
 /**
@@ -178,7 +180,9 @@ public function add(string $dest, string $filename, string $visibility = 'public
         }
 
         // Write the file
-        if (!$response = $this->fs->$func_name($dest, $fh, ['visibility' => $visibility])) { 
+        try {
+            $response = $this->fs->$func_name($dest, $fh, ['visibility' => $visibility]);
+        } catch (FileExistsException $e) {
             throw new StorageException('no_add_file', $this->adapter_type, $filename, $dest);
         }
         fclose($fh);
@@ -187,7 +191,9 @@ public function add(string $dest, string $filename, string $visibility = 'public
     } else { 
         $func_name = $can_overwrite === true ? 'put' : 'write';
 
-        if (!$response = $this->fs->$func_name($dest, file_get_contents($filename), ['visibility' => $visibility])) { 
+        try {
+            $response = $this->fs->$func_name($dest, file_get_contents($filename), ['visibility' => $visibility]);
+        } catch (FileExistsException $e) {
             throw new StorageException('no_add_file', $this->adapter_type, $filename, $dest);
         }
 
@@ -216,9 +222,11 @@ public function add_contents(string $dest, string $contents, string $visibility 
 
     // Write the file
     $func_name = $can_overwrite === true ? 'put' : 'write';
-        if (!$response = $this->fs->$func_name($dest, $contents, ['visibility' => $visibility])) { 
-            throw new StorageException('no_add_file_contents', $this->adapter_type, '', $dest);
-        }
+    try {
+        $response = $this->fs->$func_name($dest, $contents, ['visibility' => $visibility]);
+    } catch (FileExistsException $e) {
+        throw new StorageException('no_add_file_contents', $this->adapter_type, '', $dest);
+    }
 
     // Return
     return $response;
@@ -260,7 +268,9 @@ public function get(string $file)
     debug::add(3, tr("Getting file from remote filesystem, {1}", $file));
 
     // Get the file
-    if (!$response = $this->fs->read($file)) { 
+    try {
+        $response = $this->fs->read($file);
+    } catch (FileNotFoundException $e) { 
         throw new StorageException('no_read_file', $this->adapter_type, '', $file);
     }
 
@@ -283,7 +293,9 @@ public function get_stream(string $file)
     debug::add(3, tr("Getting stream of file from remote filesystem at {1}", $file));
 
     // Get the file stream
-    if (!$sock = $this->fs->readStream($file)) { 
+    try {
+        $sock = $this->fs->readStream($file);
+    } catch (FileNotFoundException $e) { 
         throw new StorageException('no_read_file', $this->adapter_type, '', $file);
     }
 
@@ -306,7 +318,9 @@ public function delete(string $file):bool
     debug::add(3, tr("Delete file off remote filesystem {1}", $file));
 
     // Delete file
-    if (!$response = $this->fs->delete($file)) { 
+    try {
+        $response = $this->fs->delete($file);
+    } catch (FileNotFoundException $e) { 
         throw new StorageException('no_delete_file', $this->adapter_type, '', $file);
     }
 
@@ -330,7 +344,9 @@ public function rename(string $from, string $dest):bool
     debug::add(3, tr("Renaming remote file {1} to {2}", $from, $dest));
 
     // Rename file
-    if (!$response = $this->fs->rename($from, $dest)) { 
+    try {
+        $response = $this->fs->rename($from, $dest);
+    } catch (FileNotFoundException $e) { 
         throw new StorageException('no_rename_file', $this->adapter_type, $from, $dest);
     }
 
@@ -353,8 +369,10 @@ public function copy(string $from, string $dest):bool
     // Debug
     debug::add(3, tr("Copying remote file {1} to {2}", $from, $dest));
 
-    // Rename file
-    if (!$response = $this->fs->copy($from, $dest)) { 
+// Copy file
+    try {
+        $response = $this->fs->copy($from, $dest);
+    } catch (FileNotFoundException $e) { 
         throw new StorageException('no_copy_file', $this->adapter_type, $from, $dest);
     }
 
@@ -377,7 +395,7 @@ public function create_dir(string $dir):bool
     debug::add(3, tr("Creating directory on remote filesystem at {1}", $dir));
 
     // Create dir
-    if (!$response = $this->fs->create_dir($dir)) { 
+    if (!$response = $this->fs->createdir($dir)) { 
         throw new StorageException('no_create_dir', $this->adapter_type, $dir);
     }
 
@@ -400,7 +418,7 @@ public function delete_dir(string $dir):bool
     debug::add(3, tr("Deleting directory on remote filesystem at {1}", $dir));
 
     // Delete dir
-    if (!$response = $this->fs->delete_dir($dir)) { 
+    if (!$response = $this->fs->deletedir($dir)) { 
         throw new StorageException('no_delete_dir', $this->adapter_type, $dir);
     }
 

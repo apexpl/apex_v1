@@ -2,7 +2,7 @@
 <h3>SQL Queries</h3>
 
 <a:data_table><thead><tr>
-    <th>SQL Query</th>
+    <a:th>SQL Query</a:th>
 </tr></thead>
 
 <tbody><a:section name="sql">

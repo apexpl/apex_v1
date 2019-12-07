@@ -22,7 +22,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 class listener extends msg_utils implements ListenerInterface
 {
 
-    private $channel_name = '';
+    private $channel_name = 'apex';
 
 /**
  * Listen 
@@ -30,16 +30,13 @@ class listener extends msg_utils implements ListenerInterface
 public function listen()
 { 
 
+    // Set reqtype
+    app::set_reqtype('worker');
+
     // Connect
     $connection = $this->get_rabbitmq_connection();
     $channel = $connection->channel();
-
-    // Define exchange and queue
-    //$this->channel->exchange_declare($this->channel_name, 'topic', false, false, false);
-    list($callback_queue, ,) = $channel->queue_declare('', false, false, true, false);
-
-    // Only one message at a time per-listener
-    $channel->basic_qos(null, 1, null);
+    $channel->queue_declare($this->channel_name, false, false, false, false);
 
     // Define callback message
     $callback = function($request) { 
@@ -65,6 +62,7 @@ public function listen()
     };
 
     // Consume messages
+    $channel->basic_qos(null, 1, null);
     $channel->basic_consume($this->channel_name, '', false, false, false, false, $callback);
     while (count($channel->callbacks)) { 
         $channel->wait();

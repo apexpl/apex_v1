@@ -97,6 +97,7 @@ public function run_wizard()
     $this->domain_name = $this->getvar("Domain Name []:", '');
     $has_admin = $this->getvar('Enable Admin Panel (y/n) [y]: ', 'y');
     $has_javascript = $this->getvar('Enable Javascript (y/n) [y]: ', 'y');
+    $this->websocket_port = $this->getvar('WebSocket Server Port [8194]: ', '8194');
     $this->enable_admin = strtolower($has_admin) == 'y' ? 1 : 0;
     $this->enable_javascript = strtolower($has_javascript) == 'y' ? 1 : 0;
 
@@ -505,19 +506,20 @@ private function complete_install()
     }
 
     // Get config.php file
-    $config = base64_decode('PD9waHAKCi8vIFJlZGlzIGNvbm5lY3Rpb24KZGVmaW5lKCdSRURJU19IT1NUJywgJ35yZWRpc19ob3N0ficpOwpkZWZpbmUoJ1JFRElTX1BPUlQnLCB+cmVkaXNfcG9ydH4pOwpkZWZpbmUoJ1JFRElTX1BBU1MnLCAnfnJlZGlzX3Bhc3N+Jyk7CmRlZmluZSgnUkVESVNfREJJTkRFWCcsIH5yZWRpc19kYmluZGV4fik7CgpkZWZpbmUoJ0VOQUJMRV9BRE1JTicsIH5lbmFibGVfYWRtaW5+KTsKZGVmaW5lKCdFTkFCTEVfSkFWQVNDUklQVCcsIH5lbmFibGVfamF2YXNjcmlwdH4pOwoKCg==');
+    $config = base64_decode('PD9waHAKCi8vIFJlZGlzIGNvbm5lY3Rpb24KZGVmaW5lKCdSRURJU19IT1NUJywgJ35yZWRpc19ob3N0ficpOwpkZWZpbmUoJ1JFRElTX1BPUlQnLCB+cmVkaXNfcG9ydH4pOwpkZWZpbmUoJ1JFRElTX1BBU1MnLCAnfnJlZGlzX3Bhc3N+Jyk7CmRlZmluZSgnUkVESVNfREJJTkRFWCcsIH5yZWRpc19kYmluZGV4fik7CgpkZWZpbmUoJ0VOQUJMRV9BRE1JTicsIH5lbmFibGVfYWRtaW5+KTsKCgo=');
     $config = str_replace("~redis_host~", $this->redis_host, $config);
     $config = str_replace("~redis_port~", $this->redis_port, $config);
     $config = str_replace("~redis_pass~", $this->redis_pass, $config);
     $config = str_replace("~redis_dbindex~", $this->redis_dbindex, $config);
     $config = str_replace('~enable_admin~', $this->enable_admin, $config);
-    $config = str_replace("~enable_javascript~", $this->enable_javascript, $config);
     file_put_contents(SITE_PATH . '/etc/config.php', $config);
 
     // Update redis config
     app::update_config_var('core:cookie_name', io::generate_random_string(12));
     app::update_config_var('core:server_type', $this->server_type);
     app::update_config_var('core:domain_name', $this->domain_name);
+    app::update_config_var('core:websocket_port', $this->websocket_port);
+    app::update_config_var('core:enable_javascript', $this->enable_javascript);
 
     // Set encryption info
     app::update_config_var('core:encrypt_cipher', 'aes-256-cbc');

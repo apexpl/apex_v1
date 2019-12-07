@@ -95,24 +95,31 @@ public function help($vars)
     $response .= str_pad('delete_theme THEME', 40) . "Deletes theme from system\n";
     $response .= str_pad('change_theme AREA THEME', 40) . "Changes active theme on AREA (public / members) to the specified theme\n\n";
 
-// Component commands
+    // Component commands
     $response .= "\tCOMPONENTS\n";
     $response .= str_pad('create TYPE PACKAGE:[PARENT:]:ALIAS [OWNER]', 40) . "Creates a new component.  See documentation for details\n";
     $response .= str_pad('delete TYPE PACKAGE:[PARENT:]ALIAS', 40) . "Deletes a component.  See documentation for details\n\n";
 
-    // Unit ets
+    // Cache / debug
     $response .= "\tDebug / Cache \n";
     $response .= str_pad('debug LEVEL', 40) . "Sets current debug more, 0 = off, 1 = next request, 2 = always on\n";
     $response .= str_pad('enable_cache', 40) . "Turns cache on.\n";
     $response .= str_pad('disable_cache', 40) . "Turns cache off.\n\n";
 
     // System maintenance
+    $response .= str_pad('server_type TYPE', 40) . "Changes the server type to desired type (eg. all, web, app, etc.)\n";
     $response .= "\tSYSTEM / MAINTENANCE\n";
     $response .= str_pad('add_repo URL [USERNAME] [PASSWORD]', 40) . "Adds new repository to system with optional username / password\n";
     $response .= str_pad('update_repo URL', 40) . "Updates existing repo with new username / password\n";
     $response .= str_pad('update_masterdb', 40) . "Update connection information for master mySQL database\n";
-    $response .= str_pad('create_dbslaves', 40) . "Clear all slave mySQL database servers\n";
+    $response .= str_pad('clear_dbslaves', 40) . "Clear all slave mySQL database servers\n";
     $response .= str_pad('update_rabbitmq', 40) . "Update connection information for RabbitMQ\n\n\n";
+
+    // Github
+    $response .= "\tGIT / GITHUB INTEGRATION\n";
+    $response .= str_pad('git_init PACKAGE', 40) . "Initializes package as git repository.  Used only once when initially publishing package to Github.\n";
+    $response .= str_pad('git_sync PACKAGE', 40) . "Downloads the git repository, and updates the local package as necessary.  This assumes git repository is more up to date than local copy.\n";
+    $response .= str_pad('git_compare PACKAGE', 40) . "Compares git repository to local package, and generates git.sh file to update git repository as needed.  This assumes local package is more up to date than git repository.\n\n";
 
     // Debug
     debug::add(4, "CLI: help", 'info');
@@ -501,16 +508,20 @@ public function publish_upgrade($vars)
 
     // Publish upgrade
     $client = new upgrade();
-    $client->publish((int) $upgrade['id']);
+    $is_git = $client->publish((int) $upgrade['id']);
 
     // Debug
     debug::add(4, tr("CLI: Completed publishing upgrade point for package: {1}", $pkg_alias), 'info');
 
     // Set response
     $response = "Successfully published the appropriate upgrade for package, $pkg_alias\n\n";
+    if ($is_git == 1) { 
+        $response .= "To complete the upgrade, and publish to the git repository, run the following command:\n";
+        $response .= "\tcd " . SITE_PATH . "/src/$pkg_alias/git; ./git.sh\n\n";
+    }
 
     // Ask to create new upgrade point
-    $ok = $vars[2] ?? '';
+    $ok = $vars[1] ?? '';
     if ($ok == '') { 
         echo "Would you like to create a new upgrade point? (y\n) [y]: ";
         $ok = strtolower(trim(readline()));
@@ -980,7 +991,7 @@ public function server_type($vars)
     // Check
     $type = $vars[0] ?? '';
     if (!in_array($type, array('all','web','app','dbs','dbm','msg'))) { 
-        throw new ApexException('error', "INvalid server type, {1}", $type);
+        throw new ApexException('error', "Invalid server type, {1}", $type);
     }
 
     // Update config
@@ -1301,7 +1312,7 @@ private function get_repo()
  * a $github_repo_url variable to defined within the package 
  * configuration at /etc/PACKAGE/package.php file.
  */
-private function git_init($vars)
+public function git_init($vars)
 {
 
     // Initialize GIthub repo

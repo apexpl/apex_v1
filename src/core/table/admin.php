@@ -7,19 +7,19 @@ use apex\app;
 use apex\svc\db;
 
 
+/**
+ * Data table that lists all administrators within the system.
+ */
 class admin 
 {
 
-
-
-
     // Set columns
     public $columns = array(
-    'id_html' => 'ID',
-    'username' => 'Username',
-    'full_name' => 'Full Name',
-    'last_seen' => 'Last Seen',
-    'manage' => 'Manage'
+        'id_html' => 'ID',
+        'username' => 'Username',
+        'full_name' => 'Full Name',
+        'last_seen' => 'Last Seen',
+        'manage' => 'Manage'
     );
 
     // Sortable columns
@@ -32,11 +32,6 @@ class admin
     public $form_field = 'checkbox';
     public $form_name = 'admin_id';
     public $form_value = 'id';
-
-    // Delete button
-    public $delete_button = 'Delete Checked Administrators';
-    public $delete_dbtable = 'admin';
-    public $delete_dbcolumn = 'id';
 
 
 /**

@@ -90,6 +90,10 @@ public static function create_item_options(string $selected)
     // Get area
     if (app::get_action() == 'change') { 
         $profile_id = app::_post('dashboard');
+
+    } elseif (app::has_get('profile_id')) { 
+        $profile_id = app::_get('profile_id');
+
     } else { 
         $profile_id = db::get_field("SELECT id FROM dashboard_profiles WHERE area = 'admin' AND is_default = 1");
     }
@@ -145,20 +149,14 @@ public function get_profile():array
         foreach ($rows as $row) { 
 
             // Get the item row
-            if (!$item = db::get_row("SELECT * FROM dashboard_items WHERE type = %s AND package = %s AND area = %s AND alias = %s", $row['type'], $row['package'], $profile['area'], $row['alias'])) { 
-                continue;
-            }
+            $item = db::get_row("SELECT * FROM dashboard_items WHERE type = %s AND package = %s AND area = %s AND alias = %s", $row['type'], $row['package'], $profile['area'], $row['alias']);
+
 
             // Load the needed class
             $client = app::makeset("\\apex\\" . $row['package'] . "\\dashboard");
 
-            // Make sure metho exists
-            $func_name = $profile['area'] . '_' . $row['type'] . '_' . $row['alias'];
-            if (!method_exists($client, $func_name)) { 
-                continue;
-            }
-
             // Get contents
+            $func_name = $profile['area'] . '_' . $row['type'] . '_' . $row['alias'];
             $contents = $client->$func_name();
 
             // Set vars

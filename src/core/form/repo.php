@@ -76,9 +76,7 @@ public function get_record(string $record_id):array
 { 
 
     // Get record
-    if (!$row = db::get_idrow('internal_repos', $record_id)) { 
-        $row = array();
-    }
+    $row = db::get_idrow('internal_repos', $record_id) ?? array();
 
     // Decrypt, as needed
     $row['username'] = encrypt::decrypt_basic($row['username']);
@@ -94,24 +92,6 @@ public function get_record(string $record_id):array
 
 }
 
-/**
- * Perform additional form validation. 
- *
- * On top of the standard form validation checks such as required fields, data 
- * types, min / max length, and so on, you can also perform additional 
- * validation for this specific form via this method.  Simply add the needed 
- * error callouts via the template->add_callout() method for any validation 
- * errors. 
- *
- * @param array $data Any array of data passed to the app::validate_form() method.  Used
- */
-public function validate(array $data = array())
-{ 
-
-    // Additional validation checks
-
 }
 
-
-}
 

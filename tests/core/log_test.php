@@ -94,7 +94,7 @@ if (!$app = app::get_instance()) {
 public function test_log_invalid_arg()
 {
 
-    $this->expectException(\InvalidArgumentException);
+    $this->expectException('InvalidArgumentException');
 
     $client = new log();
     $client->log('junk_levels', 'sdgas');
@@ -107,9 +107,9 @@ public function test_log_invalid_arg()
 public function test_log_no_tostring()
 {
 
-    $this->expectException(\InvalidArgumentException);
+    $this->expectException('InvalidArgumentException');
 
-    $user = app::make(user::class);
+        $user = app::make(admin::class);
     $client = new log();
     $client->log('info', $user);
 

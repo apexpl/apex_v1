@@ -62,7 +62,7 @@ public function test_create_options_no_redis()
     $client = new hashes();
 
     // Get exception
-    $this->waitException('The hash does not exist in redis');
+    $this->waitException('The hash does not exist within redis');
     $client->create_options('core:boolean');
 
 }
@@ -88,6 +88,10 @@ public function test_reset_redis_boolean_hash()
 public function test_create_options_radio_checkbox()
 {
 
+    // Add boolean to redis
+    $vars = array(0 => 'No', 1 => 'Yes');
+    redis::hset('hash', 'core:boolean', json_encode($vars));
+
     // Create checkbox
     $client = new hashes();
     $options = $client->create_options('core:boolean', 1, 'checkbox', 'boolean');
@@ -112,7 +116,7 @@ public function test_get_hash_var()
     // Initialize
     $client = new hashes();
     $data = redis::hget('hash', 'core:form_fields');
-    redis::hget('hash', 'core:form_fields');
+    redis::hdel('hash', 'core:form_fields');
 
     // Get false
     $ok = $client->get_hash_var('core:form_fields', 'textbox');
@@ -134,18 +138,18 @@ public function test_get_hash_var()
 
     //Get exception
     $this->waitException('does not exist');
-    $client->get_hash_var('core:sklsdfsgsd');
+    $client->get_hash_var('core:sklsdfsgsd', 'test');
 
 }
 
 /**
  * Create currency options
  */
-public function create_options_currency()
+public function test_create_options_currency()
 {
 
     $client = new hashes();
-    $options = $client->create_options('stdlist:currency:USD');
+    $options = $client->parse_data_source('stdlist:currency:USD');
     $this->assertNotEmpty($options);
 
 }

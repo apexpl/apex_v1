@@ -20,8 +20,8 @@ set -e
 case "$1" in
     start)
         echo -n "Starting ${DESC}: "
-        start-stop-daemon --start --background --exec ${DAEMON} $SITE_PATH/apex.php core.rpc
-        start-stop-daemon --start --background --exec ${DAEMON} $SITE_PATH/apex.php core.websocket
+        start-stop-daemon --start --background --exec /bin/sh $SITE_PATH/apex core.rpc
+        start-stop-daemon --start --background --exec /bin/sh $SITE_PATH/apex core.websocket
         echo "$NAME."
         ;;
     stop)

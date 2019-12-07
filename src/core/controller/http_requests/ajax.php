@@ -33,13 +33,10 @@ public function process()
     app::set_res_content_type('application/json');
 
     // Ensure a proper alias and/or package is defined
-    if (!isset(app::get_uri_segments()[0])) { 
+    if (count(app::get_uri_segments()) < 2) { 
         throw new ApexException('error', 'Invalid request.  No AJAX function defined.');
-    } elseif (isset(app::get_uri_segments()[1]) && app::get_uri_segments()[1] != '') { 
-        $ajax_alias = app::get_uri_segments()[0] . ':' . app::get_uri_segments()[1];
-    } else { 
-        $ajax_alias = app::get_uri_segments()[0];
     }
+    $ajax_alias = app::get_uri_segments()[0] . ':' . app::get_uri_segments()[1];
 
     // Check if component exists
     if (!list($package, $Parent, $alias) = components::check('ajax', $ajax_alias)) { 
@@ -47,9 +44,7 @@ public function process()
     }
 
     // Load the AJAX function class
-    if (!$client = components::load('ajax', $alias, $package)) { 
-        throw new ComponentException('no_load', 'ajax', '', $alias, $package);
-    }
+    $client = components::load('ajax', $alias, $package);
 
     // Check auth
     $auth_type = app::_post('auth_type') ?? 'user';

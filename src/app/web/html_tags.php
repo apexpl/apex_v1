@@ -48,6 +48,7 @@ private function read_tags()
 
     // Initialize
     $this->tags = unserialize(base64_decode($this->default_tags));
+    $this->theme_dir = SITE_PATH . '/views/themes/' . app::get_theme();
     if (!file_exists($this->theme_dir . '/tags.tpl')) { return; }
 
     // Set variables
@@ -116,8 +117,8 @@ public function callouts(array $messages):string
 
         // Get HTML
         $tmp_html = $this->tags['callouts'];
-        $tmp_html = str_replace("~css_alias~", $css_aliases[$type], $tmp_html);
-        $tmp_html = str_replace("~icon~", $icons[$type], $tmp_html);
+        $tmp_html = str_replace("~css_alias~", ($css_aliases[$type] ?? 'success'), $tmp_html);
+        $tmp_html = str_replace("~icon~", ($icons[$type] ?? ''), $tmp_html);
         $tmp_html = str_replace("~messages~", $tmp_messages, $tmp_html);
         $callouts .= $tmp_html;
     }
@@ -530,11 +531,13 @@ public function textbox(array $attr, string $text = ''):string
  *
  * @return string The resulting HTML code.
  */
-public function amount(array $attr, string $text):string
+public function amount(array $attr, string $text = ''):string
 { 
 
     // Check for name
-    if (!isset($attr['name'])) { return "<b>ERROR:</b> There is no 'name' attribte within the 'amount' textbox"; }
+    if (!isset($attr['name'])) { 
+        return "<b>ERROR:</b> There is no 'name' attribute within the 'amount' textbox"; 
+    }
 
     // Get currency
     $currency = $attr['currency'] ?? app::_config('transaction:base_currency');
@@ -569,7 +572,9 @@ public function phone(array $attr, string $text = ''):string
 { 
 
     // Perform checks
-    if (!isset($attr['name'])) { return "<b>ERROR:</b> The 'phone' tag does not have a 'name' attribute."; }
+    if (!isset($attr['name'])) { 
+        return "<b>ERROR:</b> The 'phone' tag does not have a 'name' attribute."; 
+    }
 
     // Check value
     $value = $attr['value'] ?? '';
@@ -634,8 +639,8 @@ public function textarea(array $attr, string $text = ''):string
         'value' => $attr['value'] ?? $text, 
         'id' => $attr['id'] ?? 'input_' . $attr['name'],
         'placeholder' => $attr['placeholder'] ?? '',  
-        'width' => '400px', 
-        'height' => '100px'
+        'width' => $attr['width'] ?? '400px', 
+        'height' => $data['height'] ?? '100px'
     );
     if ($merge_vars['placeholder'] != '') { 
         $merge_vars['placeholder'] = "placeholder=\"" . tr($merge_vars['placeholder']) . "\""; 
@@ -672,7 +677,7 @@ public function button(array $attr, string $text = ''):string
     // Set variables
     $href = $attr['href'] ?? '#';
     $label = $attr['label'] ?? 'Submit Query';
-    $size = $attr['size'] ?? 'lg';
+    $size = $attr['size'] ?? 'md';
 
     // Get HTML
     $html = $this->tags['form.button'];
@@ -914,7 +919,7 @@ public function pagination(array $attr, string $text = ''):string
         if ($page_num == $page) { 
             $items .= str_replace("~page~", $page_num, $this->tags['pagination.active_item']);
         } else {
-            $items .= $this->pagination_item($page, $url, (int) $page);
+            $items .= $this->pagination_item((string) $page, $url, (int) $page);
         }
     $x++; }
 
@@ -1069,9 +1074,10 @@ public function boxlist(array $attr, string $text = ''):string
 public function date(array $attr, string $text = ''):string
 { 
 
-    // Initialize
-    global $config;
-    if (!isset($attr['name'])) { return "<b>ERROR:</b> No 'name' attribute within the e:date tab."; }
+    // Check for name
+    if (!isset($attr['name'])) { 
+        return "<b>ERROR:</b> No 'name' attribute within the e:date tab."; 
+    }
 
     // Set variables
     $required = $attr['required'] ?? 0;
@@ -1132,7 +1138,9 @@ public function time(array $attr, string $text = ''):string
 {
 
     // Check for name
-    if (!isset($attr['name'])) { return "<b>ERROR:</b> No 'name' attribute exists within the 'time' tab."; }
+    if (!isset($attr['name'])) { 
+        return "<b>ERROR:</b> No 'name' attribute exists within the 'time' tab."; 
+    }
 
     // Set variables
     $required = $attr['required'] ?? 0;
@@ -1146,7 +1154,7 @@ public function time(array $attr, string $text = ''):string
     // Hour options
     $hour_options = $required == 1 ? '' : '<option value="">------</option>';
     for ($x=0; $x <= 23; $x++) { 
-        $chk = $hour == $x ? 'selected="selected"' : '';
+        $chk = $hours == $x ? 'selected="selected"' : '';
         $hour_options .= "<option value=\"$x\" $chk>" . sprintf("%2d", $x) . "</option>";
     }
 
@@ -1225,14 +1233,14 @@ public function date_interval(array $attr, string $text = ''):string
  *
  * @return string The resulting HTML code.
  */
-public function placeholder($attr, $text)
+public function placeholder(array $attr = [], string $text = '')
 { 
 
     // Check alias
     if (!isset($attr['alias'])) { return ''; }
-    
+
     // Check redis
-    $key = app::get_area() . '/' . app::get_uri() . ':' . $attr['alias'];
+    $key = app::get_uri() . ':' . $attr['alias'];
     if (!$value = redis::hget('cms:placeholders', $key)) { 
         $value = '';
     }
@@ -1250,12 +1258,15 @@ public function placeholder($attr, $text)
  *
  * @return string The resulting HTML code. 
  */
-public function recaptcha($attr, $text)
+public function recaptcha(array $attr = [], string $text = '')
 { 
 
     // Check if enabled
-    if (app::_config('core:recaptcha_site_key') == '') { return ''; }
+    if (app::_config('core:recaptcha_site_key') == '') { 
+        return ''; 
+    }
 
+    // Set HTML
     $html = "<div class=\"g-recaptcha\" data-sitekey=\"" . app::_config('core:recaptcha_site_key') . "\"></div>\n";
 
     // Return

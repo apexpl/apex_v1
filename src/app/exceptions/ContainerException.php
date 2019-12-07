@@ -44,6 +44,7 @@ public function __construct(string $message, string $name = '', string $type = '
 
     // Get message
     $this->log_level = 'alert';
+    $this->code = 500;
     $this->message = $this->error_codes[$message] ?? $message;
     $this->message = tr($this->message, $vars);
 

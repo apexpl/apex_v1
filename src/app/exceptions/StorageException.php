@@ -18,8 +18,8 @@ class StorageException   extends ApexException
     private $error_codes = array(
         'no_adapter' => 'Unknown remote file system adapter, {type}', 
         'no_filesystem' => 'Unable to connect to remote file system with adapter {type}.  Please check the credentials.', 
-        'no_file_add' => 'Unable to add file to remote file system at {dest}, using local file {file} via adapter {type}', 
-        'no_file_add_contents' => 'Unable to add remote file with contents at {dest}',
+        'no_add_file' => 'Unable to add file to remote file system at {dest}, using local file {file} via adapter {type}', 
+        'no_add_file_contents' => 'Unable to add remote file with contents at {dest}',
         'no_read_file' => 'Unable to read file from remote filesystem at {dest}',  
         'no_delete_file' => 'Unable to delete file from remote filesystem, {dest}', 
         'no_rename_file' => 'Unable to rename file on remote filesystem from {file} to {dest}', 
@@ -51,6 +51,7 @@ public function __construct($message, string $type = '', string $filename = '', 
 
     // Get message
     $this->log_level = 'error';
+    $this->code = 500;
     $this->message = $this->error_codes[$message] ?? $message;
     $this->message = tr($this->message, $vars);
 

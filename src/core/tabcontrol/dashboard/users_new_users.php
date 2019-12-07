@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace apex\core\tabcontrol\debugger;
+namespace apex\core\tabcontrol\dashboard;
 
 use apex\app;
 use apex\svc\db;
@@ -11,12 +11,12 @@ use apex\svc\debug;
  * Handles the specifics of the one tab page, and is 
  * executed every time the tab page is displayed.
  */
-class line_items 
+class users_new_users
 {
 
     // Page variables
     public $position = 'bottom';
-    public $name = 'Line_items';
+    public $name = 'Users_new_users';
 
 /**
  * Process the tab page.

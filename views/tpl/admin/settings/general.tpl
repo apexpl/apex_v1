@@ -23,25 +23,20 @@
         <a:form_table>
             <a:ft_textbox name="domain_name" value="~config.core:domain_name~">
             <a:ft_select name="date_format" value="~config.core:date_format~" data_source="hash:core:date_formats">
-
-        <a:if check_package('webapp')>
-            <a:ft_seperator label="Nexmo API Info">
-            <a:ft_textbox name="nexmo_api_key" label="API Key" value="~config.core:nexmo_api_key~">
-            <a:ft_textbox name="nexmo_api_secret" label="API Secret" value="~config.core:nexmo_api_secret~">
-            <a:ft_seperator label="Google Recaptcha API">
-            <a:ft_textbox name="recaptcha_site_key" value="~config.core:recaptcha_site_key~" label="ReCaptcha Site Key">
-            <a:ft_textbox name="recaptcha_secret_key" value="~config.core:recaptcha_secret_key~" label="ReCaptcha Secret Key">
-            <a:ft_seperator label="OpenExchange">
-            <a:ft_textbox name="openexchange_app_id" value="~config.core:openexchange_app_id~" label="OpenExchange App ID">
-        </a:if>
-
-            <a:ft_seperator label="System / Server">
-            <a:ft_select name="mode" label="Server Mode" value="~config.core:mode~" data_source="hash:core:server_mode">
-            <a:ft_select name="debug_level" value="~config.core:debug_level~" data_source="hash:core:debug_levels">
-            <a:ft_select name="log_level" value="~config.core:log_level~" data_source="hash:core:log_levels">
             <a:ft_select name="default_language" value="~config.core:default_language~" data_source="stdlist:language:1">
             <a:ft_select name="default_timezone" value="~config.core:default_timezone~" data_source="stdlist:timezone">
 
+            <a:ft_seperator label="Debug / Logging">
+            <a:ft_select name="mode" label="Server Mode" value="~config.core:mode~" data_source="hash:core:server_mode">
+            <a:ft_select name="debug_level" value="~config.core:debug_level~" data_source="hash:core:debug_levels">
+            <a:ft_select name="log_level" value="~config.core:log_level~" data_source="hash:core:log_levels">
+            <a:ft_textbox name="max_logfile_size" value="~config.core:max_logfile_size~" label="Max Logfile Size (MB)" width="60px">
+
+            <a:ft_seperator label="System / Server">
+            <a:ft_select name="server_type" value="~config.core:server_type~" data_source="hash:core:server_types" required="1">
+            <a:ft_textbox name="websocket_port" value="~config.core:websocket_port~" width="70px" label="WS Server Port">
+            <a:ft_boolean name="cache" label="Enable Cache?" value="~config.core:cache~">
+            <a:ft_boolean name="enable_javascript" label="Enable Javascript?" value="~config.core:enable_javascript~">
             <a:ft_submit value="update_general" label="Update General Settings">
         </a:form_table>
 
@@ -69,6 +64,23 @@
             <a:ft_textbox name="site_reddit" value="~config.core:site_reddit~" label="Reddit">
             <a:ft_textbox name="site_instagram" value="~config.core:site_instagram~" label="Instagram">
             <a:ft_submit value="site_info" label="Update Site Info">
+        </a:form_table>
+
+    </a:tab_page>
+
+    <a:tab_page name="API Keys">
+        <h3>API Keys</h3>
+
+        <a:form_table>
+            <a:ft_seperator label="Nexmo API Info">
+            <a:ft_textbox name="nexmo_api_key" label="API Key" value="~config.core:nexmo_api_key~">
+            <a:ft_textbox name="nexmo_api_secret" label="API Secret" value="~config.core:nexmo_api_secret~">
+            <a:ft_seperator label="Google Recaptcha API">
+            <a:ft_textbox name="recaptcha_site_key" value="~config.core:recaptcha_site_key~" label="ReCaptcha Site Key">
+            <a:ft_textbox name="recaptcha_secret_key" value="~config.core:recaptcha_secret_key~" label="ReCaptcha Secret Key">
+            <a:ft_seperator label="OpenExchange">
+            <a:ft_textbox name="openexchange_app_id" value="~config.core:openexchange_app_id~" label="OpenExchange App ID">
+            <a:ft_submit value="api_keys" label="Update API Keys">
         </a:form_table>
 
     </a:tab_page>

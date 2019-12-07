@@ -5,6 +5,7 @@ namespace apex\app\msg;
 
 use apex\app;
 use apex\svc\redis;
+use apex\svc\debug;
 use apex\app\web\ajax;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
@@ -37,7 +38,7 @@ public function __construct()
 public function onOpen(ConnectionInterface $conn)
 {
     $this->clients->attach($conn);
-    echo "New connection opened\n";
+    debug::add(5, tr("New web socket connection opened from IP {1}", app::get_ip()));
 }
 
 /**
@@ -48,7 +49,10 @@ public function onOpen(ConnectionInterface $conn)
  */
 public function onMessage(ConnectionInterface $from, $msg)
 { 
-echo "Got msg: $msg\n";
+
+    // Debug
+    debug::add(5, tr("Web Socket message received: {1}", $msg));
+
     // Check for authentication
     if (preg_match("/^ApexAuth: (.+)/", $msg, $match)) { 
         $this->authenticate($match[1], $from);
@@ -62,6 +66,11 @@ echo "Got msg: $msg\n";
 
     // Decode JSON
     $vars = json_decode($msg, true);
+
+    // Add to redis queue, if testing
+    if ($vars['reqtype'] == 'test') { 
+        redis::lpush('test:websocket_queue', $msg);
+    }
 
     // Relay message to all clients, if needed
     $this->clients->rewind();
@@ -78,11 +87,11 @@ echo "Got msg: $msg\n";
         if (!isset($user['area'])) { $ok = false; }
         if (!isset($user['userid'])) { $ok = false; }
         if (!isset($user['type'])) { $ok = false; }
-print_r($user); 
+
         // Skip, if needed
-        $chk_recipient = $user['type'] . ':' . $user['userid'];
+        $chk_recipient = $ok === true ? ($user['type'] . ':' . $user['userid']) : 'punlic';
         if ($vars['area'] != '' && $vars['area'] != $user['area']) { $ok = false; }
-        if ($vars['route'] != '' && $vars['route'] != $user['route']) { $ok = false; }
+        if ($vars['uri'] != '' && $vars['uri'] != $user['uri']) { $ok = false; }
         if (count($vars['recipients']) > 0 && !in_array($chk_recipient, $vars['recipients'])) { $ok = false; }
 
         // Send message
@@ -166,10 +175,10 @@ protected function authenticate(string $auth_string, ConnectionInterface $from)
     );
 
     // Check redis database for auth session
-    if ($vars = redis::hgetall($auth_hash)) { 
+    if ($vars = redis::hgetall('auth:' . $auth_hash)) { 
         $user['type'] = $vars['type'];
         $user['userid'] = $vars['userid'];
-echo "YES, HERE\n";
+
     } elseif (preg_match("/^public:(.+)$/", $auth_hash, $match)) { 
         $user['type'] = 'public';
         $user['userid'] = $match[1];

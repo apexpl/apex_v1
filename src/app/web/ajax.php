@@ -7,6 +7,7 @@ use apex\app;
 use apex\svc\debug;
 use apex\svc\components;
 use apex\app\utils\tables;
+use apex\app\exceptions\ComponentException;
 
 
 /**
@@ -26,7 +27,7 @@ class ajax
  */
 public function process()
 { 
-
+    return true;
 }
 
 /**
@@ -98,13 +99,11 @@ final public function add_data_rows(string $divid, string $table_alias, array $r
 
     // Check table component
     if (!list($package, $parent, $alias) = components::check('table', $table_alias)) { 
-        throw new ComponentException('table', $table_alias, 'not_exists');
+        throw new ComponentException('not_exists_alias', 'table', $table_alias, 'not_exists');
     }
 
     // Load table
-    if (!$table = components::load('table', $alias, $package)) { 
-        throw new ComponentException('no_load', 'table', '', $alias, $package);
-    }
+    $table = components::load('table', $alias, $package);
 
     // Check form field
     $form_field = $table->form_field ?? 'none';

@@ -157,27 +157,6 @@ public function update_status(string $status)
 }
 
 /**
- * Updates the secondary auth hash of the administrator 
- *
- * @param string $sec_hash The secondary auth hash to update on the admin's profile.
- */
-public function update_sec_auth_hash(string $sec_hash)
-{ 
-
-    // Update database
-    db::update('admin', array(
-        'sec_hash' => $sec_hash),
-    "id = %i", $this->admin_id);
-
-    // Debug
-    debug::add(2, tr("Updated the secondary auth hash of administrator, ID: {1}", $this->admin_id));
-
-    // Return
-    return true;
-
-}
-
-/**
  * Deletes the administrator from the database 
  */
 public function delete()
@@ -213,10 +192,10 @@ public function create_select_options(int $selected = 0, bool $add_prefix = fals
 
     // Create admin options
     $options = '';
-    $result = db::query("SELECT id,username,full_name FROM admin ORDER BY full_name");
-    while ($row = db::fetch_assoc($result)) { 
+    $rows = db::query("SELECT id,username,full_name FROM admin ORDER BY full_name");
+    foreach ($rows as $row) { 
         $chk = $row['id'] == $selected ? 'selected="selected"' : '';
-        $id = $add_prefix === true ? 'admin:' . $row['id'] : '';
+        $id = $add_prefix === true ? 'admin:' . $row['id'] : $row['id'];
 
         $name = $add_prefix === true ? 'Administrator: ' : '';
         $name .= $row['full_name'] . '(' . $row['username'] . ')';

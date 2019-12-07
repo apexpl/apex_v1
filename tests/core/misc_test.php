@@ -10,6 +10,8 @@ use apex\svc\debug;
 use apex\svc\components;
 use apex\svc\io;
 use apex\app\db\db_connections;
+use apex\core\admin;
+use apex\core\notification;
 use apex\app\tests\test;
 
 
@@ -317,11 +319,96 @@ public function test_core_ajax_delete_rows_invalid()
 
 }
 
+/**
+ * Load admin - not exists
+ */
+public function test_admin_load_not_exists()
+{
 
+    $this->waitException('No administrator exists');
+    $admin = app::make(admin::class, ['id' => 938526]);
+    $admin->load();
+
+}
+
+/**
+ * Admin - update_status
+ */
+public function test_admin_update_status()
+{
+
+    // Initialize
+    $admin_id = db::get_field("SELECT id FROM admin WHERE username = %s", $_SERVER['apex_admin_username']);
+    $admin = app::make(admin::class, ['id' => (int) $admin_id]);
+
+    // Update
+    $admin->update_status('inactive');
+    $chk = db::get_field("SELECT status FROM admin WHERE id = %i", $admin_id);
+    $this->assertEquals('inactive', $chk);
+
+    // Activate again
+    $admin->update_status('active');
+    $chk = db::get_field("SELECT status FROM admin WHERE id = %i", $admin_id);
+    $this->assertEquals('active', $chk);
+
+}
+
+/**
+ * Update invalid config variable
+ */
+public function test_update_config_var_invalid()
+{
+
+    $this->waitException('Unable to update configuration variable');
+    app::update_config_var('some_invalid_junk_var', 'test');
+
+}
+
+/**
+ * app - _header
+ */
+public function test_app_header()
+{
+
+    $var = app::_header_line('content-type');
+    $var = app::_header('content-type');
+    $this->assertIsArray($var);
+
+    $headers = app::get_res_all_headers();
+    $this->assertIsArray($headers);
 
 
 }
 
+/**
+ * app - echo_response
+ */
+public function notest_app_echo_response()
+{
 
+    // Initialize
+    app::set_area('public');
+    app::set_uri('login');
+    app::set_userid(0);
+
+    // Send http requet
+    $html = $this->http_request('register');
+
+    // Echo response
+    ob_start();
+    app::echo_response();
+    $html = ob_get_contents();
+    ob_end_clean();
+
+    // Assert
+    $this->assertNotEmpty($html);
+    $this->assertStringContains($html, 'Login Now');
+
+}
+
+
+
+
+}
 
 

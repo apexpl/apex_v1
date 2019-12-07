@@ -121,13 +121,11 @@ public static function make(string $name, array $params = [])
 
     // Get class name
     if (!$class_name = self::get_class_name($name)) { 
-        throw new ContainerException('no_class_name', $name);
+            throw new ContainerException('no_class_name', $name);
     }
 
     // Load the class
-    if (!$object = new \ReflectionClass($class_name)) { 
-        throw new ContainerException('unable_load_class', $class_name);
-    }
+    $object = new \ReflectionClass($class_name);
 
     // Get use statements
     self::$use_declarations[$class_name] = self::get_use_declarations($object->getFilename());
@@ -228,7 +226,7 @@ private static function get_injection_params(\ReflectionMethod $method, array $p
     foreach ($method_params as $param) { 
 
         // Get param variables
-    $name = $param->name;
+    $name = $param->getName();
         $type = $param->hasType() === true ? $param->getType() : null;
 
         // Check params
@@ -236,7 +234,7 @@ private static function get_injection_params(\ReflectionMethod $method, array $p
 
             // Check type
             if (!self::check_type($params[$name], $type)) { 
-                throw new ContainerException('invalid_param_type', $name, GetType($params[$name]), (string) $type);
+                throw new ContainerException('invalid_param_type', $name, GetType($params[$name]), (string) $type->getName());
             }
 
             // Add to injected params
@@ -245,6 +243,7 @@ private static function get_injection_params(\ReflectionMethod $method, array $p
         }
 
         // Try to get param from container
+    if ($type !== null) { $type = $type->getName(); }
         if ($type !== null && strpos((string) $type, "\\") && $value = self::get((string) $type)) { 
             $injection_params[$name] = $value;
 
@@ -325,6 +324,9 @@ public static function check_property_docblock(string $comment, string $class_na
  */
 public static function check_type($value, $chk_type):bool 
 {
+
+    // Initialize
+    if ($chk_type !== null) { $chk_type = $chk_type->getname(); }
 
     // Return, if no check type
     if ($chk_type === null || $chk_type == '') { 

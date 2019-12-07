@@ -76,7 +76,7 @@ public function add_response(string $package, string $class_name, string $method
     $this->response[$package] = $response;
 
     // Change status, if needed
-    if ($this->type == 'direct' && $response !== true) { 
+    if ($this->get_type() == 'direct' && $response !== true) { 
         $this->set_status('fail');
     }
 }
@@ -92,7 +92,7 @@ public function add_response(string $package, string $class_name, string $method
 public function set_exception($e)
 { 
     $this->set_status('error');
-    $this->exception = $e;
+    $this->exception = $e->getMessage();
 }
 
 /**
@@ -134,7 +134,7 @@ public function get_response(string $package = '')
 
     // Return as needed
     if ($package != '') { 
-        return $this->response[$package] ?? '';
+        return $this->response[$package] ?? null;
     } else { 
         return $this->response;
     }

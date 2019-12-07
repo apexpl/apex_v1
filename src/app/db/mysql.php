@@ -48,9 +48,7 @@ public function connect(string $dbname, string $dbuser, string $dbpass = '', str
 { 
 
     // Connect
-    if (!$conn = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname, $dbport)) { 
-        throw new DBException('no_connect');
-    }
+    $conn = @mysqli_connect($dbhost, $dbuser, $dbpass, $dbname, $dbport);
 
     // Set timezone to UTC
     mysqli_query($conn, "SET TIME_ZONE = '+0:00'");
@@ -432,7 +430,7 @@ public function num_rows($result)
 
     // Get num rows
     if (!$num = mysqli_num_rows($result)) { 
-        throw new DBException('num_rows');
+        $num = 0;
     }
     if ($num == '') { $num = 0; }
 
@@ -488,14 +486,14 @@ private function format_sql($args)
         elseif ($match[1] == 'e' && !filter_var($value, FILTER_VALIDATE_EMAIL)) { $is_valid = false; }
         elseif ($match[1] == 'url' && !filter_var($value, FILTER_VALIDATE_URL)) { $is_valid = false; }
         elseif ($match[1] == 'ds') { 
-            if (preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d)$/", $value, $dmatch)) { 
-                if (!check_date($dmatch[2], $dmatch[3], $dmatch[1])) { $is_valid = false; }
-            } else { $is_valid = false; }
+            if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d)$/", $value, $dmatch)) { 
+                $is_valid = false;
+            }
         } elseif ($match[1] == 'ts' && !preg_match("/^\d\d:\d\d:\d\d$/", $value)) { $is_valid = false; }
         elseif ($match[1] == 'dt') { 
-            if (preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) \d\d:\d\d:\d\d$/", $value, $dmatch)) { 
-                if (!check_date($dmatch[2], $dmatch[3], $dmatch[1])) { $is_valid = false; }
-            } else { $is_valid = false; }
+            if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) \d\d:\d\d:\d\d$/", $value, $dmatch)) { 
+                $is_valid = false;
+            }
         }
         
 

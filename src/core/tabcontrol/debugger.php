@@ -23,12 +23,9 @@ class debugger
 
     // Define tab pages
     public $tabpages = array(
-        'general' => 'General',
-        'trace' => 'Trace',
         'line_items' => 'Line Items',
         'input' => 'Input Arrays',
         'server' => 'Server',
-        'sql' => 'SQL Queries'
     );
 
 /**

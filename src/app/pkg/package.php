@@ -10,6 +10,7 @@ use apex\app\sys\network;
 use apex\svc\io;
 use apex\svc\components;
 use apex\app\pkg\package_config;
+use apex\app\pkg\github;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\PackageException;
 use apex\app\exceptions\RepoException;
@@ -187,16 +188,8 @@ public function compile(string $pkg_alias):string
         }
         if ($has_php === false) { continue; }
 
-        // Add to $components array
-        $vars = array(
-            'type' => $row['type'],
-            'order_num' => $row['order_num'],
-            'package' => $row['package'],
-            'parent' => $row['parent'],
-            'alias' => $row['alias'],
-            'value' => $row['value']
-        );
-        array_push($components, $vars);
+        // Add to components array
+        $components[] = pkg_component::get_vars($row['type'], $row['alias'], $row['package'], $row['parent'], $row['value'], (int) $row['order_num']);
     }
     file_put_contents(SITE_PATH . '/etc/' . $pkg_alias . '/components.json', json_encode($components));
 
@@ -334,7 +327,10 @@ public function install(string $pkg_alias, int $repo_id = 0)
     $package_id = $this->insert($repo_id, $pkg_alias, $vars['name'], 'public', $vars['version']);
 
     // Install
-    $this->install_from_dir($pkg_alias, $tmp_dir);
+    $this->install_from_dir($pkg_alias, $tmp_dir, (int) $vars['is_git']);
+
+    // Clean up
+    io::remove_dir($tmp_dir);
 
 }
 
@@ -368,9 +364,7 @@ public function download(string $pkg_alias, int $repo_id = 0)
     }
 
     // Get repo
-    if (!$repo = db::get_idrow('internal_repos', $repo_id)) { 
-        throw new RepoException('not_exists', $repo_id);
-    }
+    $repo = db::get_idrow('internal_repos', $repo_id);
 
     // Send request
     $vars = $network->send_repo_request((int) $repo_id, $pkg_alias, 'download');
@@ -400,8 +394,9 @@ public function download(string $pkg_alias, int $repo_id = 0)
  *
  * @param string $pkg_alias The alias of the package being installed
  * @param string $tmp_dir The directory where the package is currently unpacked
+ * @param int $is_git A 1/0 whether or not it's from a git repo.
  */
-public function install_from_dir(string $pkg_alias, string $tmp_dir)
+public function install_from_dir(string $pkg_alias, string $tmp_dir, int $is_git = 0)
 { 
 
     // Create /pkg/ directory
@@ -411,23 +406,15 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
     // Debug
     debug::add(4, tr("Starting package install from unpacked directory of package, {1}", $pkg_alias));
 
-    // Copy over /pkg/ files
-    $files = array('components.json', 'package.php', 'install.sql', 'install_after.sql', 'reset.sql', 'remove.sql');
-    foreach ($files as $file) { 
-        if (!file_exists("$tmp_dir/$file")) { continue; }
-        copy("$tmp_dir/$file", "$pkg_dir/$file");
-    }
-
-    // Copy over all files
-    $toc = json_decode(file_get_contents("$tmp_dir/toc.json"), true);
-    foreach ($toc as $file => $file_num) { 
-        io::create_dir(dirname(SITE_PATH . '/' . $file));
-
-        if (!file_exists("$tmp_dir/files/$file_num")) { 
-            file_put_contents(SITE_PATH .'/' . $file, '');
-        } else { 
-            copy("$tmp_dir/files/$file_num", SITE_PATH .'/' . $file);
-        }
+    // Copy over files
+    if ($is_git == 1) { 
+        $tmp_dir .= '/' . $pkg_alias . '-master';
+        $git = app::make(github::class);
+        $git->sync_from_dir($pkg_alias, $tmp_dir);
+        $components = $git->compile_components($pkg_alias, $tmp_dir);
+    } else { 
+        $this->install_copy_files($pkg_alias, $tmp_dir);
+        $components = json_decode(file_get_contents("$pkg_dir/components.json"), true);
     }
 
     // Debug
@@ -435,8 +422,6 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
 
     // Run install SQL, if needed
     io::execute_sqlfile("$pkg_dir/install.sql");
-
-    // Debug
     debug::add(4, tr("Installing package, ran install.sql file for package {1}", $pkg_alias));
 
     // Load package
@@ -447,19 +432,11 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
     if (method_exists($pkg, 'install_before')) { 
         $pkg->install_before();
     }
-
-    // Debug
     debug::add(4, tr("Installing package, loaded configuration and executed any needed PHP for package, {1}", $pkg_alias));
 
     // Install dependeencies
     foreach ($pkg->dependencies as $alias) { 
-
-        // Check if installed
-        if ($irow = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $alias)) { 
-            continue;
-        }
-
-        // Install package
+        if (check_package($alias) === true) { continue; }
         $this->install($alias);
     }
 
@@ -467,23 +444,27 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
     $client->install_configuration();
     $client->install_notifications($pkg);
     $client->install_default_dashboard_items($pkg);
+    $client->scan_workers();
 
     // Debug
     debug::add(4, tr("Installing package, successfully installed configuration for package, {1}", $pkg_alias));
 
     // Go through components
-    $components = json_decode(file_get_contents("$pkg_dir/components.json"), true);
     foreach ($components as $row) { 
-        if ($row['type'] == 'view') { $comp_alias = $row['alias']; }
-        else { $comp_alias = $row['parent'] == '' ? $row['package'] . ':' . $row['alias'] : $row['package'] . ':' . $row['parent'] . ':' . $row['alias']; }
 
+        // Get comp alias
+        if ($row['type'] == 'view') { 
+            $comp_alias = $row['alias']; 
+        } else { 
+            $comp_alias = $row['parent'] == '' ? $row['package'] . ':' . $row['alias'] : $row['package'] . ':' . $row['parent'] . ':' . $row['alias']; 
+        }
+
+        // Add component
         pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num'], $pkg_alias);
     }
 
     // Run install_after SQL, if needed
     io::execute_sqlfile("$pkg_dir/install_after.sql");
-
-    // Debug
     debug::add(4, tr("Installing package, successfully installed all components for package, {1}", $pkg_alias));
 
     // Execute PHP, if needed
@@ -509,14 +490,41 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir)
         }
     }
 
-    // Clean up
-    io::remove_dir($tmp_dir);
-
     // Debug
     debug::add(1, tr("Successfully installed package from directory, {1}", $pkg_alias));
 
     // Return
     return true;
+
+}
+
+/**
+ * Copy over files
+ *
+ * @param string $pkg_alias The alias of the package we're installing.
+ * @param string $tmp_dir The temp directyory holding the package files.
+ */
+protected function install_copy_files(string $pkg_alias, string $tmp_dir)
+{
+
+    // Copy over /pkg/ files
+    $pkg_dir = SITE_PATH . '/etc/' . $pkg_alias;
+    foreach (PACKAGE_CONFIG_FILES as $file) { 
+        if (!file_exists("$tmp_dir/$file")) { continue; }
+        copy("$tmp_dir/$file", "$pkg_dir/$file");
+    }
+
+    // Copy over all files
+    $toc = json_decode(file_get_contents("$tmp_dir/toc.json"), true);
+    foreach ($toc as $file => $file_num) { 
+        io::create_dir(dirname(SITE_PATH . '/' . $file));
+
+        if (!file_exists("$tmp_dir/files/$file_num")) { 
+            file_put_contents(SITE_PATH .'/' . $file, '');
+        } else { 
+            copy("$tmp_dir/files/$file_num", SITE_PATH .'/' . $file);
+        }
+    }
 
 }
 
@@ -534,8 +542,7 @@ public function remove(string $pkg_alias)
     // Get package from DB
     if (!$pkg_row = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $pkg_alias)) { 
         throw new PackageException('not_exists', $pkg_alias);
-    }
-    if ($pkg_alias == 'core') { 
+    } elseif ($pkg_alias == 'core') { 
         throw new ApexException('error', "You can not remove the core package!");
     }
 
@@ -553,7 +560,15 @@ public function remove(string $pkg_alias)
     // Delete all components
     $comp_rows = db::query("SELECT * FROM internal_components WHERE owner = %s OR package = %s ORDER BY id DESC", $pkg_alias, $pkg_alias);
     foreach ($comp_rows as $crow) { 
-        $comp_alias = $crow['parent'] == '' ? $crow['package'] . ':' . $crow['alias'] : $crow['package'] . ':' . $crow['parent'] . ':' . $crow['alias'];
+
+        // Get comp alias
+        if ($crow['type'] == 'view') { 
+            $comp_alias = $crow['alias'];
+        } else { 
+            $comp_alias = $crow['parent'] == '' ? $crow['package'] . ':' . $crow['alias'] : $crow['package'] . ':' . $crow['parent'] . ':' . $crow['alias'];
+        }
+
+        // Delete component
         pkg_component::remove($crow['type'], $comp_alias);
     }
 
@@ -579,9 +594,15 @@ public function remove(string $pkg_alias)
     db::query("DELETE FROM internal_packages WHERE alias = %s", $pkg_alias);
     db::query("DELETE FROM cms_menus WHERE package = %s", $pkg_alias);
 
-    // Update redis menus
-    $pkg_client->update_redis_menus();
-
+    // Delete composer dependencies, if needed
+    if (count($pkg->composer_dependencies) > 0) { 
+        $composer = json_decode(file_get_contents(SITE_PATH . '/composer.json'), true);
+        foreach ($pkg->composer_dependencies as $key => $version) { 
+            if (!isset($composer['require'][$key])) { continue; }
+            unset($composer['require'][$key]);
+        }
+        file_put_contents(SITE_PATH . '/composer.json', json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
 
     // Execute PHP, if needed
     if (method_exists($pkg, 'remove')) { 

@@ -28,65 +28,60 @@ class app extends container
      * ensuring no outside code can modify their values.  Also has the $config
      * array that holds all configuration variables.
      */
-
-    private static $config = [];
-    private static $post = [];
-    private static $get = [];
-    private static $cookie = [];
-    private static $server = [];
-    private static $files = [];
-    private static $request_body;
+    private static array $config = [];
+    private static array $post = [];
+    private static array $get = [];
+    private static array $cookie = [];
+    private static array $server = [];
+    private static array $files = [];
+    private static string $request_body;
 
     /**
      * Variables regarding the HTTP request, such as request method, protocol,
      * URI, the IP address, user agent, and others.
      */
-
-    private static $protocol;
-    private static $host;
-    private static $port;
-    private static $method = 'GET';
-    private static $content_type;
-    private static $uri = 'index';
-    private static $uri_original = 'index';
-    private static $uri_segments = [];
-    private static $uri_locked = false;
-    private static $http_headers = [];
-    private static $http_headers_keys = [];
+    private static string $protocol = '1.1';
+    private static string $host = 'localhost';
+    private static int $port = 80;
+    private static string $method = 'GET';
+    private static string $content_type = '/text/html';
+    private static string $uri = 'index';
+    private static string $uri_original = 'index';
+    private static array $uri_segments = [];
+    private static bool $uri_locked = false;
+    private static array $http_headers = [];
+    private static array $http_headers_keys = [];
 
     /**
      * Additional variables that contain some request information specific to
      * Apex, such as the area being viewed, HTTP controller used to handle the
      * request, etc.
      */
-
-    private static $area = 'public';
-    private static $theme = 'koupon';
-    private static $http_controller = 'http';
-    private static $action = '';
+    private static string $area = 'public';
+    private static string $theme = 'koupon';
+    private static string $http_controller = 'http';
+    private static string $action = '';
 
     /**
      * User / location variables, such as the ID# of the authenticated user, the
      * language, timezone and currency to display in, IP address, etc.
      */
-
-    private static $userid = 0;
-    private static $recipient = 'public';
-    private static $ip_address = '127.0.0.1';
-    private static $user_agent;
-    private static $language = 'en';
-    private static $timezone = 'PST';
-    private static $currency = 'USD';
-    private static $verified_2fa = false;
+    private static int $userid = 0;
+    private static string $recipient = 'public';
+    private static string $ip_address = '127.0.0.1';
+    private static string $user_agent = '';
+    private static string $language = 'en';
+    private static string $timezone = 'PST';
+    private static string $currency = 'USD';
+    private static bool $verified_2fa = false;
 
     /**
      * Response variables, such as HTTP status code, content type, contents, etc.
      */
-
-    private static $res_status = 200;
-    private static $res_content_type = 'text/html';
-    private static $res_http_headers = [];
-    private static $res_body;
+    private static int $res_status = 200;
+    private static string $res_content_type = 'text/html';
+    private static array $res_http_headers = [];
+    private static string $res_body = '';
 
 
     /**
@@ -94,9 +89,9 @@ class app extends container
      * the app instance itself.
      */
     private static $instance = null;
-    private static $reqtype = 'http';
-    private static $reqtype_original;
-    private static $event_queue = [];
+    private static string $reqtype = 'http';
+    private static string $reqtype_original;
+    private static array $event_queue = [];
 
 /**
  * Initialize the application.
@@ -122,7 +117,7 @@ public function __construct(string $reqtype = 'http')
     $this->build_container($reqtype);
 
     // Load config
-    self::$config = redis::singleton();
+    self::$config = redis::hgetall('config');
 
     // Unpack request
     if (self::$reqtype != 'cli') {
@@ -139,6 +134,11 @@ public function __construct(string $reqtype = 'http')
  * dependency container statically within views.
  */
 public static function get_instance() { return self::$instance; }
+
+/**
+ * Kill instance
+ */
+public static function kill_instance() { self::$instance = null; }
 
 /**
  * Private.  Conduct base initialization of application.
@@ -194,10 +194,10 @@ private function unpack_request()
 {
 
     // Sanitize inputs
-    self::$get = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-    self::$post = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-    self::$cookie = filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_STRING);
-    self::$server = filter_input_array(INPUT_SERVER, FILTER_SANITIZE_STRING);
+    self::$get = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING) ?? [];
+    self::$post = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING) ?? [];
+    self::$cookie = filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_STRING) ?? [];
+    self::$server = filter_input_array(INPUT_SERVER, FILTER_SANITIZE_STRING) ?? [];
 
     // Go through http headers
     if (!$headers = getallheaders()) { $headers = array(); }
@@ -215,7 +215,7 @@ private function unpack_request()
     }
 
     // Get uploaded files
-    $this->get_uploaded_files();
+    $this->get_files();
 
     // Get host
     if (isset(self::$server['HTTP_HOST'])) { $host = self::$server['HTTP_HOST']; }
@@ -225,7 +225,7 @@ private function unpack_request()
     // Set other variables
     if (isset(self::$server['SERVER_PROTOCOL']) && preg_match("/^HTTP\/(.+)$/i", self::$server['SERVER_PROTOCOL'], $match)) { self::$protocol = $match[1]; }
     self::$host = preg_replace("/^www\./", "", strtolower($host));
-    self::$port = self::$server['SERVER_PORT'] ?? 0;
+    self::$port = (int) self::_server('SERVER_PORT') ?? 0;
     self::$method = self::$server['REQUEST_METHOD'] ?? 'GET';
     self::$content_type = self::$server['CONTENT_TYPE'] ?? '';
     self::$action = self::$post['submit'] ?? '';
@@ -247,7 +247,7 @@ private function unpack_request()
  * using the UploadedFileInterface interface (via guzzlehttp) as per PSR
  * specifications.
  */
-private function get_uploaded_files()
+private function get_files()
 {
 
     // Upload files
@@ -273,6 +273,18 @@ private function get_uploaded_files()
 }
 
 /**
+ * Add single file
+ *
+ * @param string $var_nmae The name of the field field.
+ * @param string $short_name The name of the file.
+ * @param string $filename The full path to the filename to add.
+ */
+public static function add_file(string $var_name, string $short_name, string $filename)
+{
+    self::$files[$var_name] = new UploadedFile($filename, filesize($filename), 0, $short_name, mime_content_type($filename));
+}
+
+/**
  * Get client information, IP address and user agent
  */
 private function get_client_info()
@@ -293,43 +305,6 @@ private function get_client_info()
     // Get user agent
     $ua = self::$server['HTTP_USER_AGENT'] ?? '';
     self::$user_agent = filter_var($ua, FILTER_SANITIZE_STRING);
-
-}
-
-/**
- * Assign service to DI container and static property.
- *
- * Assigns a static service, plus adds it to the http container.  This is used
- * to help make various services such as the database connection and debugger
- * more accessible, while still conforming to PSR standards regarding the HTTP
- * containers.
- *
- * @param string $service The service (db, debug, log, template, msg_direct, or msg_rpc)
- * @param $class_name The class name to create
- * @param array $params Optional params to pass to the class when "make" is called.
- */
-public function assign_service(string $service)
-{
-
-    // Ensure service is defined
-    if (!isset($this->services[$service])) {
-        throw new ApexException('error', tr("Invalid service trying to be assigned, {1}", $service));
-    }
-
-    // Set variables
-    $def = $this->services[$service];
-    $interface = $def['interface'] ?? $def['class'];
-    $params = $def['params'] ?? [];
-
-    // Make class
-    $obj = $this->make($def['class'], $params);
-    $this->set($interface, $obj);
-
-// Assign singleton, if needed
-    $singleton_class = "apex\\services\\" . str_replace("/", "\\", $service);
-    if ($this->has($singleton_class)) {
-        $singleton_class::singleton($obj);
-    }
 
 }
 
@@ -365,7 +340,7 @@ public function setup_test(string $uri, string $method = 'GET', array $post = []
 
     // Reset needed objects
     view::reset();
-    //self::call([emailer::class, 'clear_queue']);
+    self::$event_queue = [];
 
 }
 
@@ -446,10 +421,6 @@ public static function get_currency_data(string $currency):array
 public static function update_config_var(string $var, $value)
 {
 
-if ($var == 'bitcoin_company_userid') {
-    $t = debug_backtrace();
-    print_r($t[0]); exit;
-}
     // Debug
     debug::add(5, tr("Updating configuration variable {1} to value: {2}", $var, $value));
 
@@ -523,12 +494,12 @@ public static function get_reqtype():string { return self::$reqtype; }
  *
  * @param string $reqtype The request type to set
  */
-public static function set_reqtype(string $reqtype) { self::$reqtype = $type; }
+public static function set_reqtype(string $reqtype) { self::$reqtype = $reqtype; }
 
 /**
  * Reset request type back to its original.
  */
-public function reset_reqtype() { self::$reqtype = self::$reqtype_original; }
+public static function reset_reqtype() { self::$reqtype = self::$reqtype_original; }
 
 /**
  * Set the area
@@ -929,6 +900,67 @@ public static function _cookie(string $var) { return self::$cookie[$var] ?? null
 public static function _server(string $var) { return self::$server[$var] ?? null; }
 
 /**
+ * Get uploaded file
+ *
+ * @param string $key The name of the file
+ *
+ * @return array The filename, mime type, size, and contents of the file.
+ */
+public static function _files(string $key, bool $return_stream = false)
+{
+
+    // Check
+    if (!isset(self::$files[$key])) { 
+        return null;
+    }
+    $tmp_files = is_array(self::$files[$key]) ? self::$files[$key] : array(self::$files[$key]);
+
+    // Get multiple files
+    $vars = [];
+    foreach ($tmp_files as $file) { 
+        $vars[] = self::get_single_file($file, $return_stream);
+    }
+
+    // Return
+    return count($vars) > 1 ? $vars : $vars[0];
+
+}
+
+/**
+ * Get single file vars
+ *
+ * @param UploadedFile $file The file that was uploaded to retrive vars for.
+ * @param bool $return_stream Whether or not to return a stream, or the full contents of the file.  Defaults to false.
+ *
+ * @return array Info on the publoaded file.
+ */
+protected static function get_single_file(UploadedFile $file, bool $return_stream = false):array
+{
+
+    // Set vars
+    $vars = array(
+        'name' => $file->getClientFilename(), 
+        'size' => $file->getSize(), 
+        'type' => $file->getClientMediaType(), 
+        'contents' => ''
+    );
+
+    // Get stream/ contents
+    $stream = $file->getStream();
+    if ($return_stream === true) { 
+        $vars['stream'] = $stream;
+    } else { 
+        while ($buffer = $stream->read(2048)) { 
+            $vars['contents'] .= $buffer;
+        }
+    }
+
+    // Return
+    return $vars;
+
+}
+
+/**
  * Get a http header
  *
  * @param string $key The key of the http header to retrive
@@ -1271,11 +1303,12 @@ public static function echo_response()
 public static function add_event(string $action, $data)
 {
 
+    // Set vars
     $vars = array(
         'action' => $action,
         'data' => $data
     );
-    self::$event_queue[] = $vars;
+    array_push(self::$event_queue, $vars);
 
 }
 

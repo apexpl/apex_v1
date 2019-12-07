@@ -10,8 +10,10 @@ use apex\svc\forms;
 use apex\svc\components;
 use apex\svc\encrypt;
 use apex\svc\auth;
+use apex\svc\io;
 use apex\app\sys\network;
 use apex\app\db\db_connections;
+use apex\core\admin;
 use apex\app\tests\test;
 
 
@@ -98,7 +100,7 @@ public function test_login()
 /**
  * Settings->General Settings page 
  */
-public function test_page_settings_general()
+public function test_page_admin_settings_general()
 { 
 
     // Check if page loads
@@ -106,6 +108,7 @@ public function test_page_settings_general()
     $this->assertPageTitle('General Settings');
     $this->assertHasHeading(3, 'General');
     $this->assertHasHeading(3, 'Site Info');
+    $this->assertHasHeading(3, 'API Keys');
     $this->assertHasHeading(3, 'Admin Panel Security');
     $this->assertHasHeading(3, 'Database Servers');
     $this->assertHasHeading(3, 'E-Mail Servers');
@@ -115,6 +118,7 @@ public function test_page_settings_general()
     // Assert submit buttons
     $this->assertHasSubmit('update_general', 'Update General Settings');
     $this->assertHasSubmit('site_info', 'Update Site Info');
+    $this->assertHasSubmit('api_keys', 'Update API Keys');
     $this->assertHasSubmit('security', 'Update Security Settings');
     $this->assertHasSubmit('delete_database', 'Delete Checked Databases');
     $this->assertHasSubmit('delete_email', 'Delete Checked E-Mail Servers');
@@ -137,9 +141,6 @@ public function test_page_settings_general()
     $this->assertHasHeading(4, 'Add Database Server');
     $this->assertHasHeading(4, 'Add SMTP E-Mail Server');
 
-
-
-
     // Get current config vars
     $orig_config = app::getall_config();
 
@@ -147,16 +148,15 @@ public function test_page_settings_general()
     $general_vars = array(
         'domain_name' => 'unit-test.com',
         'date_format' => 'Y-m-d H:i:s',
-        'nexmo_api_key' => 'utest_nexmo_api_key',
-        'nexmo_api_secret' => 'utest_nexmo_secret',
-        'recaptcha_site_key' => 'utest_recaptcha_set_key',
-        'recaptcha_secret_key' => 'utest_recaptcha_secret',
-        'openexchange_app_id' => 'test_openexchange_api_key',
         'default_language' => 'es',
         'default_timezone' => 'MST',
         'log_level' => 'utest,info,degub',
         'debug_level' => 3,
         'mode' => 'prod',
+        'cache' => 0, 
+        'server_type' => 'all', 
+        'enable_javascript' => 1, 
+        'websocket_port' => '8194', 
         'submit' => 'update_general'
     );
 
@@ -203,6 +203,28 @@ public function test_page_settings_general()
         if ($key == 'submit') { continue; }
         $chk = redis::hget('config', 'core:' . $key);
         $this->assertequals($chk, $value, tr("General Settings error.  Unable to update convig variable '%s' to '%s'", $key, $value));
+        app::update_config_var('core:' . $key, (string) $orig_config['core:' . $key]);
+    }
+
+    // Set API keys vars
+    $api_keys_vars = array(
+        'nexmo_api_key' => 'utest_nexmo_api_key',
+        'nexmo_api_secret' => 'utest_nexmo_secret',
+        'recaptcha_site_key' => 'utest_recaptcha_set_key',
+        'recaptcha_secret_key' => 'utest_recaptcha_secret',
+        'openexchange_app_id' => 'test_openexchange_api_key', 
+        'submit' => 'api_keys'
+    );
+
+    // Send http request to update API keys
+    $html = $this->http_request('admin/settings/general', 'POST', $api_keys_vars);
+    $this->assertPageTitle('General Settings');
+    $this->assertHasCallout('success', 'Successfully updated API');
+
+    // Check config
+    foreach ($api_keys_vars as $key => $value) { 
+        if ($key == 'submit') { continue; }
+        $this->assertEquals($value, app::_config('core:' . $key));
         app::update_config_var('core:' . $key, (string) $orig_config['core:' . $key]);
     }
 
@@ -422,7 +444,7 @@ public function test_create_first_admin()
 
     // Set request
     $request = array(
-        'username' => $_SERVER['apex_admin_username'], 
+        'username' => 'a junk @kds! user', 
         'password' => $_SERVER['apex_admin_password'], 
         'confirm-password' => $_SERVER['apex_admin_password'], 
         'full_name' => $row['full_name'], 
@@ -436,7 +458,13 @@ public function test_create_first_admin()
         'submit' => 'create'
     );
 
+    // Get error with http request
+    $html = $this->http_request('admin/index', 'POST', $request);
+    $this->assertPageTitle('Create First Administrator');
+    $this->assertHasCallout('error', 'must be alpha-numeric');
+
     // Send http request
+    $request['username'] = $_SERVER['apex_admin_username'];
     $html = $this->http_request('admin/index', 'POST', $request);
     $this->assertPageTitleContains('Welcome');
 
@@ -527,8 +555,11 @@ public function provider_create_admin()
 /**
  * Settings->Administrators page 
  */
-public function test_page_settings_admin()
+public function test_page_admin_settings_admin()
 { 
+
+    // Initialize
+    io::remove_dir(SITE_PATH . '/etc/demo');
 
     // Ensure page loads
     $html = $this->http_request('admin/settings/admin');
@@ -548,8 +579,8 @@ public function test_page_settings_admin()
     // Set vars for update
     $vars = array(
         'username' => 'unit_test',
-        'password' => '',
-        'confirm-password' => '',
+        'password' => 'test555',
+        'confirm-password' => 'test555',
         'full_name' => 'Unit Test',
         'email' => 'update@test.com',
         'phone_country' => '1',
@@ -566,18 +597,68 @@ public function test_page_settings_admin()
     $this->assertHasCallout('success', 'Successfully updated administrator details');
     $this->assertHasDBField("SELECT * FROM admin WHERE username = 'unit_test'", 'email', 'update@test.com');
 
+    // Check password
+    $password = db::get_field("SELECT password FROM admin WHERE id = %i", $admin_id);
+    $this->assertTrue(password_verify('test555', base64_decode($password)));
+
     // Set delete vars
     $vars = array(
-        'table' => 'core:admin',
-        'id' => 'tbl_core_admin',
-        'admin_id' => array($admin_id)
+        'admin_id' => array($admin_id), 
+        'submit' => 'delete'
     );
 
     // Send delete request
-    $html = $this->http_request('/ajax/core/delete_rows', 'POST', $vars);
-    $html = $this->http_request('/admin/settings/admin');
+    $html = $this->http_request('admin/settings/admin', 'POST', $vars);
+    $this->assertPageTitle('Administrators');
+    $this->assertHasCallout('success', 'Successfully deleted');
     $this->assertNotHasTableField('core:admin', 1, 'unit_test');
     $this->assertNotHasDBRow("SELECT * FROM admin WHERE username = 'unit_test'");
+
+}
+
+/**
+ * Admin - demo package falses
+ */
+public function test_admin_demo_package()
+{
+
+    // Add demo package
+    io::create_dir(SITE_PATH . '/etc/demo');
+    file_put_contents(SITE_PATH . '/etc/demo/package.php', ' ');
+    $admin_id = db::get_field("SELECT id FROM admin WHERE username = %s", $_SERVER['apex_admin_username']);
+
+    // Set vars for update
+    $request = array(
+        'username' => $_SERVER['apex_admin_username'], 
+        'password' => 'test555',
+        'confirm-password' => 'test555',
+        'full_name' => 'Unit Test',
+        'email' => 'update@test.com',
+        'phone_country' => '1',
+        'phone' => '5551234567',
+        'require_2fa' => '0',
+        'language' => 'en',
+        'timezone' => 'PST',
+        'submit' => 'update',
+        'admin_id' => $admin_id
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/settings/admin', 'POST', $request);
+    $this->assertPageTitle('Administrators');
+    $this->assertHasCallout('error', 'Unable to modify this account');
+
+    // Send delete request
+    $admin = app::make(admin::class, ['id' => (int) $admin_id]);
+    $ok = $admin->delete();
+    $this->assertFalse($ok);
+
+    // Send update_status request
+    $ok = $admin->update_status('inactive');
+    $this->assertFalse($ok);
+
+    // Remove directory
+    io::remove_dir(SITE_PATH . '/etc/demo');
 
 }
 
@@ -634,7 +715,7 @@ public function test_page_admin_settings_notifications()
     // Create notification
     $html = $this->http_request('/admin/settings/notifications', 'POST', $vars);
     $this->assertHasCallout('success', 'Successfully added new e-mail notification');
-    $this->assertHasTableField('core:notifications', 4, 'Test Subject 123');
+    //$this->assertHasTableField('core:notifications', 4, 'Test Subject 123');
 
     // Get notification ID
     $notification_id = db::get_field("SELECT id FROM notifications WHERE subject = 'Test Subject 123'");
@@ -657,7 +738,7 @@ public function test_page_admin_settings_notifications()
     $html = $this->http_request('/admin/settings/notifications', 'POST', $vars);
     $this->assertPageTitle('Notifications');
     $this->assertHasCallout('success', 'Successfully updated the e-mail notification');
-    $this->assertHasTableField('core:notifications', 4, 'Update Test');
+    //$this->assertHasTableField('core:notifications', 4, 'Update Test');
     $this->assertHasDBField("SELECT * FROM notifications WHERE id = $notification_id", 'subject', 'Update Test');
 
     // Set vars to delete notification
@@ -690,6 +771,9 @@ public function test_page_admin_settings_dashboard()
     $html = $this->http_request('admin/settings/dashboard');
     $this->assertPageTitle('Dashboard Settings');
     $this->assertPageContains('Manage Dashboards');
+    $this->assertHasHeading(3, 'Personalized Dashboards');
+    $this->assertHasTable('core:dashboard_profiles_items');
+    $this->assertHasTable('core:dashboard_profiles');
     $this->assertHasSubmit('change', 'Change');
     $this->assertHasHeading(5, 'Add Dashboard Item');
     $this->assertHasSubmit('add_item', 'Add Dashboard Item');
@@ -714,8 +798,34 @@ public function test_page_admin_settings_dashboard()
     $item_id = db::get_field("SELECT id FROM dashboard_profiles_items WHERE profile_id = %i ORDER BY id DESC LIMIT 0,1", $profile_id);
     db::query("DELETE FROM dashboard_profiles_items WHERE id = %i", $item_id);
 
-}
+    // Create new dashboard profile
+    $request = array(
+        'admin_id' => 1, 
+        'submit' => 'create_dashboard'
+    );
+    $html = $this->http_request('admin/settings/dashboard', 'POST', $request);
+    $this->assertPageTitle('Dashboard Settings');
+    $this->assertHasCallout('success', 'Successfully created new');
 
+
+    // Get profile ID
+    $profile_id = db::get_field("SELECT id FROM dashboard_profiles WHERE area = 'admin' AND userid = 1 AND is_default = 0");
+    $this->assertNotFalse($profile_id);
+
+    // Manage profile
+    $html = $this->http_request('admin/settings/dashboard', 'GET', array(), array('profile_id' => $profile_id));
+    $this->assertPageTitle('Dashboard Settings');
+
+    // Change dashboard
+    $request = array(
+        'dashboard' => $profile_id, 
+        'submit' => 'change'
+    );
+    $html = $this->http_request('admin/settings/dashboard', 'POST', $request);
+    $this->assertPageTitle('Dashboard Settings');
+    db::query("DELETE FROM dashboard_profiles WHERE id = %i", $profile_id);
+
+}
 
 /**
  * Maintenance->Package Manager page 
@@ -1057,6 +1167,92 @@ public function test_page_admin_cms_menus()
     $row = db::get_row("SELECT * FROM cms_menus WHERE area = 'public' AND alias = 'update_test'");
     $this->assertFalse($row);
 
+    // Load member area menu
+    if ($menu_id = db::get_field("SELECT id FROM cms_menus WHERE area = 'members' ORDER BY RAND() LIMIT 0,1")) { 
+        $html = $this->http_request('admin/cms/menus_manage', 'GET', array(), array('menu_id' => $menu_id));
+        $this->assertPageTitle('Manage Menu');
+    }
+
+}
+
+/**
+ * Page -- Admin -> CMS -> Pages
+ */
+public function test_page_admin_cms_pages()
+{
+
+    // Ensure page loads
+    $html = $this->http_request('admin/cms/pages');
+    $this->assertPageTitle('Manage Pages');
+    $this->assertHasHeading(3, 'Public Site');
+    $this->assertHasHeading(3, 'Member Area');
+    $this->assertHasTable('core:cms_pages');
+    $this->assertHasSubmit('update_public', 'Update Public Site Pages');
+
+    // Set request
+    $request = array(
+        'layout_public_index' => 'homepage', 
+        'title_public_index' => 'Unit Test', 
+        'submit' => 'update_public'
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/cms/pages', 'POST', $request);
+    $this->assertPageTitle('Manage Pages');
+    $this->assertHasCallout('success', 'Successfully updated the title'); 
+
+    // Check database row
+    $row = db::get_row("SELECT * FROM cms_pages WHERE area = 'public' AND filename = 'index'");
+    $this->assertNotFalse($row);
+    $this->assertEquals('homepage', $row['layout']);
+    $this->assertEquals('Unit Test', $row['title']);
+
+    // Check redis
+    $this->assertEquals('homepage', redis::hget('cms:layouts', 'public/index'));
+    $this->assertEquals('Unit Test', redis::hget('cms:titles', 'public/index'));
+
+}
+
+/**
+ * Page - Admin -> CMS -> Placeholders
+ */
+public function test_page_admin_cms_placeholders()
+{
+
+    // Ensure page loads
+    $html = $this->http_request('admin/cms/placeholders');
+    $this->assertPageTitle('Placeholders');
+    $this->assertHasHeading(3, 'Public Site');
+    $this->assertHasHeading(3, 'Member Area');
+    $this->assertHasTable('core:cms_placeholders');
+
+    // Manage placeholder
+    $html = $this->http_request('admin/cms/placeholders_manage', 'GET', array(), array('uri' => 'public/login'));
+    $this->assertPageTitle('Manage Placeholder');
+    $this->assertHasSubmit('update', 'Update Placeholders');
+
+    // Set request
+    $request = array(
+        'uri' => 'public/login', 
+        'contents_above_form' => 'Above Test', 
+        'contents_below_form' => 'Below Test', 
+        'submit' => 'update'
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/cms/placeholders', 'POST', $request);
+    $this->assertPageTitle('Placeholders');
+    $this->assertHasCallout('success', 'Successfully updated necessary');
+
+    // Check database row
+    $row = db::get_row("SELECT * FROM cms_placeholders WHERE uri = 'public/login' AND alias = 'below_form'");
+    $this->assertNotFalse($row);
+    $this->assertEquals('Below Test', $row['contents']);
+
+    // Check redis
+    $this->assertEquals('Above Test', redis::hget('cms:placeholders', 'public/login:above_form'));
+    $this->assertEquals('Below Test', redis::hget('cms:placeholders', 'public/login:below_form'));
+
 }
 
 /**
@@ -1067,9 +1263,11 @@ public function test_logout()
 
     // Send http request
     $html = $this->http_request('admin/logout');
-    $this->assertPageTitle('Logout');
+    $this->assertPageTitle('Logged Out');
 
 }
+
+
 
 }
 

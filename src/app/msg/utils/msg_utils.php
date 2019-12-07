@@ -14,6 +14,7 @@ use apex\app\interfaces\msg\EventResponseInterface;
 use apex\app\exceptions\ApexException;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 
 
 /**
@@ -46,7 +47,9 @@ final public function get_rabbitmq_connection()
     $vars = $this->get_rabbitmq_connection_info();
 
     // Try to connect
-    if (!$connection = new AMQPStreamConnection($vars['host'], $vars['port'], $vars['user'], $vars['pass'])) { 
+    try {
+        $connection = new AMQPStreamConnection($vars['host'], $vars['port'], $vars['user'], $vars['pass']);
+    } catch (AMQPConnectionClosedException $e) { 
         throw new ApexException('emergency', "Unable to connect to RabbitMQ.  Check the connection information, and ensure it is correct.");
     }
 
@@ -94,15 +97,12 @@ final public function get_listeners(string $routing_key):iterable
 
     // Parse key
     if (preg_match("/^(.+?)\.(.+?)\..+$/", $routing_key, $match)) { 
-        $routing_key = $match[0] . '.' . $match[1];
+        $routing_key = $match[1] . '.' . $match[2];
     }
 
-    // Go through workers
-    $listeners = array();
-    $rows = $this->db_query("SELECT * FROM internal_components WHERE type = 'worker' AND value = %s ORDER BY id", $routing_key);
-    foreach ($rows as $row) { 
-        $listeners[] = "apex\\" . $row['package'] . "\\worker\\" . $row['alias'];
-    }
+    // Get listeners
+    $redis_key = 'config:worker:' . $routing_key;
+    $listeners = redis::smembers($redis_key) ?? [];
 
     // Return
     return $listeners;
@@ -119,11 +119,6 @@ final public function get_listeners(string $routing_key):iterable
 public function dispatch_locally(EventMessageInterface $msg):eventResponseInterface
 { 
 
-    // Set reqtype to worker, if needed
-    if (app::_config('core:server_type') != 'all') { 
-        app::set_reqtype('worker');
-    }
-
     // Initialize
     $function_name = $msg->get_function();
     $response = new event_response($msg);
@@ -132,37 +127,48 @@ public function dispatch_locally(EventMessageInterface $msg):eventResponseInterf
     app::set(EventMessageInterface::class, $msg);
 
     // Go through workers
-    $rows = db::query("SELECT * FROM internal_components WHERE type = 'worker' AND value = %s ORDER BY id", $msg->get_routing_key());
-    foreach ($rows as $row) { 
+    $workers = $this->get_listeners($msg->get_routing_key());
+    foreach ($workers as $worker_alias) { 
+        list($package, $alias) = explode(':', $worker_alias, 2);
+
+        // Check for exception
+        if ($response->get_status() == 'error') { 
+            break;
+        }
 
         // Load component
-        if (!$worker = components::load('worker', $row['alias'], $row['package'])) { 
-            debug::add(1, tr("Unable to load RPC worker, package: {1}, alias: {2}", $row['package'], $row['alias']), 'critical');
+        if (!$worker = components::load('worker', $alias, $package)) { 
+            debug::add(1, tr("Unable to load RPC worker, package: {1}, alias: {2}", $package, $alias), 'critical');
             continue;
         }
 
         // Execute, if method exists
         if (method_exists($worker, $function_name)) { 
-            debug::add(5, tr("Executing single RPC call to routing key: {1} for the package: {2}", $msg->get_routing_key(true), $row['package']));
+            debug::add(5, tr("Executing single RPC call to routing key: {1} for the package: {2}", $msg->get_routing_key(true), $package));
 
             // Execute method
-            $res = components::call($function_name, 'worker', $row['alias'], $row['package'], '', ['msg' => $msg]);
-            if ($msg->get_type() == 'direct' && $res !== true) { $res = false; }
+            try {
+                $res = components::call($function_name, 'worker', $alias, $package, '', ['msg' => $msg]);
+            } catch (ApexException $e) { 
+                $response->set_exception($e);
+                $res = false;
+            }
+
+            // Set false, if direct message and not true
+            if ($msg->get_type() == 'direct' && $res !== true) { 
+                $res = false; 
+                $response->set_status('fail');
+            }
 
             // Add  response
-        $class_name = "apex\\" . $row['package'] . "\\worker\\" . $row['alias'];
-            $response->add_response($row['package'], $class_name, $function_name, $res);
-            debug::add(5, tr("Completed execution of single RPC call to routing key: {1} for the package: {2}", $msg->get_routing_key(true), $row['package']));
+        $class_name = "apex\\" . $package . "\\worker\\" . $alias;
+            $response->add_response($package, $class_name, $function_name, $res);
+            debug::add(5, tr("Completed execution of single RPC call to routing key: {1} for the package: {2}", $msg->get_routing_key(true), $package));
         }
     }
 
     // Get the event queue
     $response->add_event_queue();
-
-    // Reset reqtype to original
-    if (app::_config('core:server_type') != 'all') { 
-        app::reset_reqtype();
-    }
 
     // Return
     return $response;

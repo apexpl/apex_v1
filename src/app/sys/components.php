@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
+use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\redis;
 use apex\app\exceptions\ComponentException;
@@ -273,9 +274,13 @@ public function get_tabcontrol_files(string $alias, string $package):array
         throw new ComponentException('no_load', 'tabcontrol', '', $alias, $package);
     }
 
+    // Get tab pages from database
+    $pages = db::get_column("SELECT alias FROM internal_components WHERE type = 'tabpage' AND package = %s AND parent = %s", $package, $alias);
+    $pages = array_merge($pages, array_keys($tab->tabpages));
+
     // Go through tab pages
     $files = array();
-    foreach ($tab->tabpages as $tab_alias => $tab_name) { 
+    foreach ($pages as $tab_alias) { 
         $files[] = 'views/components/tabpage/' . $package . '/' . $alias . '/' . $tab_alias . '.tpl';
         $files[] = 'src/' . $package . '/tabcontrol/' . $alias . '/' . $tab_alias . '.php';
     }

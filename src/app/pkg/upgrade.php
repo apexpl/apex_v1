@@ -15,7 +15,7 @@ use apex\app\exceptions\UpgradeException;
 use apex\app\pkg\package;
 use apex\app\pkg\package_config;
 use apex\app\pkg\pkg_component;
-use CurlFile;
+use apex\app\pkg\github;
 
 
 /**
@@ -336,14 +336,7 @@ protected function compile_component(array $row)
     }
 
     // Set vars
-    $vars = array(
-        'order_num' => $row['order_num'],
-        'type' => $row['type'],
-        'package' => $row['package'],
-        'parent' => $row['parent'],
-        'alias' => $row['alias'],
-        'value' => $row['value']
-    );
+    $vars = pkg_component::get_vars($row['type'], $row['alias'], $row['package'], $row['parent'], $row['value'], (int) $row['order_num']);
 
     // Get SHA1 hashes
     $chk_hash = sha1(file_get_contents(SITE_PATH . '/' . $php_file));
@@ -407,9 +400,7 @@ public function publish(int $upgrade_id)
     }
 
     // Get package
-    if (!$pkg = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $upgrade['package'])) { 
-        throw new PackageException('not_exists', $upgrade['package']);
-    }
+    $pkg = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $upgrade['package']);
 
     // Get repo
     if (!$repo = db::get_idrow('internal_repos', $pkg['repo_id'])) { 
@@ -441,11 +432,20 @@ public function publish(int $upgrade_id)
         $package->publish($upgrade['package']);
     }
 
+    // Load package, check for GIthub repo
+    $client = new package_config($upgrade['package']);
+    $pkg = $client->load();
+    if (isset($pkg->git_repo_url) && $pkg->git_repo_url != '') { 
+        $git = app::make(github::class);
+        $git->compare($upgrade['package'], $upgrade['version'] );
+        $is_git = 1;
+    } else { $is_git = 0; }
+
     // Debug
     debug::add(1, tr("Successfully published upgrade for package {1}, version {2}", $upgrade['package'], $upgrade['version']));
 
     // Return
-    return true;
+    return $is_git;
 
 }
 

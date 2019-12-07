@@ -18,9 +18,6 @@ use apex\app\exceptions\ComponentException;
 class delete_rows extends ajax
 {
 
-
-
-
 /**
  * Deletes all checked table rows from both, the database and the data table 
  * within the browser. 

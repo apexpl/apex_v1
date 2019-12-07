@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
-use apex\core\backups;
+use apex\svc\db;
+use apex\svc\date;
+use apex\svc\storage;
+use apex\app\io\backups;
 
 
 /**
@@ -13,9 +16,6 @@ use apex\core\backups;
  */
 class backup 
 {
-
-
-
 
     // Properties
     public $time_interval = 'H3';
@@ -28,12 +28,33 @@ public function process()
 { 
 
     // If not backups enabled
-    if (app::_config('core:backups_enable') != 1) { return; }
+    if (app::_config('core:backups_enable') != 1) { 
+        return false;
+    }
 
     // Perform needed backups
-    $client = new backups();
-    if (time() >= app::_config('core:backups_next_full')) { $client->perform_backup('full'); }
-    elseif (time() >= app::_config('core:backups_next_db')) { $client->perform_backup('db'); }
+    $client = app::make(backups::class);
+    if (time() >= app::_config('core:backups_next_full')) { 
+        $filename = $client->perform_backup('full');
+        app::update_config_var('core:backups_next_full', date::add_interval(app::_config('core:backups_full_interval'), '', false));
+
+    } elseif (time() >= app::_config('core:backups_next_db')) { 
+        $filename = $client->perform_backup('db'); 
+        app::update_config_var('core:backups_next_db', date::add_interval(app::_config('core:backups_db_interval'), '', false));
+
+    } else { 
+        $filename = false;
+    }
+
+    // Delete expired backups
+    $rows = db::query("SELECT * FROM internal_backups WHERE expire_date < now() ORDER BY id");
+    foreach ($rows as $row) {
+        storage::delete('backups/' . $row['filename']);
+        db::query("DELETE FROM internal_backups WHERE id = %i", $row['id']);
+    }
+
+    // Return
+    return $filename;
 
 
 }

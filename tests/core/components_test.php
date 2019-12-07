@@ -312,12 +312,13 @@ public function test_get_githut_file()
         'src/core/admin.php' => 'src/admin.php', 
         'src/core/tabcontrol/debugger.php' => 'src/tabcontrol/debugger.php', 
         'src/users/controller/general/core.php' => 'child/users/controller/general/core.php', 
-        'tests/core/admin_panel_test.ph' => 'tests/admin_panel_test.php', 
+        'tests/core/admin_panel_test.php' => 'tests/admin_panel_test.php', 
         'views/tpl/admin/settings/general.tpl' => 'views/tpl/admin/settings/general.tpl', 
         'docs/core/index.md' => 'docs/index.md'
     );
 
     // Check all files
+    $client = new components();
     foreach ($checks as $source => $dest) { 
         $this->assertEquals($dest, $client->get_github_file($source, 'core'));
     }

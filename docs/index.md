@@ -16,6 +16,7 @@ browse the documentation below.
 
 1. [What is Apex?](about.md)
 2. [Installation](install.md)
+    1. [Docker](docker.md)
 3. [Getting Started](getting_started.md)
     1. [The `app` Class](app.md)
     2. [Request Routing (http / cli)](routing.md)
@@ -61,6 +62,6 @@ Service | Description
 [io](https://apex-platform.org/api/classes/apex.app.io.io.html) | Various methods allowing for easy manipulation and parsing of files and directories including zip archives.
 
 
-Donations gratefully accepted.  Bitcoin address:  3JnYmUHhz1CKz9vgxX55qmBnzVRPirA21D or PayPal at payments@apex-platform.org.
+Donations gratefully accepted.  Bitcoin address:  3BzATZd1Gk8ten8L46n1bCqNkCrp32jv7Y or PayPal at payments@apex-platform.org.
 
 

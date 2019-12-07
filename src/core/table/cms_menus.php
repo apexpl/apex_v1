@@ -105,7 +105,7 @@ public function get_rows(int $start = 0, string $search_term = '', string $order
         foreach ($crows as $crow) { 
 
             // Set variables
-            $crow['uri'] = $prefix . '/' . $row['alias'];
+            $crow['uri'] = $prefix . '/' . $row['alias'] . '/' . $crow['alias'];
             $crow['order'] = $prefix . "<input type=\"text\" name=\"order_" . $crow['id'] . "\" value=\"$crow[order_num]\" style=\"width: 50px;\">";
             $crow['delete'] = $crow['is_system'] == 1 ? '' : "<center><input type=\"checkbox\" name=\"delete[]\" value=\"$crow[id]\"></center>";
             $chk = $crow['is_active'] == 1 ? 'checked="checked"' : '';

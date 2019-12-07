@@ -17,8 +17,6 @@ class search_table extends ajax
 {
 
 
-
-
 /**
  * Search table via AJAX 
  *
@@ -39,13 +37,11 @@ public function process()
 
     // Ensure table exists
     if (!list($package, $parent, $alias) = components::check('table', app::_post('table'))) { 
-        throw new ComponentException('no_exists', 'table', app::_post('table'));
+        throw new ComponentException('not_exists_alias', 'table', app::_post('table'));
     }
 
     // Load table
-    if (!$table = components::load('table', $alias, $package, '', app::getall_post())) { 
-        throw new ComponentException('no_load', 'table', '', $alias, $package);
-    }
+    $table = components::load('table', $alias, $package, '', app::getall_post());
 
     // Get attributes
     if (method_exists($table, 'get_attributes')) { 

@@ -37,7 +37,7 @@ class pkg_component
         'tabpage' => 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4XH5wYWNrYWdlflx0YWJjb250cm9sXH5wYXJlbnR+OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxzdmNcZGI7CnVzZSBhcGV4XHN2Y1xkZWJ1ZzsKCi8qKgogKiBIYW5kbGVzIHRoZSBzcGVjaWZpY3Mgb2YgdGhlIG9uZSB0YWIgcGFnZSwgYW5kIGlzIAogKiBleGVjdXRlZCBldmVyeSB0aW1lIHRoZSB0YWIgcGFnZSBpcyBkaXNwbGF5ZWQuCiAqLwpjbGFzcyB+YWxpYXN+IAp7CgogICAgLy8gUGFnZSB2YXJpYWJsZXMKICAgIHB1YmxpYyAkcG9zaXRpb24gPSAnYm90dG9tJzsKICAgIHB1YmxpYyAkbmFtZSA9ICd+YWxpYXNfdWN+JzsKCi8qKgogKiBQcm9jZXNzIHRoZSB0YWIgcGFnZS4KICoKICogRXhlY3V0ZXMgZXZlcnkgdGltZSB0aGUgdGFiIGNvbnRyb2wgaXMgZGlzcGxheWVkLCBhbmQgdXNlZCAKICogdG8gZXhlY3V0ZSBhbnkgbmVjZXNzYXJ5IGFjdGlvbnMgZnJvbSBmb3JtcyBmaWxsZWQgb3V0IAogKiBvbiB0aGUgdGFiIHBhZ2UsIGFuZCBtaWFubHkgdG8gdHJlaWV2ZSB2YXJpYWJsZXMgYW5kIGFzc2lnbiAKICogdGhlbSB0byB0aGUgdGVtcGxhdGUuCiAqCiAqICAgICBAcGFyYW0gYXJyYXkgJGRhdGEgVGhlIGF0dHJpYnV0ZXMgY29udGFpbmQgd2l0aGluIHRoZSA8ZTpmdW5jdGlvbj4gdGFnIHRoYXQgY2FsbGVkIHRoZSB0YWIgY29udHJvbAogKi8KcHVibGljIGZ1bmN0aW9uIHByb2Nlc3MoYXJyYXkgJGRhdGEgPSBhcnJheSgpKSAKewoKCn0KCn0KCg==', 
         'table' => 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4XH5wYWNrYWdlflx0YWJsZTsKCnVzZSBhcGV4XGFwcDsKdXNlIGFwZXhcc3ZjXGRiOwp1c2UgYXBleFxzdmNcZGVidWc7CgoKLyoqCiAqIEhhbmRsZXMgdGhlIHRhYmxlIGluY2x1ZGluZyBvYnRhaW5pbmcgdGhlIHJvd3MgdG8gCiAqIGRpc3BsYXksIHRvdGFsIHJvd3MgaW4gdGhlIHRhYmxlLCBmb3JtYXR0aW5nIG9mIGNlbGxzLCBldGMuCiAqLwpjbGFzcyB+YWxpYXN+CnsKCiAgICAvLyBDb2x1bW5zCiAgICBwdWJsaWMgJGNvbHVtbnMgPSBhcnJheSgKICAgICAgICAnaWQnID0+ICdJRCcKICAgICk7CgogICAgLy8gU29ydGFibGUgY29sdW1ucwogICAgcHVibGljICRzb3J0YWJsZSA9IGFycmF5KCdpZCcpOwoKICAgIC8vIE90aGVyIHZhcmlhYmxlcwogICAgcHVibGljICRyb3dzX3Blcl9wYWdlID0gMjU7CiAgICBwdWJsaWMgJGhhc19zZWFyY2ggPSBmYWxzZTsKCiAgICAvLyBGb3JtIGZpZWxkIChsZWZ0LW1vc3QgY29sdW1uKQogICAgcHVibGljICRmb3JtX2ZpZWxkID0gJ2NoZWNrYm94JzsKICAgIHB1YmxpYyAkZm9ybV9uYW1lID0gJ35hbGlhc35faWQnOwogICAgcHVibGljICRmb3JtX3ZhbHVlID0gJ2lkJzsgCgogICAgLy8gRGVsZXRlIGJ1dHRvbgogICAgcHVibGljICRkZWxldGVfYnV0dG9uID0gJ0RlbGV0ZSBDaGVja2VkIH5hbGlhc191Y35zJzsKICAgIHB1YmxpYyAkZGVsZXRlX2RidGFibGUgPSAnJzsKICAgIHB1YmxpYyAkZGVsZXRlX2RiY29sdW1uID0gJyc7CgovKioKICogUGFyc2UgYXR0cmlidXRlcyB3aXRoaW4gPGE6ZnVuY3Rpb24+IHRhZy4KICoKICogUGFzc2VzIHRoZSBhdHRyaWJ1dGVzIGNvbnRhaW5lZCB3aXRoaW4gdGhlIDxlOmZ1bmN0aW9uPiB0YWcgdGhhdCBjYWxsZWQgdGhlIHRhYmxlLgogKiBVc2VkIG1haW5seSB0byBzaG93L2hpZGUgY29sdW1ucywgYW5kIHJldHJpZXZlIHN1YnNldHMgb2YgCiAqIGRhdGEgKGVnLiBzcGVjaWZpYyByZWNvcmRzIGZvciBhIHVzZXIgSUQjKS4KICogCiAoICAgICBAcGFyYW0gYXJyYXkgJGRhdGEgVGhlIGF0dHJpYnV0ZXMgY29udGFpbmVkIHdpdGhpbiB0aGUgPGU6ZnVuY3Rpb24+IHRhZyB0aGF0IGNhbGxlZCB0aGUgdGFibGUuCiAqLwpwdWJsaWMgZnVuY3Rpb24gZ2V0X2F0dHJpYnV0ZXMoYXJyYXkgJGRhdGEgPSBhcnJheSgpKQp7Cgp9CgovKioKICogR2V0IHRvdGFsIHJvd3MuCiAqCiAqIEdldCB0aGUgdG90YWwgbnVtYmVyIG9mIHJvd3MgYXZhaWxhYmxlIGZvciB0aGlzIHRhYmxlLgogKiBUaGlzIGlzIHVzZWQgdG8gZGV0ZXJtaW5lIHBhZ2luYXRpb24gbGlua3MuCiAqIAogKiAgICAgQHBhcmFtIHN0cmluZyAkc2VhcmNoX3Rlcm0gT25seSBhcHBsaWNhYmxlIGlmIHRoZSBBSkFYIHNlYXJjaCBib3ggaGFzIGJlZW4gc3VibWl0dGVkLCBhbmQgaXMgdGhlIHRlcm0gYmVpbmcgc2VhcmNoZWQgZm9yLgogKiAgICAgQHJldHVybiBpbnQgVGhlIHRvdGFsIG51bWJlciBvZiByb3dzIGF2YWlsYWJsZSBmb3IgdGhpcyB0YWJsZS4KICovCnB1YmxpYyBmdW5jdGlvbiBnZXRfdG90YWwoc3RyaW5nICRzZWFyY2hfdGVybSA9ICcnKTppbnQgCnsKCiAgICAvLyBHZXQgdG90YWwKICAgIGlmICgkc2VhcmNoX3Rlcm0gIT0gJycpIHsgCiAgICAgICAgJHRvdGFsID0gREI6OmdldF9maWVsZCgiU0VMRUNUIGNvdW50KCopIEZST00gfnBhY2thZ2V+X35hbGlhc34gV0hFUkUgc29tZV9jb2x1bW4gTElLRSAlbHMiLCAkc2VhcmNoX3Rlcm0pOwogICAgfSBlbHNlIHsgCiAgICAgICAgJHRvdGFsID0gREI6OmdldF9maWVsZCgiU0VMRUNUIGNvdW50KCopIEZST00gfnBhY2thZ2V+X35hbGlhc34iKTsKICAgIH0KICAgIGlmICgkdG90YWwgPT0gJycpIHsgJHRvdGFsID0gMDsgfQoKICAgIC8vIFJldHVybgogICAgcmV0dXJuIChpbnQpICR0b3RhbDsKCn0KCi8qKgogKiBHZXQgcm93cyB0byBkaXNwbGF5CiAqCiAqIEdldHMgdGhlIGFjdHVhbCByb3dzIHRvIGRpc3BsYXkgdG8gdGhlIHdlYiBicm93c2VyLgogKiBVc2VkIGZvciB3aGVuIGluaXRpYWxseSBkaXNwbGF5aW5nIHRoZSB0YWJsZSwgcGx1cyBBSkFYIGJhc2VkIHNlYXJjaCwgCiAqIHNvcnQsIGFuZCBwYWdpbmF0aW9uLgogKgogKiAgICAgQHBhcmFtIGludCAkc3RhcnQgVGhlIG51bWJlciB0byBzdGFydCByZXRyaWV2aW5nIHJvd3MgYXQsIHVzZWQgd2l0aGluIHRoZSBMSU1JVCBjbGF1c2Ugb2YgdGhlIFNRTCBzdGF0ZW1lbnQuCiAqICAgICBAcGFyYW0gc3RyaW5nICRzZWFyY2hfdGVybSBPbmx5IGFwcGxpY2FibGUgaWYgdGhlIEFKQVggYmFzZWQgc2VhcmNoIGJhc2UgaXMgc3VibWl0dGVkLCBhbmQgaXMgdGhlIHRlcm0gYmVpbmcgc2VhcmNoZWQgZm9ybS4KICogICAgIEBwYXJhbSBzdHJpbmcgJG9yZGVyX2J5IE11c3QgaGF2ZSBhIGRlZmF1bHQgdmFsdWUsIGJ1dCBjaGFuZ2VzIHdoZW4gdGhlIHNvcnQgYXJyb3dzIGluIGNvbHVtbiBoZWFkZXJzIGFyZSBjbGlja2VkLiAgVXNlZCB3aXRoaW4gdGhlIE9SREVSIEJZIGNsYXVzZSBpbiB0aGUgU1FMIHN0YXRlbWVudC4KICoKICogICAgIEByZXR1cm4gYXJyYXkgQW4gYXJyYXkgb2YgYXNzb2NpYXRpdmUgYXJyYXlzIGdpdmluZyBrZXktdmFsdWUgcGFpcnMgb2YgdGhlIHJvd3MgdG8gZGlzcGxheS4KICovCnB1YmxpYyBmdW5jdGlvbiBnZXRfcm93cyhpbnQgJHN0YXJ0ID0gMCwgc3RyaW5nICRzZWFyY2hfdGVybSA9ICcnLCBzdHJpbmcgJG9yZGVyX2J5ID0gJ2lkIGFzYycpOmFycmF5IAp7CgogICAgLy8gR2V0IHJvd3MKICAgIGlmICgkc2VhcmNoX3Rlcm0gIT0gJycpIHsgCiAgICAgICAgJHJvd3MgPSBEQjo6cXVlcnkoIlNFTEVDVCAqIEZST00gfnBhY2thZ2V+X35hbGlhc34gV0hFUkUgc29tZV9jb2x1bW4gTElLRSAlbHMgT1JERVIgQlkgJG9yZGVyX2J5IExJTUlUICRzdGFydCwkdGhpcy0+cm93c19wZXJfcGFnZSIsICRzZWFyY2hfdGVybSk7CiAgICB9IGVsc2UgeyAKICAgICAgICAkcm93cyA9IERCOjpxdWVyeSgiU0VMRUNUICogRlJPTSB+cGFja2FnZX5ffmFsaWFzfiBPUkRFUiBCWSAkb3JkZXJfYnkgTElNSVQgJHN0YXJ0LCR0aGlzLT5yb3dzX3Blcl9wYWdlIik7CiAgICB9CgogICAgLy8gR28gdGhyb3VnaCByb3dzCiAgICAkcmVzdWx0cyA9IGFycmF5KCk7CiAgICBmb3JlYWNoICgkcm93cyBhcyAkcm93KSB7IAogICAgICAgIGFycmF5X3B1c2goJHJlc3VsdHMsICR0aGlzLT5mb3JtYXRfcm93KCRyb3cpKTsKICAgIH0KCiAgICAvLyBSZXR1cm4KICAgIHJldHVybiAkcmVzdWx0czsKCn0KCi8qKgogKiBGb3JtYXQgYSBzaW5nbGUgcm93LgogKgogKiBSZXRyaWV2ZXMgcmF3IGRhdGEgZnJvbSB0aGUgZGF0YWJhc2UsIHdoaWNoIG11c3QgYmUgCiAqIGZvcm1hdHRlZCBpbnRvIHVzZXIgcmVhZGFibGUgZm9ybWF0IChlZy4gZm9ybWF0IGFtb3VudHMsIGRhdGVzLCBldGMuKS4KICoKICogICAgIEBwYXJhbSBhcnJheSAkcm93IFRoZSByb3cgZnJvbSB0aGUgZGF0YWJhc2UuCiAqCiAqICAgICBAcmV0dXJuIGFycmF5IFRoZSByZXN1bHRpbmcgYXJyYXkgdGhhdCBzaG91bGQgYmUgZGlzcGxheWVkIHRvIHRoZSBicm93c2VyLgogKi8KcHVibGljIGZ1bmN0aW9uIGZvcm1hdF9yb3coYXJyYXkgJHJvdyk6YXJyYXkgCnsKCiAgICAvLyBGb3JtYXQgcm93CgoKICAgIC8vIFJldHVybgogICAgcmV0dXJuICRyb3c7Cgp9Cgp9Cgo=', 
         'test' => 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSB0ZXN0c1x+cGFja2FnZX47Cgp1c2UgYXBleFxhcHA7CnVzZSBhcGV4XHN2Y1xkYjsKdXNlIGFwZXhcc3ZjXGRlYnVnOwp1c2UgYXBleFxhcHBcdGVzdHNcdGVzdDsKCgovKioKICogQWRkIGFueSBuZWNlc3NhcnkgcGhwVW5pdCB0ZXN0IG1ldGhvZHMgaW50byB0aGlzIGNsYXNzLiAgWW91IG1heSBleGVjdXRlIGFsbCAKICogdGVzdHMgYnkgcnVubmluZzogIHBocCBhcGV4LnBocCB0ZXN0IH5wYWNrYWdlfgogKi8KY2xhc3MgdGVzdF9+YWxpYXN+IGV4dGVuZHMgdGVzdAp7CgovKioKICogc2V0VXAKICovCnB1YmxpYyBmdW5jdGlvbiBzZXRVcCgpOnZvaWQKewoKICAgIC8vIEdldCBhcHAKICAgIGlmICghJGFwcCA9IGFwcDo6Z2V0X2luc3RhbmNlKCkpIHsgCiAgICAgICAgJGFwcCA9IG5ldyBhcHAoJ3Rlc3QnKTsKICAgIH0KCn0KCi8qKgogKiB0ZWFyRG93bgogKi8KcHVibGljIGZ1bmN0aW9uIHRlYXJEb3duKCk6dm9pZAp7Cgp9CgoKCn0KCg==', 
-        'worker' => 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4XH5wYWNrYWdlflx3b3JrZXI7Cgp1c2UgYXBleFxhcHA7CnVzZSBhcGV4XHN2Y1xkYjsKdXNlIGFwZXhcc3ZjXGRlYnVnOwp1c2UgYXBleFxhcHBcaW50ZXJmYWNlc1xtc2dcRXZlbnRNZXNzYWdlSW50ZXJmYWNlIGFzIGV2ZW50OwoKLyoqCiAqIENsYXNzIHRoYXQgaGFuZGxlcyBhIHdvcmtlciAvIGxpc3RlbmVyIGNvbXBvbmVudCwgd2hpY2ggaXMgCiAqIHVzZWQgZm9yIG9uZS13YXkgZGlyZWN0IGFuZCB0d28td2F5IFJQQyBtZXNzYWdlcyB2aWEgUmFiYml0TVEsIAogKiBhbmQgc2hvdWxkIGJlIHV0aWxpemVkIGEgZ29vZCBkZWFsLgogKi8KY2xhc3MgfmFsaWFzfgp7CgoKCn0KCg=='
+        'worker' => 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4XH5wYWNrYWdlflx3b3JrZXI7Cgp1c2UgYXBleFxhcHA7CnVzZSBhcGV4XHN2Y1xkYjsKdXNlIGFwZXhcc3ZjXGRlYnVnOwp1c2UgYXBleFxhcHBcaW50ZXJmYWNlc1xtc2dcRXZlbnRNZXNzYWdlSW50ZXJmYWNlIGFzIGV2ZW50OwoKLyoqCiAqIENsYXNzIHRoYXQgaGFuZGxlcyBhIHdvcmtlciAvIGxpc3RlbmVyIGNvbXBvbmVudCwgd2hpY2ggaXMgCiAqIHVzZWQgZm9yIG9uZS13YXkgZGlyZWN0IGFuZCB0d28td2F5IFJQQyBtZXNzYWdlcyB2aWEgUmFiYml0TVEsIAogKiBhbmQgc2hvdWxkIGJlIHV0aWxpemVkIGEgZ29vZCBkZWFsLgogKi8KY2xhc3MgfmFsaWFzfgp7CgogICAgLy8gUm91dGluZyBrZXkKICAgIHB1YmxpYyAkcm91dGluZ19rZXkgPSAnfnZhbHVlfic7CgoKCn0KCg=='
     );
 
 /**
@@ -64,9 +64,9 @@ public static function create(string $type, string $comp_alias, string $owner = 
 
     // Get PHP filename
     $php_file = components::get_file($type, $alias, $package, $parent);
-    if ($php_file == '') { 
-        throw new ComponentException('no_php_file', $type, '', $alias, $package, $parent);
-    }
+    //if ($php_file == '') { 
+    //    throw new ComponentException('no_php_file', $type, '', $alias, $package, $parent);
+    //}
     $php_file = SITE_PATH . '/' . $php_file;
 
     // Check if PHP file exists already
@@ -102,6 +102,7 @@ public static function create(string $type, string $comp_alias, string $owner = 
     $code = str_replace("~parent~", $parent, $code);
     $code = str_replace("~alias~", $alias, $code);
     $code = str_replace("~alias_uc~", ucwords($alias), $code);
+    $code = str_replace("~value~", $value, $code);
 
     // Save file
     io::create_dir(dirname($php_file));
@@ -117,7 +118,7 @@ public static function create(string $type, string $comp_alias, string $owner = 
         file_put_contents(SITE_PATH . '/' . $tpl_file, '');
     }
 
-// Create tab control directory
+    // Create tab control directory
     if ($type == 'tabcontrol') { 
         io::create_dir(SITE_PATH . '/src/' . $package . '/tabcontrol/' . $alias);
         io::create_dir(SITE_PATH . '/views/components/tabpage/' . $package . '/' . $alias);
@@ -218,12 +219,6 @@ public static function add(string $type, string $comp_alias, string $value = '',
             db::update('internal_components', $updates, "id = %i", $row['id']);
         }
 
-        // Reorder tab control, if needed
-        if ($type == 'tabpage') { 
-            $pkg_client = new package_client($package);
-            $pkg_client->reorder_tab_control($parent, $package);
-        }
-
         // Return
         return true;
     }
@@ -242,6 +237,12 @@ public static function add(string $type, string $comp_alias, string $value = '',
         'value' => $value)
     );
     $component_id = db::insert_id();
+
+    // Add worker, if needed
+    if ($type == 'worker') { 
+        $redis_key = 'config:worker:' . $value;
+        redis::sadd($redis_key, $package . ':' . $alias);
+    }
 
     // Add crontab job, if needed
     if ($type == 'cron') { 
@@ -339,9 +340,7 @@ protected static function add_crontab(string $package, string $alias)
     }
 
     // Load file
-    if (!$cron = components::load('cron', $alias, $package)) { 
-        throw new ComponentException('no_load', 'cron', '', $alias, $package);
-    }
+    $cron = components::load('cron', $alias, $package);
 
     // Get date
     $next_date = date::add_interval($cron->time_interval, time(), false);
@@ -447,6 +446,42 @@ public static function remove(string $type, string $comp_alias)
     return true;
 
 }
+
+/**
+ * Get component vars
+ *
+ * Used while compiling a package / upgrade, and only used to shorten 
+ * the code, and ensure all component var arrays within the toc.json 
+ * files are standardized.
+ *
+ * @param string $type The component type.
+ * @param string $alias The component alias.
+ * @param string $package Alias of the package.
+ * @param string $parent Alias of the parent, if exists.
+ * @param string $value Optional value of the component.
+ * @param int $order_num Optional order num of the component.
+ *
+ * @return array The vars array to include in components.json file.
+ */
+public static function get_vars(string $type, string $alias, string $package, string $parent = '', string $value = '', int $order_num = 0)
+{
+
+    // Set vars array
+    $vars = array(
+        'type' => $type, 
+        'order_num' => $order_num, 
+        'package' => $package, 
+        'parent' => $parent, 
+        'alias' => $alias, 
+        'value' => $value
+    );
+
+    // Return
+    return $vars;
+
+}
+
+
 
 
 }

@@ -218,7 +218,10 @@ public function encrypt_user(string $data, array $recipients):int
         // Get key
         if (preg_match("/^(user|admin):(\d+)/", $recipient, $match)) { 
             list($key_id, $public_key) = $this->get_key((int) $match[2], $match[1]);
+        } else { 
+            continue;
         }
+
         $pubkey = openssl_pkey_get_public($public_key);
 
         // Encrypt

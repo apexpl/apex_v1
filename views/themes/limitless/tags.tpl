@@ -51,7 +51,7 @@
 
 
 [[form.button]]
-<a href="~href~" class="btn btn-prinary btn-~size~">~label~</a>
+<a href="~href~" class="btn btn-primary btn-~size~">~label~</a>
 
 
 [[form.boolean]]

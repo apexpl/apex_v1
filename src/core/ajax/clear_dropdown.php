@@ -5,30 +5,24 @@ namespace apex\core\ajax;
 
 use apex\app;
 use apex\svc\redis;
+use apex\app\web\ajax;
 
 
-class clear_dropdown 
+/** 
+ * Clear a dropdown list of all options
+ */
+class clear_dropdown extends ajax
 {
-
-
-
-
-    /**
-     * Processes the AJAX function, and uses the moethds within the 'apex\ajax' 
-     * class to modify the DOM elements within the web browser.  See documentation 
-     * for durther details. 
-     */
-
-
-
-
+/**
+ * Process the AJAX request
+ */
 public function process()
 { 
 
     // Set variables
     $badge_id = 'badge_unread_' . app::_post('dropdown');
     $list_id = 'dropdown_' . app::_post('dropdown');
-    $recipient = (app::get_area() == 'admin' ? 'admin:' : 'user:') . app::get_userid();
+    $recipient = app::get_recipient();
     $clearall = app::_post('clearall') ?? 0;
 
     // Reset redis

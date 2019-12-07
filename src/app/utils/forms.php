@@ -169,9 +169,7 @@ public function validate_form(string $form_alias, string $error_type = 'template
     }
 
     // Load component
-    if (!$form = components::load('form', $alias, $package)) { 
-        throw new ComponentException('no_load', 'form', '', $alias, $package);
-    }
+    $form = components::load('form', $alias, $package);
 
     // Get fields
     $fields = $form->get_fields($data);
@@ -213,38 +211,6 @@ public function validate_form(string $form_alias, string $error_type = 'template
     // Return
     $result = view::has_errors() === true ? false : true;
     return $result;
-
-}
-
-/**
- * Gets the contents, filename and mime type of an uploaded file. 
- *
- * @param string $var The form field name of the uploaded file.
- */
-public function get_uploaded_file(string $var)
-{ 
-
-    // Debug
-    debug::add(3, tr("Trying to get contents of uploaded file: {1}", $var));
-
-    // Checks
-    if (!isset($_FILES[$var])) { return false; }
-    if (!isset($_FILES[$var]['tmp_name'])) { return false; }
-    if (!is_uploaded_file($_FILES[$var]['tmp_name'])) { return false; }
-
-    // Set variables
-    $mime_type = $_FILES[$var]['type'];
-    $filename = $_FILES[$var]['name'];
-    $contents = fread(fopen($_FILES[$var]['tmp_name'], 'r'), filesize($_FILES[$var]['tmp_name']));
-
-    // Delete tmp file
-    @unlink($_FILES[$var]['tmp_name']);
-
-    // Debug
-    debug::add(3, tr("Returning contents of uploaded file: $var", $var));
-
-    // Return
-    return array($filename, $mime_type, $contents);
 
 }
 

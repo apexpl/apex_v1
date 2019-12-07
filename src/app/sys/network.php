@@ -47,7 +47,7 @@ public function check_valid_repo(string $host, int $is_ssl = 1)
 
     // Check for valid repo
     $is_repo = $vars['is_apex_repo'] ?? 0;
-    return ($is_repo == 1 ? true : false);
+    return ($is_repo == 1 ? $vars : false);
 
 }
 

@@ -105,7 +105,7 @@ CREATE TABLE internal_themes (
 ) engine=InnoDB;
 
 INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'limitless', 'Limitless');
-INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'supradmin', 'SuprAdmin - Member Area');
+INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'atlant_members', 'SuprAdmin - Member Area');
 INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'public', 'koupon', 'Koupon');
 
 CREATE TABLE internal_boxlists (
@@ -155,6 +155,12 @@ CREATE TABLE internal_upgrades (
     version VARCHAR(15) NOT NULL,
     date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE
+) engine=InnoDB;
+
+CREATE TABLE internal_backups (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+    filename VARCHAR(50) NOT NULL, 
+    expire_date TIMESTAMP NOT NULL
 ) engine=InnoDB;
 
 

@@ -23,6 +23,7 @@ define('COMPONENT_TYPES', array(
 define('PACKAGE_CONFIG_FILES', array(
     'package.php', 
     'install.sql', 
+    'install_after.sql', 
     'remove.sql',   
     'reset.sql', 
     'components.json')

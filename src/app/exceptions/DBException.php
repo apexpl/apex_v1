@@ -72,6 +72,7 @@ public function __construct(string $message, $sql_query = '', $server_message = 
     // Set variables
     $this->is_generic = 1;
     $this->log_level = 'error';
+    $this->code = 500;
 
     // Get message
     $this->message = $this->error_codes[$message] ?? $message;

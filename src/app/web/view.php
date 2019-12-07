@@ -91,12 +91,9 @@ public function __construct(app $app, html_tags $html_tags, string $template_pat
  * URI from registry. 
  */
 public function initialize()
-{ 
-
+{
+ 
     // Set variables
-    if (app::get_theme() == '') { 
-        app::set_theme(app::_config('core:theme_public'));
-    }
     $this->theme_dir = SITE_PATH . '/views/themes/' . app::get_theme();
 
     // Set template path, if needed
@@ -116,6 +113,9 @@ public function initialize()
  */
 public function parse():string
 { 
+
+    // Load objects
+    $this->html_tags = app::make(html_tags::class);
 
     // Initialize
     $this->initialize();
@@ -162,8 +162,6 @@ public function parse():string
     $this->process_theme_components();
     debug::add(5, tr("Completed processing all theme components for template"));
 
-    // Process cache assets
-    $this->cache_assets();
     debug::add(5, "Processed cached assets for template");
 
     // Parse HTML
@@ -704,30 +702,6 @@ protected function process_theme_components()
 }
 
 /**
- * Load assets from cache
- *
- * Goes through all javascript, CSS, and image references that point internally to the server, 
- * and either retrives them fromthe cachce, or adds them to the cache if the 
- * item doesn't already exist.
- */
-protected function cache_assets()
-{
-
-    // Check if cache is enabled
-    if (app::_config('core:cache') != 1) { 
-        return;
-    }
-
-    // Go through internal links
-    preg_match_all("/href=\"~theme_uri~\/(.+?)\"/si", $this->tpl_code, $tag_match, PREG_SET_ORDER);
-    foreach ($tag_match as $match) {
-        $uri = '/cache_item/theme:' . app::get_area() . ':' . $match[1];
-        $this->tpl_code = str_replace($match[0], 'href="' . $uri . '"', $this->tpl_code);
-    }
-
-}
-
-/**
  * Protected. Assign base variables 
  *
  * Assigns the base variables that are available to all templates, such as the 
@@ -976,7 +950,7 @@ protected function add_system_javascript($html)
     $html = str_replace("<body>", base64_decode('CjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+CgogICAgLmZvcm1fdGFibGUgeyBtYXJnaW4tbGVmdDogMjVweDsgfQogICAgLmZvcm1fdGFibGUgdGQgewogICAgICAgIHRleHQtYWxpZ246IGxlZnQ7CiAgICAgICAgdmVydGljYWwtYWxpZ246IHRvcDsKICAgICAgICBwYWRkaW5nOiA4cHg7CiAgICB9Cgo8L3N0eWxlPgoK') . "\n<body>", $html);
 
     // Check if Javascript disabled
-    if (ENABLE_JAVASCRIPT == 0) { 
+    if (app::_config('core:enable_javascript') == 0) { 
         return $html;
     }
 
@@ -1000,7 +974,8 @@ protected function add_system_javascript($html)
     $js .= "\t\t\tws_conn.send(\"ApexAuth: $ws_auth\");\n";
     $js .= "\t\t}\n";
     $js .= "\t\tws_conn.onmessage = function(e) {\n";
-    $js .= "\t\t\tajax_response(e.data);\n";
+    $js .= "\t\t\tvar json = JSON.parse(e.data);\n";
+    $js .= "\t\t\tajax_response(json);\n";
     $js .= "\t\t}\n";
     $js .= "\t</script>\n\n";
 

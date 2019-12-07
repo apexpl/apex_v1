@@ -11,6 +11,7 @@ use apex\app\interfaces\msg\DispatcherInterface;
 use apex\app\interfaces\msg\EventMessageInterface;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use apex\app\exceptions\ApexException;
 
 
 /**
@@ -86,7 +87,15 @@ public function dispatch(EventMessageInterface $msg)
 
     // Check for all-in-one server
     if (app::_config('core:server_type') == 'all' || app::_config('core:server_type') == 'app') { 
-        return $this->dispatch_locally($msg);
+        $response = $this->dispatch_locally($msg);
+
+        // Check for error / exception
+        if ($response->get_status() == 'error') { 
+            throw new ApexException('error', $response->get_exception());
+        }
+
+        // Return
+        return $response;
     }
 
     // Open connection
@@ -100,6 +109,7 @@ public function dispatch(EventMessageInterface $msg)
     // Set variables
     $this->response = null;
     $this->corr_id = uniqid();
+    $routing_key = $msg->get_routing_key();
 
     // Define message
     if ($msg->get_type() == 'direct') { 
@@ -121,13 +131,13 @@ public function dispatch(EventMessageInterface $msg)
     }
 
     // Publish message
-    $this->channel->basic_publish($msg, $this->channel_name, $msg->get_routing_key());
+    $this->channel->basic_publish($msg, '', $this->channel_name);
 
     // Wait for response
     $this->channel->wait(false, false, 5);
 
     // Get the event queue
-    $response = unserialize($response);
+    $response = unserialize($this->response);
     $event_queue = $response->get_event_queue();
 
     // Process event queue
@@ -170,11 +180,29 @@ public function dispatch(EventMessageInterface $msg)
         }
     }
 
+    // Check for error / exception
+    if ($response->get_status() == 'error') { 
+        throw new ApexException('error', $response->get_exception());
+    }
+
     // Return
     return $response;
 
 }
 
+/**
+ * on response
+ */
+public function onresponse($response)
+{
+
+    // Check correlation ID
+    if ($response->get('correlation_id') == $this->corr_id) {
+        $this->response = $response->body;
+    }
 
 }
+
+}
+
 

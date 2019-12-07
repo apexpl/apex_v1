@@ -7,6 +7,7 @@ use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\redis;
+use apex\svc\components;
 use apex\app\exceptions\ComponentException;
 use apex\app\exceptions\PackageException;
 use apex\app\pkg\pkg_component;
@@ -63,11 +64,7 @@ public function load()
     $class_name = "\\apex\\pkg_" . $this->pkg_alias;
 
     // Initiate package class
-    try { 
-        $pkg = new $class_name();
-    } catch (Exception $e) { 
-        throw new PackageException('config_no_load', $this->pkg_alias);
-    }
+    $pkg = new $class_name();
 
     // Blank out needed arrays
     $vars = array(
@@ -135,6 +132,9 @@ public function install_configuration($pkg = '')
 
     // Install composer dependencies
     $this->install_composer_dependencies($pkg);
+
+    // Scan workers
+    $this->scan_workers();
 
     // Debug
     debug::add(2, tr("Completed configuration install / scan of package, {1}", $this->pkg_alias));
@@ -677,75 +677,6 @@ public function install_default_dashboard_items($pkg)
 }
 
 /**
- * Reorder tab control 
- *
- * Re-orders the tab pages in a tab control  Used when a tab page is added / 
- * removed from a tab control. 
- *
- * @param string $package The package alias the tab control belongs to.
- * @param string $alias The alias of the tab control
- */
-protected function reorder_tabcontrol(string $package, string $alias)
-{ 
-
-    // Debug
-    debug::add(3, tr("Starting re-order of tab control, package: {1}, alias: {2}", $package, $alias));
-
-    // Load tab control
-    if (!$tab = components::load('tabcontrol', $alias, $package)) { 
-        throw new ComponentException('not_exists', 'tabcontrol', '', $alias, $package);
-    }
-
-    // Go through initial pages
-    $order_num = 1;
-    foreach ($tab::$tabpages as $tab_alias => $tab_name) { 
-        db::query("UPDATE internal_components SET order_num = $order_num WHERE type = 'tabpage' AND package = %s AND parent = %s AND alias = %s", $package, $alias, $tab_alias);
-        $order_num++;
-    }
-
-    // Go through all extra pages
-    $pages = db::get_column("SELECT alias FROM internal_components WHERE type = 'tabpage' AND package = %s AND parent = %s", $package, $alias);
-    foreach ($pages as $page) { 
-        if (in_array($page, array_keys($tab::$tabpages))) { continue; }
-
-        // Get position
-        $position = 'bottom';
-        $php_file = SITE_PATH . '/data/tabcontrol/' . $package . '/' . $alias . '/' . $page . '.php';
-        if (file_exists($php_file)) { 
-            require_once($php_file);
-
-            $class_name = 'tabpage_' . $package . '_' . $alias . '_' . $page;
-            $client = new $class_name();
-            if (isset($client::$position)) { $position = $client::$position; }
-        }
-
-        // Get new order num
-        if (preg_match("/^(before|after) (.+)/i", $position, $match)) { 
-            if ($tmp_order_num = db::get_field("SELECT order_num FROM internal_components WHERE type = 'tabpage' AND package = %s AND parent = %s AND alias = %s", $package, $alias, $match[2])) { 
-                $opr = $match[1] == 'before' ? '>=' : '>';
-                db::query("UPDATE internal_components SET order_num = order_num + 1 WHERE type = 'tabpage' AND package = %s AND parent = %s AND order_num $opr %i", $package, $alias, $tmp_order_num);
-                if ($match[1] == 'after') { $tmp_order_num++; }
-            } else { $position = 'bottom'; }
-
-        } elseif ($position == 'top') { 
-            db::query("UPDATE internal_components SET order_num = order_num + 1 WHERE type = 'tabpage' AND package = %s AND parent = %s", $package, $alias);
-            $tmp_order_num = 1;
-        } else { $position = 'bottom'; }
-
-        // Bottom
-        if ($position == 'bottom') { $tmp_order_num = ($order_num + 1); }
-        $order_num++;
-
-        // Update db
-        db::query("UPDATE internal_components SET order_num = $tmp_order_num WHERE type = 'tabpage' AND package = %s AND parent = %s AND alias = %s", $package, $alias, $page);
-    }
-
-    // Debug
-    debug::add(3, tr("Completed re-order of tab control, package: {1}, alias: {2}", $package, $alias));
-
-}
-
-/**
  * Install notificationsl.  Only executed during initial package install, and 
  * never again. 
  * 
@@ -775,6 +706,7 @@ public function install_composer_dependencies($pkg)
     // Initial check
     if (!isset($pkg->composer_dependencies)) { return; }
     if (!is_array($pkg->composer_dependencies)) { return; }
+    if (count($pkg->composer_dependencies) == 0) { return; }
 
     // Get composer.json file
     $vars = json_decode(file_get_contents(SITE_PATH . '/composer.json'), true);
@@ -789,6 +721,50 @@ public function install_composer_dependencies($pkg)
 
 }
 
+/**
+ * Scan workers
+ */
+public function scan_workers()
+{
+
+    // Debug
+    debug::add(2, tr("Starting to scan workers for package {1}", $this->pkg_alias));
+
+    // Go through all worker components
+    $rows = db::query("SELECT * FROM internal_components WHERE package = %s AND type = 'worker' ORDER BY id", $this->pkg_alias);
+    foreach ($rows as $row) { 
+        $alias = $row['package'] . ':' . $row['alias'];
+
+        // Get the routing key
+        $worker = components::load('worker', $row['alias'], 'core');
+        $routing_key = $worker->routing_key ?? $row['value'];
+
+        // Update redis, as necessary
+        $redis_key = 'config:worker:' . $routing_key;
+        if (!redis::sismember($redis_key, $alias)) { 
+            redis::sadd($redis_key, $alias);
+        }
+    }
+
+    // Clean up all workers
+    $keys = redis::keys("config:worker:*");
+    foreach ($keys as $key) { 
+
+        // Go through workers
+        $workers = redis::smembers($key);
+        foreach ($workers as $worker_alias) { 
+            list($package, $alias) = explode(':', $worker_alias, 2);
+            if (!file_exists(SITE_PATH . '/src/' . $package . '/worker/' . $alias . '.php')) { 
+                redis::srem($key, $worker_alias);
+            }
+        }
+    }
+
+    // Debug
+    debug::add(2, tr("Completed scanning workers for package {1}", $this->pkg_alias));
 
 }
+
+}
+
 

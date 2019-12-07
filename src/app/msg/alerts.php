@@ -8,6 +8,7 @@ use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\redis;
 use apex\app\web\ajax;
+use apex\app\web\html_tags;
 use apex\app\msg\websocket;
 use apex\app\msg\objects\websocket_message;
 
@@ -61,12 +62,8 @@ public function dispatch_notification(string $recipient, string $message, string
     $unread_alerts = redis::hincrby('unread:alerts', $recipient, 1);
 
     // Get HTML of dropdown item
-    $comp_file = SITE_PATH . '/views/themes/' . app::get_theme() . '/components/dropdown_alert.tpl';
-    if (file_exists($comp_file)) { 
-        $html = file_get_contents($comp_file);
-    } else { 
-        $html = '<li><a href="~url~"><p>~message~<br /><i style="font-size: small">~time~</i><br /></p></a></li>';
-    }
+    $html_tags = app::get(html_tags::class);
+    $html = $html_tags->get_tag('dropdown.alert');
 
     // Merge variables
     $html = str_replace("~url~", $url, $html);
@@ -124,10 +121,8 @@ public function dispatch_message(string $recipient, string $from, string $messag
     }
 
     // Get HTML of dropdown item
-    $comp_file = SITE_PATH . '/views/themes/' . app::get_theme() . '/components/dropdown_message.tpl';
-    if (file_exists($comp_file)) { 
-        $html = file_get_contents($comp_file);
-    } else { $html = '<li><a href="~url~"><p><b>~from~</b><br />~message~<br /><i style="font-size: small">~time~</i><br /></p></a></li>'; }
+    $html_tags = app::get(html_tags::class);
+    $html = $html_tags->get_tag('dropdown.message');
 
     // Merge variables
     $html = str_replace("~from~", $from, $html);

@@ -24,6 +24,7 @@ public function test_initialize()
 {
 
     // Create app class
+    app::kill_instance();
     $app = new app('test');
 
     // Get instance
@@ -34,6 +35,29 @@ public function test_initialize()
     // Initialize
     $this->invoke_method($app, 'initialize');
     $this->assertTrue(function_exists('fdate'));
+
+}
+
+/**
+ * Upload files
+*/
+public function test_upload_files()
+{
+
+
+    // Add to files array
+    $vars = array(
+        'tmp_name' => SITE_PATH . '/src/app.php', 
+        'name' => 'app.php', 
+        'type' => 'text/plain', 
+        'size' => filesize(SITE_PATH . '/src/app.php')
+    );
+    array_push($_FILES, $vars);
+
+    // Check
+    $app = new app('test');
+    $html = $this->http_request('index', 'POST');
+    $this->assertTrue(true);
 
 }
 }

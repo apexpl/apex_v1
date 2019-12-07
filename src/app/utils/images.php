@@ -118,12 +118,12 @@ public function upload(string $form_field, string $type, $record_id = '', int $i
     debug::add(4, tr("Starting to upload / add new image of type: {1}, record_id: {2},from form field: {3}", $type, $record_id, $form_field));
 
     // Get the uploaded file
-    if (!list($filename, $mime_type, $contents) = forms::get_uploaded_file($form_field)) { 
+    if (!$vars = app::_files($form_field)) { 
         return false;
     }
 
     // Add the file
-    $image_id = $this->add($filename, $contents, $type, $record_id, 'full', $is_default);
+    $image_id = $this->add($vars['name'], $vars['contents'], $type, $record_id, 'full', $is_default);
 
     // Return
     return $image_id;
@@ -155,6 +155,7 @@ public function get(string $type, $record_id = '', string $size = 'full', bool $
             return false;
         }
     }
+    if (!$row) { return false; }
 
     // Set vars
     $vars = array(

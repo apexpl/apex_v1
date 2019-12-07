@@ -23,16 +23,16 @@ if (app::get_action() == 'update_general') {
     $vars = array(
         'domain_name', 
         'date_format', 
-        'nexmo_api_key', 
-        'nexmo_api_secret', 
-        'recaptcha_site_key', 
-        'recaptcha_secret_key', 
-        'openexchange_app_id', 
         'default_language', 
         'default_timezone', 
         'mode', 
         'log_level', 
+        'max_logfile_size', 
         'debug_level', 
+        'server_type', 
+        'websocket_port', 
+        'cache', 
+        'enable_javascript'
     );
 
     // Update config vars
@@ -70,6 +70,26 @@ if (app::get_action() == 'update_general') {
 
     // User message
     view::add_callout("Successfully updated site info settings");
+
+// API Keys
+} elseif (app::get_action() == 'api_keys') { 
+
+    // Set vars
+    $vars = array(
+        'nexmo_api_key', 
+        'nexmo_api_secret', 
+        'recaptcha_site_key', 
+        'recaptcha_secret_key', 
+        'openexchange_app_id'
+    );
+
+    // Update config vars
+    foreach ($vars as $var) { 
+        app::update_config_var('core:' . $var, app::_post($var));
+    }
+
+    // User message
+    view::add_callout('Successfully updated API keys');
 
 // Security settings
 } elseif (app::get_action() == 'security') { 

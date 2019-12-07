@@ -10,8 +10,6 @@ use apex\app\sys\network;
 use apex\svc\io;
 use apex\app\exceptions\RepoException;
 use apex\app\exceptions\ThemeException;
-use CurlFile;
-
 
 /**
  * Handles all theme functions including create, publish, download, install 

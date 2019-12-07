@@ -47,12 +47,13 @@ public function get_fields(array $data = array()):array
     // Add submit
     if (isset($data['record_id'])) { 
         $form_fields['submit'] = array('field' => 'submit', 'value' => 'update_menu', 'label' => 'Update Menu');
+        $area = db::get_field("SELECT area FROM cms_menus WHERE id = %i", $data['record_id']);
     } else { 
         $form_fields['submit'] = array('field' => 'submit', 'value' => 'add_menu', 'label' => 'Add New Menu');
+        $area = $data['area'] ?? 'public';
     }
 
     // Set variables
-    $area = $data['area'] ?? 'public';
     if ($area != 'public') { 
         unset($form_fields['require_login']);
         unset($form_fields['require_nologin']);
@@ -84,24 +85,6 @@ public function get_record(string $record_id):array
 
 }
 
-/**
- * Perform additional form validation. 
- *
- * On top of the standard form validation checks such as required fields, data 
- * types, min / max length, and so on, you can also perform additional 
- * validation for this specific form via this method.  Simply add the needed 
- * error callouts via the template->add_callout() method for any validation 
- * errors. 
- *
- * @param array $data Any array of data passed to the app::validate_form() method.  Used
- */
-public function validate(array $data = array())
-{ 
-
-    // Additional validation checks
-
 }
 
-
-}
 

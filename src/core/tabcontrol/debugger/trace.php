@@ -15,7 +15,7 @@ class trace
 {
 
     // Page variables
-    public $position = 'bottom';
+    public $position = 'after general';
     public $name = 'Trace';
 
 /**

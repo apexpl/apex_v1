@@ -253,6 +253,7 @@ public function test_validate_fields_minlength()
 
     // Validate fields
     $client = new forms();
+    $client->validate_fields('template', array(), array(), array('username' => 4));
     $client->validate_fields('error', array(), array(), array('username' => 4));
 
 }
@@ -273,13 +274,39 @@ public function test_validate_fields_maxlength()
 
 }
 
+/**
+ * Validate form - invalid form alias
+ */
+public function test_validate_form_invalid_form_alias()
+{
 
-    // Validate fields
+    $this->waitException('does not exist');
+    $client = new forms();
+    $client->validate_form('core:some_invalid_junk_form');
 
+}
 
+/**
+ * get_date
+ */
+public function test_get_date()
+{
 
+    // Set request
+    $request = array(
+        'test_year' => '2020', 
+        'test_month' => '03', 
+        'test_day' => '15'
+    );
+    $client = new forms();
 
+    // Send http request
+    $html = $this->http_request('index', 'POST', $request);
+    $this->assertNotEmpty($html);
+    $date = $client->get_date('test');
+    $this->assertEquals('2020-03-15', $date);
 
+}
 
 }
 

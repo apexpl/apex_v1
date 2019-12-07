@@ -58,7 +58,7 @@ public function process()
     $trace = $this->getTrace();
 
     // Get file / line number, if system
-    if ($this->is_system == 1 && isset($trace[0]) && isset($trace[0]['file'])) { 
+    if (($this->is_system == 1 && isset($trace[0]) && isset($trace[0]['file'])) || (app::get_reqtype() == 'worker')) { 
         $this->file = $trace[0]['file'];
         $this->line = $trace[0]['line'];
         array_shift($trace);

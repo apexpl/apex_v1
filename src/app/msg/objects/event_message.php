@@ -6,6 +6,7 @@ namespace apex\app\msg\objects;
 use apex\app;
 use apex\app\exceptions\ApexException;
 use apex\app\interfaces\msg\EventMessageInterface;
+use apex\app\exceptions\CommException;
 
 
 /**
@@ -54,7 +55,7 @@ public function __construct(string $routing_key, ...$params)
 
     // Parse routing key
     if (!preg_match("/^(\w+?)\.(\w+?)\.(\w+)$/", strtolower($routing_key), $match)) { 
-        echo "Invalid routing key";
+        throw new CommException('invalid_routing_key', $routing_key);
     }
     // Define message
     $this->routing_key = $match[1] . '.' . $match[2];

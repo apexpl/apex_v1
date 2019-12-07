@@ -25,7 +25,7 @@ class ComponentException   extends ApexException
         'no_parent' => "Unable to create component of type {type} with alias {comp_alias} as no parent was specified, and a parent is required for this component",
         'parent_not_exists' => "Unable to add component of type {type} with comp alias {comp_alias} as the parent does not exist within the system",
         'no_owner' => "Unable to add component of type {type} as no owner package was specified, and is required for this component",
-        'no_worker_routing_key' => "Unable to add new 'worder' component as no routing key was defined, and is required for this component",
+        'no_worker_routing_key' => "Unable to add new 'worker' component as no routing key was defined, and is required for this component",
         'no_load' => "Unable to load component of type: {type}, package: {package}, parent: {parent}, alias: {alias}",
         'no_php_file' => "Unable to determine the location of the PHP file for component, type: {type}, package: {package}, parent: {parent}, alias: {alias}",
         'php_file_exists' => "PHP file already exists for the component, type: {type}, package: {package}, parent: {parent}, alias: {alias}",
@@ -66,6 +66,7 @@ public function __construct($message, $type = '', $comp_alias = '', $alias = '',
 
     // Set variables
     $this->log_level = 'error';
+    $this->code = 500;
     $this->is_generic = 1;
 
 

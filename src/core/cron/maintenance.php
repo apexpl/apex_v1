@@ -6,8 +6,9 @@ namespace apex\core\cron;
 use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
-use apex\app\io\io;
-use apex\app\utils\date;
+use apex\svc\io;
+use apex\svc\date;
+use apex\app\msg\emailer;
 
 
 /**
@@ -34,7 +35,7 @@ public function process()
     $this->rotate_log_files();
 
     // Delete expired session info
-    $this->delete_expired_sessions_logs();
+    $this->delete_expired_session_logs();
 
     // Check file hash
     $this->check_file_hash();
@@ -51,11 +52,11 @@ private function rotate_log_files()
     debug::add(3, "Starting to rotate log files");
 
     // Set variables
-    $logdir = SITE_PATH . '/log/';
+    $logdir = SITE_PATH . '/storage/logs/';
 
     // Delete older files
     $files = io::parse_dir($logdir, false);
-    foreach ($files as $file) { 
+    foreach ($files as $file) {
         if (preg_match("/^(.+)\.(\d+)$/", $file, $match) && (int) $match[1] >= 4) { 
             @unlink("$logdir/$file");
         }
@@ -63,19 +64,20 @@ private function rotate_log_files()
 
 // GO through log types
     $types = array('access', 'system', 'messages', 'debug', 'info', 'warning', 'notice', 'error', 'alert', 'critical', 'emergency');
-    foreach ($types as $type) { 
-        $file = $logdir . '/' . $file . '.log.';
+    foreach ($types as $type) {
 
-        for ($x = 1; $x <= 3; $x++) { 
-            if (file_exists($file . $x)) { rename($file . $x, $file . ($x+1)); }
-        }
-        $file = preg_replace("\.$/", "", $file);
+        // Check file size 
+        $file = $logdir . '/' . $file . '.log';
+        if (!file_exists($file)) { continue; }
+        if (filesize($file) < (app::_config('core:max_logfile_size') * 1000000)) { continue; }
 
-        if (file_exists($file)) { 
-            rename($file, $file . '.1');
-        }
+        // Rename old files
+        if (file_exists($file . '.3')) { rename($file . '.3', $file . '.4'); }
+        if (file_exists($file . '.2')) { rename($file . '.2', $file . '.3'); }
+        if (file_exists($file . '.2')) { rename($file . '.2', $file . '.3'); }
+        if (file_exists($file . '.1')) { rename($file . '.1', $file . '.2'); }
+        rename($file, $file . '.1');
         file_put_contents($file);
-
     }
 
     debug::add(2, tr("Successfully completed rotating log files"), 'info');
@@ -88,13 +90,12 @@ private function rotate_log_files()
 private function delete_expired_session_logs()
 { 
 
-
     // Debug
     debug::add(3, "Starting to delete expired session logs", 'info');
 
     // Delete admin logs
     $start_date = date::subtract_interval(app::_config('core:session_retain_logs'));
-    db::query("DELETE FROM auth_history WHERE type = 'admin' AND date_added < $dt", $start_date);
+    db::query("DELETE FROM auth_history WHERE type = 'admin' AND date_added < %dt", $start_date);
 
     // Delete from users, if needed
     if (app::_config('users:session_retain_logs')) { 
@@ -128,10 +129,10 @@ private function check_file_hash()
 
     // GO through all files
     foreach ($files as $file) { 
-        if (preg_match("/^(log|data|tmp)\//", $file)) { continue; }
+        if (preg_match("/^storage\//", $file)) { continue; }
 
         // Check SHA1 hash of file
-        $chk_hash = sha1(file_get_contents(SITE_PATH . '/' . $file));
+        $chk_hash = sha1_file(SITE_PATH . '/' . $file);
         if (!isset($file_hash[$file])) { 
             $added[] = $file;
 
@@ -167,10 +168,11 @@ private function check_file_hash()
     $message .= "-- END --\n\n";
 
     // Send e-mails as needed
-    $from_email = 'apex@' . app::_config('core:domain_name');
+    $from_email = db::get_field("SELECT email FROM admin ORDER BY id LIMIT 0,1");
     $rows = db::query("SELECT * FROM admin ORDER BY id");
-    foreach ($rows as $row) { 
-        message::send_email($row['email'], $row['full_name'], $from_email, app::_config('core:site_name'), $subject, $message);
+    foreach ($rows as $row) {
+        $emailer = app::make(emailer::class); 
+        $emailer->send($row['email'], $row['full_name'], $from_email, 'Apex', $subject, $message);
     }
 
     // Debug

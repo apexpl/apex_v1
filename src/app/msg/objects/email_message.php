@@ -5,6 +5,7 @@ namespace apex\app\msg\objects;
 
 use apex\app;
 use apex\app\interfaces\msg\EmailMessageInterface;
+use apex\app\exceptions\CommException;
 
 
 /**

@@ -1,19 +1,16 @@
 <?php
 declare(strict_types = 1);
 
-namespace apex\core;
+namespace apex\app\io;
 
-use apex\DB;
-use apex\registry;
-use apex\log;
-use apex\debug;
-use apex\ApexException;
-use apex\core\io;
-use Kunnu\Dropbox\Dropbox;
-use Kunnu\Dropbox\DropboxApp;
-use Kunnu\Dropbox\DropboxFile;
-use Kunnu\Dropbox\Exceptions\DropboxClientException;
-
+use apex\app;
+use apex\svc\db;
+use apex\svc\redis;
+use apex\svc\debug;
+use apex\svc\io;
+use apex\svc\storage;
+use apex\svc\date;
+use apex\app\exceptions\ApexException;
 
 /**
  * Handles all backup functionality, including performing the local backups, 
@@ -22,8 +19,6 @@ use Kunnu\Dropbox\Exceptions\DropboxClientException;
  */
 class backups
 {
-
-
 
 /**
  * Performs a backup of the system, and stores archive file locally within the 
@@ -37,29 +32,31 @@ public function perform_backup(string $type = 'full')
 { 
 
     // Check if backups enabled
-    if (registry::config('core:backups_enabled') != 1) { 
+    if (app::_config('core:backups_enable') != 1) { 
         return false;
     }
 
     // Perform local backup
-    $archive_file = $this->backup_local($type);
+    $filename = $this->backup_local($type);
+    $archive_file = sys_get_temp_dir() . '/' . $filename;
 
-    // Upload to remote server, if needed
-    if (registry::config('backups_remote_service') == 'aws') { 
-        $this->upload_aws($archive_file);
-    } elseif (registry::config('backups_remote_service') == 'dropbox') { 
-        $this->upload_dropbox($archive_file);
-    } elseif (registry::config('backups_remote_service') == 'google_drive') { 
-        $this->upload_google_drive($archive_file);
-    }
+    // Add to remote file storage
+    storage::add("backups/$filename", $archive_file);
 
     // Delete local file, if needed
-    if (registry::config('core:backups_save_locally') != 1) { 
-        @unlink(SITE_PATH . '/data/backups/' . $archive_file);
+    if (file_exists($archive_file)) { 
+        @unlink($archive_file);
     }
 
+    // Add to database
+    $expire_date = date::add_interval(app::_config('core:backups_retain_length'));
+    db::insert('internal_backups', array(
+        'filename' => $filename, 
+        'expire_date' => $expire_date)
+    );
+
     // Return
-    return $archive_file;
+    return $filename;
 
 }
 
@@ -73,8 +70,11 @@ public function perform_backup(string $type = 'full')
 private function backup_local(string $type)
 { 
 
+    // Debug
+    debug::add(1, tr("Starting backup of type {1}", $type), 'info');
+
     // Get database info
-    $dbinfo = registry::$redis->hgetall('config:db_master');
+    $dbinfo = redis::hgetall('config:db_master');
 
     // Define .sql dump file
     $sqlfile = SITE_PATH . '/dump.sql';
@@ -85,18 +85,21 @@ private function backup_local(string $type)
     system($dump_cmd);
 
     // Get filename
-    $secs = (date('H') * 3600) + (date('i') * 60) + date('s');
-    $archive_file = $type . '-' . date('Y-m-d_') . $secs . '.tar';
-    io::create_dir(SITE_PATH . '/data/backups');
+    $filename = $type . '-' . date('Ymd_Hi') . '.tar';
+    $archive_file = sys_get_temp_dir() . '/' . $filename;
     chdir(SITE_PATH);
 
     // Archive the system
     $backup_source = $type == 'db' ? "./dump.sql" : "./";
-    $tar_cmd = "tar --exclude='data/backups/*' -cf " . SITE_PATH . '/data/backups/' . $archive_file . " $backup_source";
+    $tar_cmd = "tar --exclude='storage/backups/*' -cf $archive_file $backup_source";
     system($tar_cmd);
-    system("gzip " . SITE_PATH . "/data/backups/$archive_file");
+    system("gzip $archive_file");
+
+    // Debug
+    debug::add(1, tr("Completed backup of type {1}, located at {2}", $type, $archive_file), 'info');
+
     // Return
-    return $archive_file . '.gz';
+    return $filename . '.gz';
 
 }
 }

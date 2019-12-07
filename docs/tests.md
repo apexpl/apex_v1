@@ -14,10 +14,12 @@ Below contains links to the sections within this page:
 
 1. <a href="#creating_tests">Creating / Executing Test Classes</a>
 2. <a href="#http_request">http_request($uri, $method, $post, $get, $cookie)</a>
-3. <a href="#invoke_method">invoke_method($object, $method, $params)</a>
-4. <a href="#auto_login">auto_login()</a>
-5. <a href="#testing_emails">Testing E-Mail messages</a>
-6. <a href="#custom_assertions">Custom Assertions</a>
+3. <a href="#send_cli">send_cli($action, $params)</a>
+4. <a href="#invoke_method">invoke_method($object, $method, $params)</a>
+5. <a href="#wait_exception">waitException($message)</a>
+6. <a href="#auto_login">auto_login()</a>
+7. <a href="#testing_emails">Testing E-Mail messages</a>
+8. <a href="#custom_assertions">Custom Assertions</a>
 
 
 
@@ -38,7 +40,7 @@ methods which will be executed by phpUnit.  You can then automatically run the u
 
 **Description:** A very useful method you will probably find yourself using often while writing your unit
 tests.  This will emulate a HTTP request to any page within the software, and return the response.  Useful to
-allow the unit tests to emulate a human being going through the online operation.
+allow the unit tests to emulate a human being going through the online system.
 
 **Parameters**
 
@@ -87,6 +89,14 @@ public function test_login()
 The above example will send a POST request to /login on the system, emulating a user submitting the public
 login form.
 
+<a name="send_cli">
+### `string $this->send_cli(string $action, array $params = [])`
+
+**Description:** Emulates a CLI command being run on the "apex" script, and simply takes the action to execute 
+and any additional paramters.
+
+**Example:** `$response = $this->send_cli('create', array('lib', 'mypackage:some_lib'));`
+
 
 <a name="invoke_method"></a>
 ### mixed $this->invoke_methoe($object, string $method, array $params = array())
@@ -114,6 +124,28 @@ function test_sometest()
 ~~~
 
 
+<a name="wait_exception">
+### `$this->waitException($message);`
+
+**Description:** Allows you to catch an expected exception thrown by Apex.  Only takes one parameter, which is a partial string of 
+the expected exception message.  The assertion will pass assuming the exception message contains the passed parameter.  Please note, 
+never add additional code into the test method below the code that spawns the exception, as it will not be executed.
+
+**Example**
+
+~~~php
+function test_something()
+{
+
+    $this->waitException('Some error occured');
+    $client = new some_client();
+    $client->method_that_will_cause_exception();
+
+    // No code below this line will get executed //
+
+}
+~~~
+
 
 <a name="auto_login"></a>
 ### auth::auto_login(int $userid)
@@ -129,7 +161,7 @@ function test_something()
 {
 
     // Login admin ID# 1
-    app::set_area('admi');
+    app::set_area('admin');
     auth::auto_login(1);
 
     // Do the tests ///
@@ -138,10 +170,10 @@ function test_something()
 
 
 <a name="testing_emails"></a>
-### Testing E-Mail Messages
+### Testing E-Mail / Messages
 
-While executing unit tests, Apex will store all outgoing e-mail messages in a queue, allowing you to easily lookup and test 
-to ensure e-mail messages were sent out and formatted properly.  For full information, please visit the [Testing E-Mail Messages](tests_emails.md) page.
+While executing unit tests, Apex will store all outgoing e-mail, SMS and web socket messages in a queue, allowing you to easily lookup and test 
+to ensure messages were sent out and formatted properly.  For full information, please visit the [Testing E-Mail Messages](tests_emails.md) page.
 
 
 <a name="custom_assertions"></a>

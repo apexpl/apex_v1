@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\ajax;
 
 use apex\app;
+use apex\svc\components;
 use apex\app\web\ajax;
+use apex\app\utils\tables;
+use apex\app\exceptions\ComponentException;
 
 
 class navigate_table extends ajax
@@ -21,22 +24,27 @@ public function process()
 { 
 
     // Set variables
-    $package = app::_post('package') ?? '';
+    if (!list($package, $parent, $alias) = components::check('table', app::_post('table'))) { 
+        throw new ComponentException('not_exists_alias', 'table', app::_post('table'));
+    }
 
     // Load table
-    $table = load_component('table', app::_post('table'), $package, '', app::getall_post());
+    $table = components::load('table', $alias, $package, '', app::getall_post());
 
     // Get table details
-    $details = get_table_details($table, app::_post('id'));
+    $tbl_client = app::make(tables::class);
+    $details = $tbl_client->get_details($table, app::_post('id'));
 
     // Clear table
     $this->clear_table(app::_post('id'));
 
     // Add data rows
-    $this->add_data_rows(app::_post('id'), app::_post('table'), $package, $details['rows'], app::getall_post());
+    $this->add_data_rows(app::_post('id'), app::_post('table'), $details['rows'], app::getall_post());
 
     // Set pagination
-    if ($details['has_pages'] === true) { $this->set_pagination(app::_post('id'), $details); }
+    if ($details['has_pages'] === true) { 
+        $this->set_pagination(app::_post('id'), $details); 
+    }
 
 }
 

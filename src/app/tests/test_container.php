@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\tests;
 
 use apex\app;
+use apex\core\admin;
 
 
 /**
@@ -18,7 +19,7 @@ class test_container
  *
  * @param string $name The name
  */
-public function string_test(string ($name) { return true; }
+public function string_test(string $name) { return true; }
 
 /**
  * Get money / float
@@ -40,6 +41,21 @@ public function integer_test(int $num) { return true; }
  * @param bool $ok The boolean
  */
 public function boolean_test(bool $ok) { return true; }
+
+/**
+ * object test
+ */
+public function object_test(object $user) { return $user; }
+
+/**
+ * Test instanceOf
+ */
+public function instanceof_test(admin $admin) { return $admin; }
+
+/**
+ * test null
+ */
+public function null_test($value = null) { return $value; }
 
 }
 

@@ -5,6 +5,7 @@ namespace apex\core;
 
 use apex\app;
 use apex\svc\db;
+use apex\svc\redis;
 use apex\svc\debug;
 use apex\svc\components;
 use apex\svc\forms;
@@ -135,8 +136,8 @@ public function get_merge_vars(string $controller, int $userid = 0, array $data 
     );
 
     // Get user profile, fi needed
-    if ($userid > 0) { 
-        $user = new user($userid);
+    if ($userid > 0 && redis::exists('user:' . $userid) !== false) { 
+        $user = app::make(user::class, ['id' => (int) $userid]);
         $profile = $user->load(false, true);
 
         foreach ($profile as $key => $value) { 
@@ -244,8 +245,7 @@ public function send($userid, int $notification_id, $data)
         $bcc = $controller->bcc ?? $row['bcc'];
 
     // Get merge variables
-    $tmp_userid = app::get_area() == 'admin' ? 0 : $userid;
-    $merge_vars = $this->get_merge_vars($row['controller'], $tmp_userid, $data);
+    $merge_vars = $this->get_merge_vars($row['controller'], $userid, $data);
 
     // Format message
     $subject = $row['subject']; $message = base64_decode($row['contents']);

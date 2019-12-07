@@ -29,7 +29,8 @@ class github
     private $dest_dirs = array(
         'child' => 'src', 
         'docs' => 'docs/~alias~', 
-        'etc' => 'etc/~alias~', 
+        'etc' => 'etc/~alias~',
+        'ext' => '',  
         'src' => 'src/~alias~', 
         'tests' => 'tests/~alias~', 
         'views' => 'views'
@@ -58,14 +59,14 @@ public function init(string $pkg_alias)
     $client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
     $pkg = $client->load();
 
-    // Compile Github repo
-    $git_cmd = $this->compile($pkg_alias);
+    // Compile and compare github repo
+    $git_cmd = $this->compare($pkg_alias);
     file_put_contents(SITE_PATH . '/src/' . $pkg_alias . '/git/commit.txt', "Initial commit\n");
 
     // Set Github variables
-    $repo_url = $pkg->github_repo_url ?? '';
-    $upstream_url = $pkg->github_upstream_url ?? '';
-    $branch_name = $pkg->github_branch_name ?? 'master';
+    $repo_url = $pkg->git_repo_url ?? '';
+    $upstream_url = $pkg->git_upstream_url ?? '';
+    $branch_name = $pkg->git_branch_name ?? 'master';
 
     // Check for repo URL
     if ($repo_url == '') { 
@@ -100,7 +101,7 @@ public function init(string $pkg_alias)
  * 
  * @param string $pkg_alias The alias of the package to compile'
  */
-private function compile(string $pkg_alias)
+protected function compile(string $pkg_alias)
 {
 
     // Debug 
@@ -264,6 +265,29 @@ public function sync(string $pkg_alias)
     // Download the zip file
     $tmp_dir = $this->download_archive($pkg_alias);
 
+    // Sync from tmp directory
+    $this->sync_from_dir($pkg_alias, $tmp_dir);
+
+    // Clean up
+    io::remove_dir($tmp_dir);
+
+    // Debug
+    debug::add(2, tr("Successfully completed syncing git repository for package, {1}", $pkg_alias), 'info');
+
+    // Return
+    return true;
+
+}
+
+/**
+ * Sync from temp directory
+ *
+ * @param string $pkg_alias The package alias to snyc.
+ * @param string $tmp_dir The temp directory which holds the unpacked git archive.
+ */
+public function sync_from_dir(string $pkg_alias, string $tmp_dir)
+{
+
     // Go through dest dirs
     foreach ($this->dest_dirs as $source_dir => $dest_dir) { 
         if (!is_dir("$tmp_dir/$source_dir")) { continue; }
@@ -289,18 +313,11 @@ public function sync(string $pkg_alias)
 
             // Copy file
             io::create_dir(dirname($dest_file));
-            rename("$tmp_dir/$source_dir/$file", $dest_file);
+            copy("$tmp_dir/$source_dir/$file", $dest_file);
         }
     }
 
-    // Clean up
-    io::remove_dir($tmp_dir);
 
-    // Debug
-    debug::add(2, tr("Successfully completed syncing git repository for package, {1}", $pkg_alias), 'info');
-
-    // Return
-    return true;
 
 }
 
@@ -315,8 +332,9 @@ public function sync(string $pkg_alias)
  * same code base as the local filesystem.
  *
  * @param string $pkg_alias The package alias to compare.
+ * @param string $upgrade_version Optional version if we're publishing an upgrade.
  */
-public function compare(string $pkg_alias)
+public function compare(string $pkg_alias, string $upgrade_version = '')
 {
 
     // Get package
@@ -327,8 +345,13 @@ public function compare(string $pkg_alias)
     // Debug
     debug::add(2, tr("Starting to compare remote git repo of package, {1}", $pkg_alias));
 
+    // Load package
+    $pkg_client = new package_config($pkg_alias);
+    $pkg = $pkg_client->load();
+    $branch_name = $pkg->git_branch_name ?? 'master';
+
     // Download file
-    $tmp_dir = $this->download_archive($pkg_alias);
+    $tmp_dir = $this->download_archive($pkg_alias, true);
 
     // Compile package
     $this->compile($pkg_alias);
@@ -347,7 +370,7 @@ public function compare(string $pkg_alias)
 
         // Get hashes
         $hash = sha1_file("$git_dir/$file");
-        $chk_hash = file_exists("$tmp_dir/$file") ? sha1_file("$tmp_dir/$file") : '';
+        $chk_hash = $tmp_dir !== false && file_exists("$tmp_dir/$file") ? sha1_file("$tmp_dir/$file") : '';
         if ($hash == $chk_hash) { continue; }
 
         // Add to git cmd
@@ -361,6 +384,13 @@ public function compare(string $pkg_alias)
         $git_cmd[] = "git rm $file";
     }
 
+    // Add upgrade comments
+    if ($upgrade_version != '') { 
+        $git_cmd[] = "git commit --file=" . SITE_PATH . "/src/$pkg_alias/git/commit.txt";
+        $git_cmd[] = "git tag $upgrade_version";
+        $git_cmd[] = "git push -u origin $branch_name --tags";
+    }
+
     // Save git.sh file
     $git_text = "#!/bin/sh\n" . implode("\n", $git_cmd);
     file_put_contents("$git_dir/git.sh", $git_text);
@@ -370,7 +400,7 @@ public function compare(string $pkg_alias)
     debug::add(2, tr("Successfully compared remote git repository for package, {1}", $pkg_alias));
 
     // Return
-    return true;
+    return $git_cmd;
 
 }
 
@@ -378,10 +408,11 @@ public function compare(string $pkg_alias)
  * Download archive from git repository.
  *
  * @param string $pkg_alias The package alias to download repo of.
+ * @param bool $allow_empty Whether or not to allow an empty / non-existent archive
  *
  * @return string The tmporary directory where archive is unpacked, or false if unsuccessful.
  */
-private function download_archive(string $pkg_alias)
+private function download_archive(string $pkg_alias, bool $allow_empty = false)
 {
 
     // Load package
@@ -404,7 +435,8 @@ private function download_archive(string $pkg_alias)
 
     // Download file
     io::download_file($repo_url, $zip_file);
-    if (!file_exists($zip_file)) { 
+    if ((!file_exists($zip_file)) || mime_content_type($zip_file) != 'application/zip') { 
+        if ($allow_empty === true) { return false; }
         throw new PackageException('git_no_remote_archive', $pkg_alias);
     }
 
@@ -423,5 +455,101 @@ private function download_archive(string $pkg_alias)
 
 }
 
+/**
+ * Compile components
+ *
+ * @param string $pkg_alias The alias of the package.
+ * @param string $tmp_dir Optional temp directory to compile from, otherwise will use standard /src/PACKAGE/git/ directory.
+ *
+ * @return array The compiled components, same as toc.json format.
+ */
+public function compile_components(string $pkg_alias, string $tmp_dir = ''):array
+{
+
+    // Debug
+    debug::add(1, tr("Compiling git components for package {1} in directory: {2}", $pkg_alias, $tmp_dir));
+
+    // Check for blank tmp_dir
+    if ($tmp_dir == '') { 
+        $tmp_dir = SITE_PATH . '/src/' . $pkg_alias . '/git';
+    }
+
+    // Ensure directyory exists
+    if (!is_dir($tmp_dir)) { 
+        throw new ApexException('error', tr("Unable to compile git components for package, as directory does not exist at {1}", $tmp_dir));
+    }
+
+    // Go through /src/ directory
+    $components = array();
+    $files = is_dir("$tmp_dir/src") ? io::parse_dir("$tmp_dir/src") : array();
+    foreach ($files as $file) {
+        if (!preg_match("/\.php$/", $file)) { continue; }
+        $file = preg_replace("/\.php$/", "", $file);
+        $parent = '';
+        $value = '';
+
+        // Get type, parent and alias
+        $parts = explode("/", $file);
+        if (count($parts) == 1) { 
+            list($type, $alias) = array('lib', $parts[0]);
+        } elseif ($parts[0] == 'controller' && count($parts) == 3) { 
+            list($type, $alias, $parent) = array($parts[0], $parts[2], $parts[1]);
+        } elseif ($parts[0] == 'tabcontrol' && count($parts) == 3) { 
+            list($type, $alias, $parent) = array('tabpage', $parts[2], $parts[1]);
+        } elseif (in_array($parts[0], COMPONENT_TYPES)) { 
+            list($type, $alias) = array($parts[0], $parts[1]);
+        } else { 
+            continue;
+        }
+
+        // Get routing key, if worker
+        if ($type == 'worker') { 
+            $worker = components::load('worker', $alias, $package);
+            $value = $worker->routing_key ?? '';
+        }
+
+        // Set component vars
+        $components[] = pkg_component::get_vars($type, $alias, $pkg_alias, $parent, $value);
+    }
+
+    // Debug
+    debug::add(4, tr("Finished compiling /src/ directory for git package {1}", $pkg_alias));
+
+    // Go through views
+    $views = is_dir($tmp_dir . '/views/tpl') ? io::parse_dir($tmp_dir . '/views/tpl') : array();
+    foreach ($views as $file) { 
+        if (!preg_match("/\.tpl$/", $file)) { continue; }
+        $file = preg_replace("/\.tpl/", "", $file);
+
+        // Add component
+        $components[] = pkg_component::get_vars('view', $file, $pkg_alias);
+    }
+
+    // Debug
+    debug::add(4, tr("Finished compiling views for git package {1}", $pkg_alias));
+
+    // GO through children files
+    $children = is_dir(SITE_PATH . '/child') ? io::parse_dir(SITE_PATH . '/child') : array();
+    foreach ($children as $file) { 
+        if (!preg_match("/\.pgp$/", $file)) { continue; }
+        $file = preg_replace("/\.php$/", "", $file);
+
+        // Get component info        list($type, $
+        list($package, $type, $parent, $alias) = explode('/', $file);
+        if ($type == 'tabcontrol') { $type = 'tabpage'; }
+
+        // Add to components
+        $components[] = pkg_component::get_vars($type, $alias, $package, $parent);
+    }
+
+    // Debug
+    debug::add(2, tr("Finished compiling git components for package {1}", $pkg_alias));
+
+    // Return
+    return $components;
+
 }
+
+}
+
 

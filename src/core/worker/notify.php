@@ -35,6 +35,9 @@ public function send_email(event $msg, emailer $emailer)
     // Send the e-mail message
     $emailer->dispatch_smtp($email);
 
+    // Return
+    return true;
+
 }
 
 /**
@@ -82,51 +85,123 @@ public function send_ws(event $msg)
 
     // Initialize
     $data = $msg->get_params();
+    $message = $this->format_ws_message($data);
 
-    // Start header
-    $header = '1000' . sprintf('%04b', 1) . '1';
-    $length = strlen($data);
-
-    // Add length to header
-    if ($length > 65535) { 
-        $header .= decbin(127) . sprintf('%064b', $length);
-    } elseif ($length > 125) { 
-        $header .= decbin(126) . sprintf('%016b', $length);
-    } else { 
-        $header .= sprintf('%07b', $length);
-    }
-
-    // Start body of message
-    $frame = '';
-    foreach (str_split($header, 8) as $binstr) { 
-        $frame .= chr(bindec($binstr));
-    }
-
-    // Add mask
-    $mask = chr(rand(0, 255)) . chr(rand(0, 255)) . chr(rand(0, 255)) . chr(rand(0, 255));
-    $frame .= $mask;
-
-    // Add data to message
-    for ($i = 0; $i < $length; $i++) { 
-        $frame .= $data[$i] ^ $mask[$i % 4];
-    }
+    // Get URL
+    $host = 'tcp://' . redis::hget('config:rabbitmq', 'host');
+    $port = app::_config('core:websocket_port');
 
     // Send message
-    $host = redis::hget('config:rabbitmq', 'host') ?? '127.0.0.1';
-    try { 
-        if (!$sock = @fsockopen($host, (int) app::_config('core:websocket_port'), $errno, $errstr, 3)) { 
-            return true;
-            }
-    } catch (Exception $e) { 
-        return true;
+    try {
+        $sock = @fsockopen($host, (int) $port, $errno, $errstr, 5);
+    } catch (Exception $e) {
+        return false;
     }
+    if (!$sock) { return false; }
+    stream_set_timeout($sock, 5);
 
-    // Write data
-    fwrite($sock, $frame);
+    // Send headers
+    fwrite($sock, "GET / HTTP/1.1\r\n");
+    fwrite($sock, "Host: " . $host . ':' . $port . "\r\n");
+    fwrite($sock, "user-agent: websocket-client-php\r\n");
+    fwrite($sock, "connection: Upgrade\r\n");
+    fwrite($sock, "upgrade: websocket\r\n");
+    fwrite($sock, "sec-websocket-key: " . $this->generate_ws_key() . "\r\n");
+    fwrite($sock, "sec-websocket-version: 13\r\n\r\n");
+
+    // Get response
+    $response = fread($sock, 1024);
+    $metadata = stream_get_meta_data($sock);
+
+    // Send the message
+    fwrite($sock, $message);
     fclose($sock);
 
-}
+    // Return
+    return true;
 
 
 }
+
+/**
+ * Get WebSocket message.
+ *
+ */
+private function format_ws_message($payload, $opcode = 'text', $masked = true)
+{
+
+    //if (!in_array($opcode, array_keys(self::$opcodes))) {
+      //throw new BadOpcodeException("Bad opcode '$opcode'.  Try 'text' or 'binary'.");
+    //}
+
+    // Binary string for header.
+    $frame_head_binstr = '';
+
+
+    // Write FIN, final fragment bit.
+    $final = true; /// @todo Support HUGE payloads.
+    $frame_head_binstr .= $final ? '1' : '0';
+
+    // RSV 1, 2, & 3 false and unused.
+    $frame_head_binstr .= '000';
+
+    // Opcode rest of the byte.
+    $frame_head_binstr .= sprintf('%04b', 1);
+
+    // Use masking?
+    $frame_head_binstr .= $masked ? '1' : '0';
+
+    // 7 bits of payload length...
+    $payload_length = strlen($payload);
+    if ($payload_length > 65535) {
+      $frame_head_binstr .= decbin(127);
+      $frame_head_binstr .= sprintf('%064b', $payload_length);
+    }
+    elseif ($payload_length > 125) {
+      $frame_head_binstr .= decbin(126);
+      $frame_head_binstr .= sprintf('%016b', $payload_length);
+    }
+    else {
+      $frame_head_binstr .= sprintf('%07b', $payload_length);
+    }
+
+    $frame = '';
+
+    // Write frame head to frame.
+    foreach (str_split($frame_head_binstr, 8) as $binstr) $frame .= chr(bindec($binstr));
+
+    // Handle masking
+    if ($masked) {
+      // generate a random mask:
+      $mask = '';
+      for ($i = 0; $i < 4; $i++) $mask .= chr(rand(0, 255));
+      $frame .= $mask;
+    }
+
+    // Append payload to frame:
+    for ($i = 0; $i < $payload_length; $i++) {
+      $frame .= ($masked === true) ? $payload[$i] ^ $mask[$i % 4] : $payload[$i];
+    }
+
+    // Return
+    return $frame;
+
+}
+
+/**
+ * Generate WebSocket key
+ */
+private function generate_ws_key()
+{
+
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"$&/()=[]{}0123456789';
+    $key = '';
+    $chars_length = strlen($chars);
+    for ($i = 0; $i < 16; $i++) $key .= $chars[mt_rand(0, $chars_length-1)];
+    return base64_encode($key);
+
+}
+
+}
+
 

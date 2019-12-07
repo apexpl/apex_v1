@@ -141,7 +141,7 @@ protected function get_tab_pages(array $tab_pages, string $parent, string $packa
 
         // Top / bottom position
         if ($position == 'top') { 
-            array_shift($pages, $alias);
+            array_unshift($pages, $alias);
         } else { 
             array_push($pages, $alias);
         }

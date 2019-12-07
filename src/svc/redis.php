@@ -48,15 +48,8 @@ class redis
             self::$instance->select(REDIS_DBINDEX);
         }
 
-        // Get config variables
-        $config = array();
-        $rows = self::$instance->hgetall('config');
-        foreach ($rows as $key => $value) { 
-            $config[$key] = $value;
-        }
-
         // Return
-        return $config;
+        return self::$instance;
 
     }
 

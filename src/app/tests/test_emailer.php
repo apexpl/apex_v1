@@ -45,6 +45,19 @@ public function dispatch(EmailMessageInterface $msg)
 }
 
 /**
+ * Dispatch to SMTP
+ * 
+ * @param email_message $email The e-mail message to dispatch.
+ */
+public function dispatch_smtp(EmailMessageInterface $email)
+{
+
+    // Send e-mail
+    $this->dispatch($email);
+
+}
+
+/**
  * Search the mail queue.
  *
  * This will search through the queue of e-mail messages that contain all 

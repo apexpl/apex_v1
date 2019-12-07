@@ -4,25 +4,24 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
+use apex\svc\redis;
 
 
+/**
+ * Crontab job that checsk server status, and updates
+ * redis as necessary.  Used for developer packages (ie. Digital Ocean) to 
+ * monitor server resource usage.
+ */
 class server_check 
 {
-
-
-
 
     // Properties
     public $time_interval = 'I5';
     public $name = 'Server Health Check';
 
-    /**
-     * Processes the crontab job. 
-     */
-
-
-
-
+/**
+ * Processes the crontab job. 
+ */
 public function process()
 { 
 
@@ -55,8 +54,8 @@ public function process()
         $results['hd'][$vars[5]] = str_replace("%", "", $vars[4]);
     }
 
-    // Update config var
-    app::update_config_var('core:server_status', json_encode($results));
+    // Update redis
+    redis::hmset('config:server_status', $results);
 
 
 

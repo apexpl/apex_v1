@@ -15,8 +15,8 @@ class sql
 {
 
     // Page variables
-    public $position = 'bottom';
-    public $name = 'Sql';
+    public $position = 'before server';
+    public $name = 'SQL Queries';
 
 /**
  * Process the tab page.

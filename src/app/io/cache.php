@@ -143,8 +143,8 @@ public function clear()
  * @param iterable $keys All keys to retrive from cache.
  * 
  * @return array The values of all found keys.
- *
-public function gets(...$keys)
+ */
+public function mget(...$keys)
 {
 
     // GO through keys
@@ -164,7 +164,7 @@ public function gets(...$keys)
  * @param array $items The items to key.
  * @param int $ttl The TTL in secions of all items.
  */
-public function mset(array $items, int $ttl)
+public function mset(array $items, int $ttl = 300)
 {
 
     // Go through items
@@ -188,7 +188,6 @@ public function mdelete(...$keys)
     }
 
 }
-
 
 }
 

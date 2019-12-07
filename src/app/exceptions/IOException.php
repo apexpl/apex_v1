@@ -43,6 +43,7 @@ public function __construct($message, $file = '')
 
     // Get message
     $this->log_level = 'error';
+    $this->code = 500;
     $this->message = $this->error_codes[$message] ?? $message;
     $this->message = tr($this->message, $vars);
 

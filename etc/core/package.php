@@ -71,13 +71,15 @@ $this->menus[] = array(
 $this->ext_files = array(		
     'apex', 
     'composer.json',  
+    'docker-compose.yml', 
     'License.txt', 
     'phpunit.xml', 
     'Readme.md',
     'bootstrap/apex', 
     'bootstrap/cli.php', 
     'bootstrap/http.php', 
-    'bootstrap/test.php', 
+    'bootstrap/test.php',
+    'bootstrap/docker/*',  
     'docs/components/*', 
     'docs/core/*', 
     'docs/training/*', 
@@ -174,13 +176,15 @@ private function define_config()
         'debug' => 0, 
         'cache' => 0,
         'log_level' => 'notice,error,critical,alert,emergency', 
-        'debug_level' => 0
+        'debug_level' => 0, 
+        'max_logfile_size' => 4
     );
     $vars = array_merge($vars, $maintenance_vars);
 
     // Server vars
     $server_vars = array(
         'websocket_port' => 8194,  
+        'enable_javascript' => 1, 
         'server_type' => '',
         'server_name' => 'apex',  
         'domain_name' => '', 
@@ -440,6 +444,21 @@ private function define_hashes_system()
         4 => '4 - Extensive', 
         5 => '5 - Very Extensive'
     );
+
+    // Server types
+    $vars['server_types'] = array(
+        'all' => 'All-in-One', 
+        'web' => 'Front-End Web Server', 
+        'app' => 'Back-end Application Server', 
+        'db-s' => 'Database Slave Server', 
+        'db-m' => 'Database Master Server', 
+        'email' => 'E-Mail Server', 
+        'msg' => 'Messaging Server', 
+        'lb' => 'Load Balancer'
+    );
+
+
+
 
     // return
     return $vars;

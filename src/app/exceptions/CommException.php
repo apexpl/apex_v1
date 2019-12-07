@@ -20,7 +20,8 @@ class CommException   extends ApexException
         'invalid_content_type' => "Invalid content-type specified for the e-mail message, {content_type}",
         'no_sender' => "Unable to determine sender to send e-mail notification, {recipient}",
         'no_recipient' => "Unable to determin recipient information for e-mail notification, {recipient}",
-        'not_exists' => "Notification does not exist in database, ID# {id}"
+        'not_exists' => "Notification does not exist in database, ID# {id}", 
+        'invalid_routing_key' => 'Invalid routing key, {email}'
     );
 
 /**
@@ -45,6 +46,7 @@ public function __construct($message, $email = '', $content_type = '', $recipien
 
     // Get message
     $this->log_level = 'error';
+    $this->code = 500;
     $this->message = $this->error_codes[$message] ?? $message;
     $this->message = tr($this->message, $vars);
 

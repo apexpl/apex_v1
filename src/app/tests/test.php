@@ -6,6 +6,7 @@ namespace apex\app\tests;
 use apex\app;
 use apex\svc\db;
 use apex\svc\view;
+use apex\app\sys\apex_cli;
 use apex\users\user;
 use apex\core\admin;
 use apex\app\exceptions\ApexException;
@@ -72,6 +73,22 @@ public function http_request(string $uri, string $method = 'GET', array $post = 
 
     // Return response
     return app::get_res_body();
+
+}
+
+
+
+/**
+ * Send a mock request to apex.php via CLI 
+ */
+public function send_cli(string $action, $vars = array())
+{ 
+
+    // Process action
+    $response = app::call([apex_cli::class, $action], ['vars' => $vars]);
+
+    // Return
+    return $response;
 
 }
 

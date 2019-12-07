@@ -7,8 +7,11 @@ use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\components;
+use apex\app\io\cache;
+use apex\app\interfaces\CacheInterface;
 use apex\core\admin;
 use apex\app\msg\emailer;
+use apex\app\tests\test_container as tcontainer;
 use apex\app\tests\test_emailer;
 use apex\app\tests\test;
 
@@ -47,7 +50,8 @@ public function tearDown():void
 public function test_build_container()
 {
 
-    app::build_container('test');
+    $app = app::get_instance();
+    $app->build_container('test');
     $this->assertTrue(true);
 
 }
@@ -59,7 +63,11 @@ public function test_get()
 {
 
     $obj = app::make(test_emailer::class);
-    $app::set(emailer::class, $obj);
+    app::set(emailer::class, $obj);
+
+    // Get cache
+    app::makeset(cache::class);
+    $cache = app::get(CacheInterface::class);
 
     $chk = app::get(emailer::class);
     $this->assertInstanceOf(test_emailer::class, $chk);
@@ -71,12 +79,23 @@ public function test_get()
 }
 
 /**
+ * make -- no class name
+ */
+public function test_make_no_class_name()
+{
+
+    $this->waitException('Unable to determine full class name');
+    app::make('junk_class');
+
+}
+
+/**
  * Invalid param type
  */
 public function test_invalid_param_type()
 {
 
-    $this->waitException('Invalid type for the parameter name');
+    $this->waitException('Invalid type for the parameter');
     app::make(admin::class, ['id' => app::get_instance()]);
 
 }
@@ -90,7 +109,7 @@ public function test_optional_param()
     $vars = array(
         'data' => array('table' => 'core:admin')
     );
-    $html = components::call('process', 'htmlfunc', 'display_table', 'core', '', $data);
+    $html = components::call('process', 'htmlfunc', 'display_table', 'core', '', $vars);
     $this->assertTrue(true);
 
     // Get exception
@@ -102,18 +121,24 @@ public function test_optional_param()
 /**
  * Test param types
  */
-public function test_param_types9)
+public function test_param_types()
 {
 
+    $user = app::make(admin::class);
+
 // Test different types
-    app::call([test_container::class, 'string_test'], ['name' => 'matt']);
-    app::call([test_container::class, 'float_test'], ['amount' => 53.15]);
-    app::call([test_container::class, integer_test'], ['num' => 257]);
-    app::call([test_container::class, 'boolean_test'], ['ok' => true]);
-    $this->assertTrue(true);
+    app::call([tcontainer::class, 'string_test'], ['name' => 'matt']);
+    app::call([tcontainer::class, 'float_test'], ['amount' => 53.15]);
+    app::call([tcontainer::class, 'integer_test'], ['num' => 257]);
+    app::call([tcontainer::class, 'boolean_test'], ['ok' => true]);
+    app::call([tcontainer::class, 'object_test'], ['user' => $user]);
+    app::call([tcontainer::class, 'instanceof_test'], ['admin' => $user]);
+
+    // Check null
+    $value = app::call([tcontainer::class, 'null_test']);
+    $this->assertNull($value);
 
 }
-
 
 }
 

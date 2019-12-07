@@ -15,7 +15,7 @@ class general
 {
 
     // Page variables
-    public $position = 'bottom';
+    public $position = 'top';
     public $name = 'General';
 
 /**
