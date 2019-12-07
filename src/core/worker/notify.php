@@ -5,6 +5,7 @@ namespace apex\core\worker;
 
 use apex\app;
 use apex\svc\io;
+use apex\svc\redis;
 use apex\app\msg\emailer;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\EventMessageInterface as event;
@@ -57,7 +58,7 @@ public function send_sms(event $msg)
     );
 
     // Set URL
-    $url = 'https://rest.nexmo.com/sms/json?';
+    $url = str_replace("~domain_name~", app::_config('core:domain_name'), app::get('nexmo_api_url'));
     $url .= http_build_query($request);
 
     // Send request
@@ -110,13 +111,10 @@ public function send_ws(event $msg)
         $frame .= $data[$i] ^ $mask[$i % 4];
     }
 
-    // Get RabbitMQ connection info
-    $msg_utils = app::make(msg_utils::class);
-    $vars = $msg_utils->get_rabbitmq_connection_info();
-
     // Send message
+    $host = redis::hget('config:rabbitmq', 'host') ?? '127.0.0.1';
     try { 
-        if (!$sock = @fsockopen($vars['host'], 8194, $errno, $errstr, 3)) { 
+        if (!$sock = @fsockopen($host, (int) app::_config('core:websocket_port'), $errno, $errstr, 3)) { 
             return true;
             }
     } catch (Exception $e) { 

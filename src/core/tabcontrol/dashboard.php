@@ -32,10 +32,11 @@ public function __construct(array $data)
 {
 
     // Get area
-    $area = db::get_field("SELECT area FROM dashboard_profiles WHERE id = %i", $data['profile_id']);
+    $profile_id = $data['profile_id'] ?? 0;
+    $area = db::get_field("SELECT area FROM dashboard_profiles WHERE id = %i", $profile_id);
 
     // Get tab pages
-    $rows = db::query("SELECT * FROM dashboard_profiles_items WHERE profile_id = %i AND type = 'tab' ORDER BY id", $data['profile_id']);
+    $rows = db::query("SELECT * FROM dashboard_profiles_items WHERE profile_id = %i AND type = 'tab' ORDER BY id", $profile_id);
     foreach ($rows as $row) { 
         $alias = $row['package'] . '_' . $row['alias'];
         $this->tabpages[$alias] = db::get_field("SELECT title FROM dashboard_items WHERE area = %s AND type = %s AND package = %s AND alias = %s", $area, $row['type'], $row['package'], $row['alias']);

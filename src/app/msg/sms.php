@@ -25,8 +25,10 @@ public function dispatch(SMSMessageInterface $sms)
 
     // Send it
     $msg = new event_message('core.notify.send_sms', $sms);
-    $msg->set_type('direct');
-    msg::dispatch($msg);
+    $ok = msg::dispatch($msg)->get_response('core');
+
+    // Return
+    return $ok;
 
 }
 

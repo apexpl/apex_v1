@@ -24,7 +24,8 @@ public function process()
     if ($data = redis::get($redis_key)) { 
         $vars = json_decode($data, true);
     } else { 
-        app::echo_template('2fa_nohash');
+        app::set_uri('2fa_nohash', false, true);
+        return;
     }
 
     // Delete from redis

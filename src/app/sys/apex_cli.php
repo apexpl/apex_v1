@@ -849,9 +849,7 @@ public function create($vars)
     debug::add(4, tr("CLI: Start component creation, type: {1}, component alias: {2}, owner: {3}", $type, $comp_alias, $owner), 'info');
 
     // Perform checks
-    if ($type == '') { 
-        throw new ComponentException('undefined_type');
-    } elseif (!in_array($type, COMPONENT_TYPES)) { 
+    if (!in_array($type, COMPONENT_TYPES)) { 
         throw new ComponentException('invalid_type', $type);
     } elseif ($type != 'view' && ($comp_alias == '' || !preg_match("/^(\w+):(\w+)/", $comp_alias)) ){ 
         throw new ComponentException('invalid_comp_alias', $type, $comp_alias);
@@ -976,7 +974,8 @@ public function mode($vars)
  *
  * @param iterable $vars The command line arguments specified by the user. 
  */
-public function server_type($vars) { 
+public function server_type($vars) 
+{ 
 
     // Check
     $type = $vars[0] ?? '';

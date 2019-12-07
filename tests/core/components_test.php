@@ -269,6 +269,61 @@ public function provider_get_all_files()
 
 }
 
+/**
+ * Load - invalid class name
+ */
+public function test_load_invalid_class_name()
+{
+
+    $client = new components();
+    $ok = $client->load('htmlfunc', 'some_junk_alias', 'core');
+    $this->assertFalse($ok);
+
+    // Call with junk class name
+    $ok = $client->call('process', 'htmlfunc', 'some_junk_class', 'core');
+    $this->assertFalse($ok);
+
+}
+
+/**
+ * Load tab control -- invlid
+ */
+public function test_load_tabcontrol_invalid()
+{
+
+    // Get all files
+    $client = new components();
+    $files = $client->get_all_files('tabcontrol', 'debugger', 'core');
+
+    // Check for exception
+    $this->waitException('Unable to load component');
+    $client->get_tabcontrol_files('some_kunk_alias', 'core');
+
+}
+
+/**
+ * Get git file
+ */
+public function test_get_githut_file()
+{
+
+    // Initialize
+    $checks = array(
+        'src/core/admin.php' => 'src/admin.php', 
+        'src/core/tabcontrol/debugger.php' => 'src/tabcontrol/debugger.php', 
+        'src/users/controller/general/core.php' => 'child/users/controller/general/core.php', 
+        'tests/core/admin_panel_test.ph' => 'tests/admin_panel_test.php', 
+        'views/tpl/admin/settings/general.tpl' => 'views/tpl/admin/settings/general.tpl', 
+        'docs/core/index.md' => 'docs/index.md'
+    );
+
+    // Check all files
+    foreach ($checks as $source => $dest) { 
+        $this->assertEquals($dest, $client->get_github_file($source, 'core'));
+    }
+
+}
+
 
 }
 

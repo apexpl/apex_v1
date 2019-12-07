@@ -1,8 +1,8 @@
 
-# Testing E-Mail Messages
+# Testing E-Mail / Messages
 
 Through the */bootstrap/test.php* configuration file, the emailer.php class is swapped out with the 
-*/src/app/tests/test_emailer.php* class.  This class places all outoing e-mail messages in a queue, instead of actually sending them, allowing 
+*/src/app/tests/test_emailer.php* class.  This class places all outgoing e-mail messages in a queue, instead of actually sending them, allowing 
 you to search and read the queue using the below methods.
 
 Please view the <a href="https://apex-platform.org/api/classes/apex.app.msg.objects.email_message.html">email_message</a> object class for details on how to 
@@ -61,4 +61,44 @@ class test_someclass {
 
 **Description:** Clears the existing e-mail queue, and useful to ensure you get the latest e-mail message instead of an e-mail 
 that was sent during a previous test.
+
+
+### emailer::clear_queue()
+
+**Description:** Simply clears the current e-mail queue, and recommended at the begining of a test method before 
+sending / testing outgoing e-mails.
+
+
+### SMS / Web Socket Messages
+
+All SMS and Web Socket messages that are sent while unit tests are being performed are automatically stored within two redis lists named, 
+`test:sms_queue` and `test:websocket_queue`.  Both lists simply consist of JSON encoded strings that are added to for 
+every message that is sent.  Within your unit tests, simply check these lits for proper assertions.  It's always a 
+good idea to delete the necessary list at the beginning of your test method.
+
+**Example**
+
+~~~php
+function test_sms_message()
+{
+
+    // Clear list
+    redis::del('test:sms_queue');
+
+    // Send SMS message
+    $sms = new sms_message('16045551234', 'A test message', 'My Name');
+    $client = app::make(sms::class);
+    $client->dispatch($sms);
+
+    // Check for message
+    $messages = redis::lrange('test:sms_queue', 0, -1);
+    $this->assertCount(1, $messages, "There should only be one message in SMS queue, but there isn't!");
+
+    // Check message
+    $chk_message = json_decode($messages[0], true);
+    $this->assertEquals('16045551234', $chk_message['phone']);
+
+}
+~~~
+
 

@@ -7,6 +7,9 @@ use apex\app;
 use apex\svc\db;
 use apex\svc\redis;
 use apex\svc\forms;
+use apex\svc\components;
+use apex\svc\encrypt;
+use apex\svc\auth;
 use apex\app\sys\network;
 use apex\app\db\db_connections;
 use apex\app\tests\test;
@@ -396,6 +399,54 @@ public function test_page_settings_general()
 }
 
 /**
+ * Create first administrator
+ */
+public function test_create_first_admin()
+{
+
+    // Logout
+    auth::logout();
+    app::set_userid(0);
+    app::clear_cookie();
+
+    // Get admin
+    $row = db::get_row("SELECT * FROM admin WHERE username = %s", $_SERVER['apex_admin_username']);
+    $this->assertNotFalse($row);
+    db::query("TRUNCATE admin");
+
+    // Send http request
+    $html = $this->http_request('admin/index');
+    $this->assertPageTitle('Create First Administrator');
+    $this->assertHasFormField(array('username', 'password', 'full_name', 'email', 'phone'));
+    $this->assertHasSubmit('create', 'Create New Administrator');
+
+    // Set request
+    $request = array(
+        'username' => $_SERVER['apex_admin_username'], 
+        'password' => $_SERVER['apex_admin_password'], 
+        'confirm-password' => $_SERVER['apex_admin_password'], 
+        'full_name' => $row['full_name'], 
+        'email' => $row['email'], 
+        'phone_country' => $row['phone_country'], 
+        'phone' => $row['phone'], 
+        'require_2fa' => $row['require_2fa'], 
+        'require_2fa_phone' => $row['require_2fa_phone'], 
+        'language' => $row['language'], 
+        'timezone' => $row['timezone'], 
+        'submit' => 'create'
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/index', 'POST', $request);
+    $this->assertPageTitleContains('Welcome');
+
+    // Check database row
+    $row = db::get_row("SELECT * FROM admin WHERE username = %s", $_SERVER['apex_admin_username']);
+    $this->assertNotFalse($row);
+
+}
+
+/**
 * Create administrators 
 * @dataProvider provider_create_admin 
  */
@@ -410,7 +461,10 @@ public function test_create_admin(array $vars, string $error_type = '', string $
     // Send request
     $html = $this->http_request('/admin/settings/admin', 'POST', $vars);
 
-    if ($error_type != '') { 
+    // Check response
+    if ($error_type == 'dupe') { 
+        $this->assertHasCallout('error', 'The username already exists'); 
+    } elseif ($error_type != '') { 
         $this->assertHasFormError($error_type, $field_name);
     } else { 
         $this->assertHasCallout('success', 'Successfully created new administrator, unit_test');
@@ -434,7 +488,7 @@ public function provider_create_admin()
         'email' => 'unit@test.com',
         'phone_country' => '1',
         'phone' => '5551234567',
-    'require_2fa' => '0',
+        'require_2fa' => '0',
         'require_2fa_phone' => 0, 
         'language' => 'en',
         'timezone' => 'PST',
@@ -451,7 +505,8 @@ public function provider_create_admin()
         array($vars, 'blank', 'timezone'),
         array($vars, 'alphanum', 'username'),
         array($vars, 'email', 'email'),
-        array($vars, '', '')
+        array($vars, '', ''), 
+        array($vars, 'dupe', 'username')
     );
 
     // Add bogus variables
@@ -539,14 +594,14 @@ public function test_page_admin_settings_notifications()
     $this->assertHasSubmit('create', 'Create E-Mail Notification');
 
     // Send invalid controller to get code ocverage
-    $vars = array(
-        'controller' => 'some_junk_controller_that_will_never_exist', 
-        'submit' => 'create'
+    $data = array(
+        'html' => '', 
+        'data' => array('controller' => 'some_junk_controller_that_will_never_exist')
     );
-    //$html = $this->http_request('/admin/settings/notifications_create', 'POST', $vars);
-    //$this->assertPageTitle('Create Notification');
-    //$this->assertPageContains('The notification controller');
-    //$this->assertPageContains('does not exist');
+    $response = components::call('process', 'htmlfunc', 'notification_condition', 'core', '', $data);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, 'The notification controller');
+    $this->assertStringContains($response, 'does not exist');
 
     // Send request to create e-mail notification
     $vars = array(
@@ -713,10 +768,16 @@ public function test_page_admin_maintenance_package_manager()
     $html = $this->http_request('admin/maintenance/package_manager', 'POST', $request);
     $this->assertHasCallout('error', 'Test connection to repository failed');
 
+    // Set new request to add repo
     // Add new repoy
     $request['repo_is_ssl'] = 0;
     $request['repo_host'] = app::_config('core:domain_name');
+    db::query("UPDATE internal_repos SET is_active = 1");
+    db::query("UPDATE internal_repos SET host = %s WHERE is_local = 1", app::_config('core:domain_name'));
+
+    // Send http request
     $html = $this->http_request('admin/maintenance/package_manager', 'POST', $request);
+    $this->assertPageTitle('Package Manager');
     $this->assertHasCallout('success', "Successfully added new repository");
     $this->assertHasTable('core:repos');
     $this->assertHasTableField('core:repos', 2, app::_config('core:domain_name'));
@@ -733,6 +794,8 @@ public function test_page_admin_maintenance_package_manager()
     // Update the repo
     $request = array(
         'repo_id' => $repo_id,
+        'repo_is_ssl' => 0,
+        'repo_host' => app::_config('core:domain_name'),  
         'repo_username' => 'test',
         'repo_password' => 'test',
         'submit' => 'update_repo'
@@ -745,6 +808,57 @@ public function test_page_admin_maintenance_package_manager()
 
     // Delete repo
     db::query("DELETE FROM internal_repos WHERE id = %i", $repo_id);
+
+}
+
+/**
+ * Test - Update local repo
+ */
+public function test_update_public_repo()
+{
+
+    // Get local repo
+    if (!$row = db::get_row("SELECT * FROM internal_repos WHERE is_local = 1 ORDER BY id LIMIT 1")) { 
+        throw new ApexEException('error', "No local repository found");
+    }
+
+    // Send http requset
+    $html = $this->http_request('admin/maintenance/repo_manage', 'GET', array(), array('repo_id' => $row['id']));
+    $this->assertPageTitle('Manage Repository');
+    $this->assertHasFormField(array('repo_host', 'repo_alias', 'repo_name', 'repo_username', 'repo_password'));
+    $this->assertHasSubmit('update_repo', 'Update Repository');
+
+    // Set request
+    $request = array(
+        'repo_id' => $row['id'], 
+        'repo_is_ssl' => 1, 
+        'repo_host' => 'test.com', 
+        'repo_alias' => 'public', 
+        'repo_name' => '$this->assertEquals(', 
+        'repo_description' => 'unit test', 
+        'repo_username' => 'unit', 
+        'repo_password' => 'test', 
+        'submit' => 'update_repo'
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/maintenance/package_manager', 'POST', $request);
+    $this->assertPageTitle('Package Manager');
+    $this->assertHasCallout('success', 'Successfully updated repo');
+
+    // Check repo database row
+    $chk_row = db::get_idrow('internal_repos', $row['id']);
+    $this->assertNotFalse($chk_row);
+    $this->assertEquals('test.com', $chk_row['host']);
+    $this->assertEquals('$this->assertEquals(', $chk_row['name']);
+    $this->assertEquals('unit test', $chk_row['description']);
+    $this->assertEquals('unit', encrypt::decrypt_basic($chk_row['username']));
+    $this->assertEquals('test', encrypt::decrypt_basic($chk_row['password']));
+
+    // REvert to old database info
+    $repo_id = $row['id'];
+    unset($row['id']);
+    db::update('internal_repos', $row, "id = %i", $repo_id);
 
 }
 
@@ -835,10 +949,127 @@ public function test_page_admin_cms_menus()
     // Ensure page loads
     $html = $this->http_request('admin/cms/menus');
     $this->assertPageTitle('Menus');
+    $this->assertHasHeading(3, 'Public Site');
+    $this->assertHasHeading(3, 'Member Area');
+    $this->assertHasHeading(3, 'Add New Menu');
+    $this->assertHasFormField(array('alias','name'));
+    $this->assertHasSubmit('update_public', 'Update Public Site Menus');
+    $this->assertHasSubmit('add_menu', 'Add New Menu');
 
+    // Delete existing row, if exists
+    db::query("DELETE FROM cms_menus WHERE alias IN ('unit_test', 'update_test') AND area = 'public'");
+
+    // Set request to add menu
+    $request = array(
+        'area' => 'public', 
+        'alias' => 'unit_test', 
+        'name' => 'Unit Test', 
+        'order_num' => 15, 
+        'require_login' => 0, 
+        'require_nologin' => 0, 
+        'link_type' => 'internal', 
+        'parent' => '', 
+        'icon' => '', 
+        'url' => '', 
+        'submit' => 'add_menu'
+    );
+
+    // Send http request
+    $html = $this->http_request('admin/cms/menus', 'POST', $request);
+    $this->assertPageTitle('Menus');
+    $this->assertHasCallout('success', 'Successfully added new menu');
+    $this->assertHasTable('core:cms_menus');
+    $this->assertHasTableField('core:cms_menus', 1, '/unit_test');
+
+    // Check database row
+    $row = db::get_row("SELECT * FROM cms_menus WHERE area = 'public' AND alias = 'unit_test'");
+    $this->assertNotFalse($row);
+    $this->assertEquals('public', $row['area']);
+    $this->assertEquals('internal', $row['link_type']);
+    $this->assertEquals('Unit Test', $row['name']);
+    $this->assertEquals(1, (int) $row['is_active']);
+
+    // HTTP request to manage menu
+    $html = $this->http_request('admin/cms/menus_manage', 'GET', array(), array('menu_id' => $row['id']));
+    $this->assertPageTitle('Manage Menu');
+    $this->assertHasHeading(3, 'Menu Details');
+    $this->assertHasFormField(array('alias','name'));
+    $this->assertHasSubmit('update_menu', 'Update Menu');
+
+    // Set request to add menu
+    $request = array(
+        'menu_id' => $row['id'], 
+        'area' => 'public', 
+        'alias' => 'update_test', 
+        'name' => 'Update Test', 
+        'order_num' => 15, 
+        'require_login' => 0, 
+        'require_nologin' => 0, 
+        'link_type' => 'internal', 
+        'parent' => '', 
+        'icon' => '', 
+        'url' => '', 
+        'submit' => 'update_menu'
+    );
+
+    // Send HTTP request to update menu
+    $html = $this->http_request('admin/cms/menus', 'POST', $request);
+    $this->assertPageTitle('Menus');
+    $this->assertHasCallout('success', 'Successfully updated menu');
+
+    // Check database row
+    $row = db::get_idrow('cms_menus', $row['id']);
+    $this->assertNotFalse($row);
+    $this->assertEquals('update_test', $row['alias']);
+    $this->assertEquals('Update Test', $row['name']);
+    $this->assertEquals(1, (int) $row['is_active']);
+
+    // Deactivate menu
+    $ids = db::get_column("SELECT id FROM cms_menus WHERE area = 'public' AND is_active = 1 AND id != %i", $row['id']);
+    $request = array(
+        'is_active' => $ids, 
+        'delete' => array(), 
+        'submit' => 'update_public'
+    );
+
+    // Add ordering to request
+    $order_nums = db::get_hash("SELECT id,order_num FROM cms_menus WHERE area = 'public'");
+    foreach ($order_nums as $id => $num) { 
+        $request['order_' . $id] = $id == $row['id'] ? 20 : $num;
+    }
+
+    // Send http request
+    $html = $this->http_request('admin/cms/menus', 'POST', $request);
+    $this->assertPageTitle('Menus');
+    $this->assertHasCallout('success', 'Successfully updated menus');
+
+    // Check database row
+    $row = db::get_row("SELECT * FROM cms_menus WHERE area = 'public' AND alias = 'update_test'");
+    $this->assertNotFalse($row);
+    $this->assertEquals(0, (int) $row['is_active']);
+    $this->assertEquals(20, (int) $row['order_num']);
+
+    // Delete menu
+    $request['delete'] = array($row['id']);
+    $html = $this->http_request('admin/cms/menus', 'POST', $request);
+    $this->assertPageTitle('Menus');
+    $this->assertHasCallout('success', 'Successfully updated menus');
+    $row = db::get_row("SELECT * FROM cms_menus WHERE area = 'public' AND alias = 'update_test'");
+    $this->assertFalse($row);
 
 }
 
+/**
+ * logout
+ */
+public function test_logout()
+{
+
+    // Send http request
+    $html = $this->http_request('admin/logout');
+    $this->assertPageTitle('Logout');
+
+}
 
 }
 

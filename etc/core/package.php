@@ -10,7 +10,7 @@ class pkg_core
 {
 
 // Set package variables
-public $version = '1.0.0';
+public $version = '1.3.0';
 public $access = 'public';
 public $name = 'Core Framework';
 public $description = 'The core package of the framework, and is required for all installations of the software.';
@@ -180,6 +180,7 @@ private function define_config()
 
     // Server vars
     $server_vars = array(
+        'websocket_port' => 8194,  
         'server_type' => '',
         'server_name' => 'apex',  
         'domain_name' => '', 

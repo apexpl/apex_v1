@@ -11,9 +11,8 @@
     "homepage": "https://apex-platform.org",
     "license": "MIT",
     "require": {
-        "php": ">=7.2.0",
+        "php": ">=7.4.0",
         "cboden/ratchet": "*",
-        "textalk/websocket": "1.0.*",
         "michelf/php-markdown": ">=1.8.0",
         "php-mime-mail-parser/php-mime-mail-parser": "*",
         "league/flysystem": "*",

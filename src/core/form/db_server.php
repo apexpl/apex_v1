@@ -64,32 +64,11 @@ public function get_record(string $record_id):array
 { 
 
     // Get record
-    if (!$data = redis::lindex('config:db_slaves', (int) $record_id)) { 
-        return array();
-    } else { 
-        return json_decode($data, true);
-    }
+    $data = redis::lindex('config:db_slaves', (int) $record_id);
+    return json_decode($data, true);
 
 }
 
-/**
- * Perform additional form validation. 
- *
- * On top of the standard form validation checks such as required fields, data 
- * types, min / max length, and so on, you can also perform additional 
- * validation for this specific form via this method.  Simply add the needed 
- * error callouts via the template->add_callout() method for any validation 
- * errors. 
- *
- * @param array $data Any array of data passed to the app::validate_form() method.  Used
- */
-public function validate(array $data = array())
-{ 
-
-    // Additional validation checks
-
 }
 
-
-}
 

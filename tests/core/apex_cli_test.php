@@ -835,6 +835,11 @@ public function test_publish_upgrade()
     $this->send_cli('create', array('form', $this->pkg_alias . ':utest'));
     file_put_contents(SITE_PATH . '/src/unit_test/mytest.php', "\n\nREVERT\n\n");
 
+    // Get exception -- no open upgrades
+    db::query("DELETE FROM internal_upgrades WHERE package = %s AND status = 'open'", $this->pkg_alias);
+    $this->waitException('There are no open upgrades');
+    $this->send_cli('publish_upgrade', array($this->pkg_alias));
+
 }
 
 /**
@@ -874,6 +879,18 @@ public function test_upgrade()
     $this->assertnotfalse($row);
     $this->assertisarray($row);
     $this->assertequals('1.0.1', $row['version']);
+
+}
+
+/**
+ * Check upgrades - none exist
+ */
+public function test_check_upgrades_not_exists()
+{
+
+    $response = $this->send_cli('check_upgrades');
+    $this->assertStringContains($response, 'No upgrades were found');
+
 
 }
 
@@ -1145,6 +1162,262 @@ private function send_cli(string $action, $vars = array())
 
 }
 
+/**
+ * scan - no package
+ */
+public function test_scan_no_package()
+{
+
+    // Check non-existent package
+    $response = $this->send_cli('scan', array('some_junk_package_that_will_never_exist'));
+    $this->assertStringContains($response, 'does not exist');
+
+    // Check for exception
+    $this->waitException('You did not specify a package alias');
+    $this->send_cli('scan');
+
+}
+
+/**
+ * create_package - package already exists
+ */
+public function test_create_package_already_exists()
+{
+
+    $this->waitException('The package already exists');
+    $this->send_cli('create_package', array('users'));
+
+}
+
+/**
+ * create_package - invalid alias
+ */
+public function test_create_package_invalid_alias()
+{
+
+    $this->waitException('An invalid package alias');
+    $this->send_cli('create_package', array('Gj!g@gjd#'));
+
+}
+
+/**
+ * delete_package --- not exists
+ */
+public function test_delete_package_not_exists()
+{
+
+    $this->waitException('The package does not exist');
+    $this->send_cli('delete_package', array('some_junk_package_that_will_never_exist'));
+
+}
+
+/**
+ * publish - undefined
+ */
+public function test_publish_undefined()
+{
+
+    // Package already exists
+    $response = $this->send_cli('publish', array('some_junk_package_that_will_never_exist'));
+    $this->assertStringContains($response, 'Package does not exist');
+
+    // Undefined
+    $this->waitException('You did not specify');
+    $this->send_cli('publish');
+
+}
+
+/**
+ * create_upgrade - undefined
+ */
+public function test_create_upgrade_undefined()
+{
+
+    // Wait exception
+    $this->waitException('You did not specify');
+    $this->send_cli('create_upgrade');
+
+}
+
+/**
+ * publish_upgrade - undefined
+ */
+public function test_publish_upgrade_undefined()
+{
+
+    // Wait for exception
+    $this->waitException('You did not specify');
+    $this->send_cli('publish_upgrade');
+
+}
+
+/**
+ * publish_upgrade - not exists
+ */
+public function test_publish_upgrade_not_exists()
+{
+
+    // Wait exception
+    $this->waitException('The package does not exist');
+    $this->send_cli('publish_upgrade', array('some_package_that_will_never_exist'));
+
+}
+
+/**
+ * change_theme - invalid area
+ */
+public function test_change_area_invalid_area()
+{
+
+    $this->waitException('Invalid area specified');
+    $this->send_cli('change_theme', array('dsagsdgas', 'test'));
+
+}
+
+/** 
+ * change_theme - not exists
+ */
+public function test_change_theme_not_exists()
+{
+
+    $this->waitException('does not exist');
+    $this->send_cli('change_theme', array('public', 'some_theem_that_will_never_exist'));
+
+}
+
+/**
+ * create - invalid component type
+ */
+public function test_create_invalid_type()
+{
+
+    $this->waitException('Component type is invalid');
+    $this->send_cli('create', array('dsgadsgsa'));
+
+}
+
+/**
+ * create - invalid component alias
+ */
+public function test_create_invalid_alias()
+{
+
+    $this->waitException('Invalid component alias');
+    $this->send_cli('create', array('lib', 'sdgsdagdsa'));
+
+}
+
+/**
+ * delete - not exists
+ */
+public function test_delete_not_exists()
+{
+
+    $this->waitException('does not exist');
+    $this->send_cli('delete', array('lib', 'sdgsadgdsa'));
+
+}
+
+/**
+ * mode - invalid
+ */
+public function test_mode_invalid()
+{
+
+    $this->waitException('You must specify the mode');
+    $this->send_cli('mode', array('dsgsdgds'));
+
+}
+
+/**
+ * server_type -- invalid
+ */
+public function test_server_type_invalid()
+{
+
+    $this->waitException('Invalid server type');
+    $this->send_cli('server_type', array('sdfsdgs'));
+
+}
+
+/**
+ * add_repo - not exists
+ */
+public function test_add_repo_not_exists()
+{
+
+    $this->waitException('does not exist');
+    $this->send_cli('add_repo');
+
+}
+
+/**
+ * add_repo - invalid repo
+ */
+public function test_add_repo_invalid_url()
+{
+
+    $this->waitException('No valid repository');
+    $this->send_cli('add_repo', array('google.com'));
+
+}
+
+/**
+ * Update repo - not exists
+ */
+public function test_update_repo_not_exists()
+{
+
+    $this->waitException('No repository exists');
+    $this->send_cli('update_repo', array('sdfsdgds'));
+
+}
+
+/**
+ * Clear db slaves
+ */
+public function test_clear_dbslaves()
+{
+
+    $response = $this->send_cli('clear_dbslaves');
+    $this->assertStringContains($response, 'Successfully cleared all database slave');
+
+}
+
+/**
+ * Compile core
+ */
+public function test_compile_core()
+{
+
+    $response = $this->send_cli('compile_core');
+    $this->assertStringContains($response, 'Successfully compiled the core');
+
+}
+
+/**
+ * Enable cache
+ */
+public function test_enable_cache()
+{
+
+    $response = $this->send_cli('enable_cache');
+    $this->assertStringContains($response, 'Successfully enabled the cache');
+    $this->assertEquals(1, (int) app::_config('core:cahce'));
+
+}
+
+/**
+ * Disable cache
+ */
+public function test_disable_cache()
+{
+
+    $response = $this->send_cli('disable_cache');
+    $this->assertStringContains($response, 'Successfully disabled the cache');
+    $this->assertEquals(0, (int) app::_config('core:cache'));
+
+}
 
 }
 

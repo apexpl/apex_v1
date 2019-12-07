@@ -38,9 +38,7 @@ public function process(app $app, components $components, string $html, array $d
     $width = $data['width'] ?? '';
 
     // Load component
-    if (!$form = $components->load('form', $alias, $package, '', $data)) { 
-        return "<B>ERROR:</b> Unable to load component of type 'form' with alias $alias from package $package";
-    }
+    $form = $components->load('form', $alias, $package, '', $data);
 
     // Get allow post values
     if (isset($data['allow_post_values'])) { $allow_post_values = $data['allow_post_values']; }

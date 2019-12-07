@@ -30,7 +30,7 @@ public function process(...$args)
 
     // Initialize server
     $http = new HttpServer(new WsServer(new ws_server()));
-    $server = IoServer::factory($http, 8194);
+    $server = IoServer::factory($http, app::_config('core:websocket_port'));
 
     // Echo message
     echo "Listening to web socket connections...\n";

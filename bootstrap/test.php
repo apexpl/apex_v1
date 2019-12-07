@@ -39,7 +39,8 @@ return [
     images::class => [images::class], 
     io::class => [io::class], 
     storage::class => [storage::class],  
-    geoip::class => [geoip::class]
+    geoip::class => [geoip::class], 
+    'nexmo_api_url' => ['var', 'http://~domain_name~/unit_test/nexmo?']
 ];
 
 

@@ -227,7 +227,7 @@ public function test_remove_dir()
 /**
  * Send HTTP request
  */
-public function send_http_request()
+public function test_send_http_request()
 {
 
     // Get html
@@ -235,6 +235,18 @@ public function send_http_request()
     $html = $io->send_http_request('https://apex-platform.org/');
     $this->assertNotFalse($html);
     $this->assertStringContains('Apex Software Platform', $html);
+
+}
+
+/**
+ * Send Tor request
+ */
+public function test_send_tor_request()
+{
+
+    $client = new io();
+    $html = $io->send_tor_request('https://www.google.com');
+    $this->assertTrue(true);
 
 }
 

@@ -52,7 +52,9 @@ public function test_validate_fields()
         'email' => 'johnsmith.com', 
         'amount' => 'abc', 
         'amount2' => 15.33, 
-        'phone' => ''
+        'phone' => '', 
+        'url' => 'invalid_url', 
+        'age' => '23a'
     );
 
     // Send http request
@@ -63,7 +65,7 @@ public function test_validate_fields()
     $client->validate_fields(
         'template', 
         array('full_name', 'email','username'), 
-        array('username' => 'alphanum', 'email' => 'email', 'username2' => 'alphanum', 'amount' => 'decimal', 'amount2' => 'decimal'), 
+        array('username' => 'alphanum', 'email' => 'email', 'username2' => 'alphanum', 'amount' => 'decimal', 'amount2' => 'decimal', 'url' => 'url', 'age' => 'integer'), 
         array('username' => 3), 
         array('username' => 8)
     );
@@ -80,6 +82,8 @@ public function test_validate_fields()
     $this->assertNotHasFormError('alphanum', 'username2');
     $this->assertHasFormError('decimal', 'amount');
     $this->assertNotHasFormError('decimal', 'amount2');
+    $this->assertHasFormError('url', 'url');
+    $this->assertHasFormError('integer', 'age');
 
 }
 
@@ -200,6 +204,82 @@ public function test_get_date_interval()
     $this->assertEquals('M3', $client->get_date_interval('four'));
 
 }
+
+/**
+ * Validate fields -- required
+ */
+public function test_validate_fields_required()
+{
+
+    // Set request
+    $request = array(
+        'first_name' => '', 
+        'email' => 'matt@test.com'
+    );
+    $html = $this->http_request('index', 'POST', $request);
+
+    // Get exception
+    $client = new forms();
+    $this->waitException('was left blank');
+    $client->validate_fields('error', array('first_name'));
+
+}
+
+/**
+ * Validate fields - Data Type - Alphanum
+ */
+public function test_validate_fields_datatype_alphanum()
+{
+
+    // Send http request
+    $html = $this->http_request('index', 'POST', array('name' => 'GjA@lan%gi ag'));
+    $this->waitException('must be alpha-numeric');
+
+    // Validate fields
+    $client = new forms();
+    $client->validate_fields('error', array(), array('name' => 'alphanum'));
+
+}
+
+/**
+ * Validate field - Min length
+ */
+public function test_validate_fields_minlength()
+{
+
+    // Send http request
+    $html = $this->http_request('index', 'POST', array('name' => 'ds'));
+    $this->waitException('must be a minimum of');
+
+    // Validate fields
+    $client = new forms();
+    $client->validate_fields('error', array(), array(), array('username' => 4));
+
+}
+
+/**
+ * Validate fields - maxlength
+ */
+public function test_validate_fields_maxlength()
+{
+
+    // Send http request
+    $html = $this->http_request('index', 'POST', array('name' => 'matt was here'));
+    $this->waitException('can not exceed a maximum of');
+
+    // Validate fields
+    $client = new forms();
+    $client->validate_fields('error', array(), array(), array(), array('name' => 4));
+
+}
+
+
+    // Validate fields
+
+
+
+
+
 
 }
 

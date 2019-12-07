@@ -58,6 +58,12 @@ public static function get(string $name)
         return self::$items[self::$services[$name][0]];
     }
 
+    // Check for variable
+    if (isset(self::$services[$name]) && self::$services[$name][0] == 'var') { 
+        self::$items[$name] = self::$services[$name][1] ?? '';
+        return self::$items[$name];
+    }
+
     // Get params
     if (isset(self::$services[$name]) && isset(self::$services[$name][1])) { 
         $params = self::$services[$name][1];
@@ -66,9 +72,7 @@ public static function get(string $name)
     }
 
     // Try to make item
-    if (!$value = self::make($name, $params)) { 
-        return false;
-    }
+    $value = self::make($name, $params);
 
     // Set, and return
     self::set($name, $value);
@@ -241,7 +245,7 @@ private static function get_injection_params(\ReflectionMethod $method, array $p
         }
 
         // Try to get param from container
-        if ($type !== null &&strpos((string) $type, "\\") && $value = self::get((string) $type)) { 
+        if ($type !== null && strpos((string) $type, "\\") && $value = self::get((string) $type)) { 
             $injection_params[$name] = $value;
 
         } elseif ($param->isDefaultValueAvailable() === true) { 

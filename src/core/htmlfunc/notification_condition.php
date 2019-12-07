@@ -62,10 +62,13 @@ public function process(string $html, array $data = array()):string
         $data['controller'] = $row['controller'];
     }
 
-    // Load component
-    if (!$client = components::load('controller', $data['controller'], 'core', 'notifications')) { 
+    // Check controller exists
+    if (!components::check('controller', 'core:notifications:' . $data['controller'])) { 
         return "<b>ERROR:</b> The notification controller '$data[controller]' does not exist.";
     }
+
+    // Load component
+    $client = components::load('controller', $data['controller'], 'core', 'notifications');
 
     // Create admin options
     $admin = $this->admin;

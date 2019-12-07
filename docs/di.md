@@ -2,7 +2,7 @@
 # Dependency Injection
 
 Apex fully implements PSR11 compliant dependency injection, and uses the [app class](app.md) as the container.  If you are unfamiliar with 
-dependency injection, a good starting guide can be found at: [Getting Started - The Dependency Injectiom Container for Humans](http://php-di.org/doc/getting-started.html)
+dependency injection, a good starting guide can be found at: [Getting Started - The Dependency Injection Container for Humans](http://php-di.org/doc/getting-started.html)
 
 1. <a href="#overview">Overview</a>
 2. <a href="#container_methods">Container Methods</a>

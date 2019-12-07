@@ -126,9 +126,7 @@ public function create_dir(string $dirname)
         if (is_dir($site_path . '/' . $tmp_dir)) { continue; }
 
         // Create directory
-        try { 
-            @mkdir($site_path . '/' . $tmp_dir);
-        } catch (Exception $e) { 
+        if (!mkdir($site_path . '/' . $tmp_dir)) {  
             throw new IOException('no_mkdir', $tmp_dir);
         }
     }
@@ -169,9 +167,7 @@ public function remove_dir(string $dirname)
     foreach ($files as $file) { 
         if (is_dir($site_path . "$dirname/$file")) { continue; }
 
-        try { 
-            unlink($site_path . "$dirname/$file");
-        } catch (Exception $e) { 
+        if (!unlink($site_path . "$dirname/$file")) {  
             throw new IOException('no_unlink', "$dirname/$file");
         
     }}
@@ -181,17 +177,14 @@ public function remove_dir(string $dirname)
     foreach ($files as $subdir) { 
         if (!is_dir($site_path . "$dirname/$subdir")) { continue; }
 
-        try { 
-            rmdir($site_path . "$dirname/$subdir");
-        } catch (Exception $e) { 
+        if (!rmdir($site_path . "$dirname/$subdir")) {  
             throw new IOException('normdir', "$dirname/$subdir");
         }
     }
 
+
     // Remove directory
-    try { 
-    rmdir($site_path . $dirname);
-    } catch (Exception $e) { 
+    if (!rmdir($site_path . $dirname)) { 
         throw new IOException('no_rmdir', $dirname);
     }
 

@@ -993,9 +993,9 @@ protected function add_system_javascript($html)
     }
 
     // Add WebSocket connection to Javascript
-    $host = preg_replace("/:(.+)$/", "", app::get_host());
+    $host = redis::hget('config:rabbitmq', 'host') . ':' . app::_config('core:websocket_port');
     $js = "\t<script type=\"text/javascript\">\n";
-    $js .= "\t\tvar ws_conn = new WebSocket('ws://" . $host . ":8194');\n";
+    $js .= "\t\tvar ws_conn = new WebSocket('ws://" . $host . "');\n";
     $js .= "\t\tws_conn.onopen = function(e) {\n";
     $js .= "\t\t\tws_conn.send(\"ApexAuth: $ws_auth\");\n";
     $js .= "\t\t}\n";

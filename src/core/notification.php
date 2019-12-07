@@ -76,9 +76,10 @@ public function get_merge_fields(string $controller):string
     );
 
     // Load controller
-    if (!$client = components::load('controller', $controller, 'core', 'notifications')) { 
-        throw new ComponentException('no_load', 'controlelr', '', $controller, 'core', 'notifications');
+    if (!list($package, $parent, $alias) = components::check('controller', 'core:notifications:' . $controller)) { 
+        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $controller);
     }
+    $client = components::load('controller', $controller, 'core', 'notifications');
 
     // Get fields
     if (method_exists($client, 'get_merge_fields')) { 
@@ -144,9 +145,10 @@ public function get_merge_vars(string $controller, int $userid = 0, array $data 
     }
 
     // Load controller
-    if (!$client = components::load('controller', $controller, 'core', 'notifications')) { 
-        throw new ComponentException('no_load', 'controller', '', $controller, 'core', 'notifications');
+    if (!list($package, $parent, $alias) = components::check('controller', 'core:notifications:' . $controller)) { 
+        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $controller);
     }
+    $client = components::load('controller', $controller, 'core', 'notifications');
 
     // Get vars from controller, if available
     if (method_exists($client, 'get_merge_vars')) { 
@@ -242,7 +244,8 @@ public function send($userid, int $notification_id, $data)
         $bcc = $controller->bcc ?? $row['bcc'];
 
     // Get merge variables
-    $merge_vars = $this->get_merge_vars($row['controller'], $userid, $data);
+    $tmp_userid = app::get_area() == 'admin' ? 0 : $userid;
+    $merge_vars = $this->get_merge_vars($row['controller'], $tmp_userid, $data);
 
     // Format message
     $subject = $row['subject']; $message = base64_decode($row['contents']);
@@ -279,7 +282,7 @@ public function create(array $data = array())
 
     // Load controller
     if (!$client = components::load('controller', $data['controller'], 'core', 'notifications')) { 
-        throw new ComponentException('no_load', 'controller', '', $data['controller'], 'core', 'notifications');
+        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $data['controller']);
     }
 
     // Get condition
@@ -309,7 +312,7 @@ public function create(array $data = array())
     // Add attachments as needed
     $x=1;
     while (1) { 
-        if (!list($filename, $mime_type, $contents) = forms::get_uploaded_file('attachment' . $x)) { break; }
+        if (!$file = app::_files('attachment' . $x)) { break; }
 
         // Add to DB
         db::insert('notifications_attachments', array(
@@ -343,9 +346,7 @@ public function edit($notification_id)
     }
 
     // Load controller
-    if (!$client = components::load('controller', $row['controller'], 'core', 'notifications')) { 
-        throw new ComponentException('no_load', 'controller', '', $row['controller'], 'core', 'notifications');
-    }
+    $client = components::load('controller', $row['controller'], 'core', 'notifications');
 
     // Get condition
     $condition = array();
@@ -449,9 +450,10 @@ public function add_mass_queue(string $type, string $controller, string $message
         'message' => $message,
         'condition_vars' => json_encode($condition))
     );
+    $queue_id = db::insert_id();
 
     // Return
-    return true;
+    return $queue_id;
 
 }
 

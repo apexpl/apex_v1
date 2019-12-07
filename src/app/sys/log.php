@@ -222,8 +222,6 @@ public function log($level, $msg, array $context = array())
     // Convert message to string, if needed
     if (is_object($msg) && !method_exists($msg, '__toString')) { 
         throw new \InvalidArgumentException("The message is an object, and does not have a __toString method");
-    } elseif (is_object($msg)) { 
-        $msg = $msg->__toString();
     }
 
     // Set variables for log line

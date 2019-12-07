@@ -8,6 +8,7 @@ use apex\svc\db;
 use apex\svc\redis;
 use apex\svc\debug;
 use apex\svc\components;
+use apex\svc\io;
 use apex\app\db\db_connections;
 use apex\app\tests\test;
 
@@ -181,10 +182,138 @@ public function test_core_htmlfunc_display_table_invalid_alias()
         'data' => ['table' => 'junk_package:and_some_table-that_will_never_exist']
     );
     // Call HTML function
-    $response = components::call('process', 'table', 'some_table_that_wlil_never_exist', 'some_junk_package', '', $data);
-    //$this->assertNotFalse($response);
-    //$this->assertStringContains('The table either does not exist', $response);
-    $this->assertTrue(true);
+    $response = components::call('process', 'htmlfunc', 'display_table', 'core', '', $data);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, 'either does not exist');
+
+}
+
+/**
+ * Display tab control -- invalid
+ */
+public function test_core_htmlfunc_display_tabcontrol_invalid()
+{
+
+    // Initialize
+    $data = array(
+        'html' => '', 
+        'data' => array()
+    );
+
+    // No tabcontrol defined
+    $response = components::call('process', 'htmlfunc', 'display_tabcontrol', 'core', '', $data);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, "attribute was defined");
+
+    // Tab control does not exist
+    $data['data']['tabcontrol'] = 'core:some_tabcontrol_that_will_never_exist';
+    $response = components::call('process', 'htmlfunc', 'display_tabcontrol', 'core', '', $data);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, 'The tab control');
+    $this->assertStringContains($response, 'either does not exist');
+
+    // Load HTML function
+    $htmlfunc = components::load('htmlfunc', 'display_tabcontrol', 'core');
+    $this->assertNotFalse($htmlfunc);
+
+    // Get debugger tab control
+    $tab = components::load('tabcontrol', 'debugger', 'core');
+    $tabpages = $this->invoke_method($htmlfunc, 'get_tab_pages', array($tab->tabpages, 'debugger', 'core'));
+    $this->assertIsArray($tabpages);
+
+}
+
+/**
+ * Tab control -- core -- dashboard
+ */
+public function test_core_tabcontrol_dashboard()
+{
+
+    // Initialize
+    $data = array(
+        'html' => '',  
+        'data' => array('tabcontrol' => 'dashboard', 'profile_id' => 1)
+    );
+
+    // Load tabcontrol
+    $tab = components::load('tabcontrol', 'dashboard', 'core', '', ['profile_id' => 1]);
+    $this->assertNotFalse($tab);
+
+    // Load HTML function
+    $htmlfunc = components::load('htmlfunc', 'display_tabcontrol', 'core', '', $data);
+    $this->assertNotFalse($htmlfunc);
+
+    // Get tab pages
+    $tabpages = $this->invoke_method($htmlfunc, 'get_tab_pages', array($tab->tabpages, 'dashboard', 'core'));
+    $this->assertIsArray($tabpages);
+
+}
+
+/**
+ * Display form - invalid
+ */
+public function test_core_htmlfunc_display_form_invalid()
+{
+
+    // Initialize
+    $data = array(
+        'html' => '', 
+        'data' => ['form' => 'some_form_that_will_never_exist']
+    );
+
+    // Form with invalid alias
+    $response = components::call('process', 'htmlfunc', 'display_form', 'core', '', $data);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, 'The form with the alias');
+    $this->assertStringContains($response, 'either does not exist');
+
+}
+
+/**
+ * Core - Form - Dashboard Profile Items - Invalid profile ID#
+ */
+public function test_core_form_dashboard_profiles_items_invalid()
+{
+
+    // Set data
+    $vars = array(
+        'data' => ['profile_id' => 83532752]
+    );
+
+    // Wait exception
+    $this->waitException('Dashboard does not exist');
+    components::call('get_fields', 'form', 'dashboard_profiles_items', 'core', '', $vars);
+
+}
+
+/**
+ * Test admin panel disabled.
+ */
+public function test_admin_panel_disabled()
+{
+
+    // Send http request
+    $html = $this->http_request('admin/login', 'GETT', array(), array('disable_admin' => 1));
+    $this->assertPageTitle('Page Not Found');
+
+}
+
+/**
+ * Core - Table - delete_rows - Invalid table
+ */
+public function test_core_ajax_delete_rows_invalid()
+{
+
+    // Initialize
+    $vars = array(
+        'table' => 'core:some_table-that_willl_never_exists'
+    );
+
+    // Send http request
+    $url = 'http://' . app::_config('core:domain_name') . '/ajax/core/delete_rows';
+    $response = io::send_http_request($url, 'POST', $vars);
+    $this->assertNotEmpty($response);
+    $this->assertStringContains($response, 'does not exist');
 
 }
 
@@ -192,5 +321,7 @@ public function test_core_htmlfunc_display_table_invalid_alias()
 
 
 }
+
+
 
 

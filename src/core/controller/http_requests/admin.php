@@ -35,9 +35,11 @@ public function process()
 { 
 
     // Check if admin enabled
-    if (ENABLE_ADMIN == 0) { 
+    if (ENABLE_ADMIN == 0 || (app::has_get('disable_admin') && app::_get('disable_admin') == 1)) { 
         app::set_res_http_status(404);
-        app::echo_template('404');
+        app::set_uri('404', false, true);
+        app::set_res_body(view::parse());
+        return;
     }
 
     // Set area and theme

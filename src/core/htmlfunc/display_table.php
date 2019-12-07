@@ -28,7 +28,7 @@ class display_table
  *
  * @return string The resulting HTML code, which the <e:function> tag within the template is replaced with.
  */
-public function process(components $components, tables $utils, string $html, array $data = array()):string
+public function process(components $components, tables $utils, string $html, array $data):string
 { 
 
     // Perform checks

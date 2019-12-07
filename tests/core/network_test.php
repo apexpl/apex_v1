@@ -114,6 +114,18 @@ public function test_search()
 
 }
 
+/**
+ * Send repo request - Invalid
+ */
+public function test_send_repo_request_invalid()
+{
+
+    // Wait exception
+    $this->waitException('Repository does not exist');
+    $client = new network();
+    $network->send_repo_request(82481851, 'none', 'test');
+
+}
 
 }
 

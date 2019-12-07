@@ -15,12 +15,12 @@ class cms_menus
 
     // Columns
     public $columns = array(
-    'delete' => 'Delete',
-    'uri' => 'URI',
-    'order' => 'Order',
-    'display_name' => 'Title',
-    'is_active' => 'Active',
-    'manage' => 'Manage'
+        'delete' => 'Delete',
+        'uri' => 'URI',
+        'order' => 'Order',
+        'display_name' => 'Title',
+        'is_active' => 'Active',
+        'manage' => 'Manage'
     );
 
     // Sortable columns

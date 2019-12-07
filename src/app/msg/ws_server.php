@@ -37,6 +37,7 @@ public function __construct()
 public function onOpen(ConnectionInterface $conn)
 {
     $this->clients->attach($conn);
+    echo "New connection opened\n";
 }
 
 /**
@@ -47,7 +48,7 @@ public function onOpen(ConnectionInterface $conn)
  */
 public function onMessage(ConnectionInterface $from, $msg)
 { 
-
+echo "Got msg: $msg\n";
     // Check for authentication
     if (preg_match("/^ApexAuth: (.+)/", $msg, $match)) { 
         $this->authenticate($match[1], $from);
@@ -77,7 +78,7 @@ public function onMessage(ConnectionInterface $from, $msg)
         if (!isset($user['area'])) { $ok = false; }
         if (!isset($user['userid'])) { $ok = false; }
         if (!isset($user['type'])) { $ok = false; }
-
+print_r($user); 
         // Skip, if needed
         $chk_recipient = $user['type'] . ':' . $user['userid'];
         if ($vars['area'] != '' && $vars['area'] != $user['area']) { $ok = false; }
@@ -168,6 +169,7 @@ protected function authenticate(string $auth_string, ConnectionInterface $from)
     if ($vars = redis::hgetall($auth_hash)) { 
         $user['type'] = $vars['type'];
         $user['userid'] = $vars['userid'];
+echo "YES, HERE\n";
     } elseif (preg_match("/^public:(.+)$/", $auth_hash, $match)) { 
         $user['type'] = 'public';
         $user['userid'] = $match[1];

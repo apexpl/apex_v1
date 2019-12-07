@@ -6,6 +6,7 @@ namespace apex\core\form;
 use apex\app;
 use apex\svc\db;
 use apex\svc\debug;
+use apex\app\exceptions\ApexException;
 
 
 /**
@@ -38,55 +39,13 @@ public function get_fields(array $data = array()):array
     );
 
     // Add submit button
-    if (isset($data['record_id']) && $data['record_id'] > 0) { 
-        $form_fields['submit'] = array('field' => 'submit', 'value' => 'update_item', 'label' => 'Update Dashboard Item');
-    } else { 
-        $form_fields['submit'] = array('field' => 'submit', 'value' => 'add_item', 'label' => 'Add Dashboard Item');
-    }
+    $form_fields['submit'] = array('field' => 'submit', 'value' => 'add_item', 'label' => 'Add Dashboard Item');
 
     // Return
     return $form_fields;
 
 }
 
-/**
- * Get values for a record.
- *
- * Method is called if a 'record_id' attribute exists within the 
- * a:function tag that calls the form.  Will retrieve the values from the 
- * database to populate the form fields with.
- *
- *   @param string $record_id The value of the 'record_id' attribute from the e:function tag.
- *
- *   @return array An array of key-value pairs containg the values of the form fields.
- */
-public function get_record(string $record_id):array 
-{
-
-    // Get record
-    $row = db::get_idrow('dashboard_profiles_items', $record_id);
-
-    // Return
-    return $row;
-
 }
 
-/**
- * Additional form validation.
- * 
- * Allows for additional validation of the submitted form.  
- * The standard server-side validation checks are carried out, automatically as 
- * designated in the $form_fields defined for this form.  However, this 
- * allows additional validation if warranted.
- *
- *     @param array $data Any array of data passed to the registry::validate_form() method.  Used to validate based on existing records / rows (eg. duplocate username check, but don't include the current user).
- */
-public function validate(array $data = array()) 
-{
-
-    // Additional validation checks
-
-}
-
-}
 

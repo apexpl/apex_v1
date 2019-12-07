@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\msg\objects;
 
 use apex\app;
+use apex\app\exceptions\ApexException;
 use apex\app\interfaces\msg\EventMessageInterface;
 
 
@@ -63,11 +64,41 @@ public function __construct(string $routing_key, ...$params)
 }
 
 /**
+ * Import properties.  Used by event_response object to initialize.
+ *
+ * @param event_message $msg The message that we're creaitng a response for.
+ */
+public function import_properties(event_message $msg)
+{
+
+    // Set request properties
+    $this->type = $msg->get_type();
+    $this->routing_key = $msg->get_routing_key();
+    $this->function = $msg->get_function();
+    $this->caller = $msg->get_caller();
+    $this->request = $msg->get_request();
+    $this->params = $msg->get_params();
+
+
+}
+
+/**
  * Set the message type. 
  *
  * @param string $type Must be either 'rpc' or 'direct'.
  */
-public function set_type(string $type) { $this->type = $type; }
+public function set_type(string $type) 
+{
+
+    // Validate type
+    if ($type != 'rpc' && $type != 'direct') { 
+        throw new ApexException('error', tr("Invalid event message type, {1}.  The type must be either 'rpc' or 'direct'.", $type));
+    }
+
+    // Set type
+    $this->type = $type; 
+
+}
 
 /**
  * Get the message type. 

@@ -110,9 +110,7 @@ public function load(string $type, string $alias, string $package = '', string $
     }
 
     // Load object via container
-    if (!$object = app::make($class_name, ['data' => $data])) { 
-        return false;
-    }
+    $object = app::make($class_name, ['data' => $data]);
 
     // Debug
     debug::add(5, tr("Loaded component, type: {1}, package: {2}, parent: {3}, alias: {4}", $type, $package, $parent, $alias));
@@ -310,7 +308,7 @@ public function get_all_files(string $type, string $alias, string $package, stri
     if ($tpl_file != '') { $files[] = $tpl_file; }
 
     // Check for tab control
-    if ($type == 'tab_control') { 
+    if ($type == 'tabcontrol') { 
         $tab_files = $this->get_tabcontrol_files($alias, $package);
         $files = array_merge($files, $tab_files);
     }
@@ -339,6 +337,9 @@ public function get_github_file(string $file, string $pkg_alias):string
 
     } elseif (preg_match("/^tests\/$pkg_alias\/(.+)$/", $file, $match)) { 
         $git_file = 'tests/' . $match[1];
+
+    } elseif (preg_match("/^docs\/$pkg_alias\/(.+)$/", $file, $match)) { 
+        $git_file = 'docs/' . $match[1];
 
     } elseif (preg_match("/^views\/(.+)$/", $file, $match)) { 
         $git_file = $file;

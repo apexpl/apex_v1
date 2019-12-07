@@ -130,7 +130,7 @@ public function check_login(bool $require_login = false)
     }
 
     // Update last seen
-    $recipient = (app::get_area() == 'admin' ? 'admin:' : 'user:') . $row['userid'];
+    $recipient = app::get_recipient();
     redis::hset('auth:last_seen', $recipient, time());
 
     // Update session expiry

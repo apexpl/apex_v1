@@ -5,6 +5,7 @@ namespace apex\core\form;
 
 use apex\app;
 use apex\svc\db;
+use apex\svc\encrypt;
 
 
 class repo 
@@ -31,8 +32,13 @@ public function get_fields(array $data = array()):array
         'repo_host' => array('field' => 'textbox', 'label' => 'Hostname', 'placeholders' => 'repo.domai.com'),
     );
 
+    // Check if local
+$is_local = $data['is_local'] ?? 0;
+    if (isset($data['record_id']) && $data['record_id'] > 0) { 
+        $is_local = db::get_field("SELECT is_local FROM internal_repos WHERE id = %i", $data['record_id']);
+    }
+
     // Check for local
-    $is_local = $data['is_local'] ?? 0;
     if ($is_local == 1) { 
         $form_fields['repo_alias'] = array('field' => 'textbox', 'label' => 'Repo Alias', 'datatype' => 'alphanum', 'placeholder' => 'public');
         $form_fields['repo_name'] = array('field' => 'textbox', 'label' => 'Repo Name');
@@ -42,7 +48,7 @@ public function get_fields(array $data = array()):array
 
     // Add login fields
     $form_fields['repo_username'] = array('field' => 'textbox', 'label' => 'Username');
-    $form_fields['repo_password'] = array('field' => 'textbox', 'type' => 'password', 'label' => 'Password');
+    $form_fields['repo_password'] = array('field' => 'textbox', 'label' => 'Password');
 
     // Add submit button
     if (isset($data['record_id'])) { 
@@ -73,6 +79,10 @@ public function get_record(string $record_id):array
     if (!$row = db::get_idrow('internal_repos', $record_id)) { 
         $row = array();
     }
+
+    // Decrypt, as needed
+    $row['username'] = encrypt::decrypt_basic($row['username']);
+    $row['password'] = encrypt::decrypt_basic($row['password']);
 
     // Format
     foreach ($row as $key => $value) { 

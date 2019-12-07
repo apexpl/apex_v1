@@ -15,13 +15,13 @@ class EncryptException   extends ApexException
 
     // Properties
     private $error_codes = array(
-     'unable_generate_rsa' => "Unable to generate new RSA key-pair for user ID# {userid}, user type: {user_type}",
-     'no_encrypt_user' => "Unable to encrypt data key to the recipient: {recipient}",
-     'no_private_key' => "Unable to decrypt private RSA key for user ID# {userid}, user type: {user_type}",
-     'no_session_password' => "Unable to determine session decryption password.  It's not where it should be!",
-     'no_data' => "No encrypted data exists with the ID# {data_id}",
-     'no_gnupg' => "The php-gnupg PHP extension is not installed, and is required for all PGP based encryption operations",
-     'invalid_pgp_key' => "Unable to add PGP key, as it is not a valid PGP key"
+        'unable_generate_rsa' => "Unable to generate new RSA key-pair for user ID# {userid}, user type: {user_type}",
+        'no_encrypt_user' => "Unable to encrypt data key to the recipient: {recipient}",
+        'no_private_key' => "Unable to decrypt private RSA key for user ID# {userid}, user type: {user_type}",
+        'no_session_password' => "Unable to determine session decryption password.  It's not where it should be!",
+        'no_data' => "No encrypted data exists with the ID# {data_id}",
+        'no_gnupg' => "The php-gnupg PHP extension is not installed, and is required for all PGP based encryption operations",
+        'invalid_pgp_key' => "Unable to add PGP key, as it is not a valid PGP key"
     );
 
 

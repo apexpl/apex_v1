@@ -8,6 +8,7 @@ use apex\svc\db;
 use apex\svc\debug;
 use apex\svc\io;
 use apex\app\sys\log;
+use apex\core\admin;
 use apex\app\tests\test;
 
 
@@ -86,6 +87,49 @@ if (!$app = app::get_instance()) {
     }
 
 }
+
+/**
+ * Log - Invalid Arg Exception
+ */
+public function test_log_invalid_arg()
+{
+
+    $this->expectException(\InvalidArgumentException);
+
+    $client = new log();
+    $client->log('junk_levels', 'sdgas');
+
+}
+
+/**
+ * Log -- object with no __toString()
+ */
+public function test_log_no_tostring()
+{
+
+    $this->expectException(\InvalidArgumentException);
+
+    $user = app::make(user::class);
+    $client = new log();
+    $client->log('info', $user);
+
+}
+
+/**
+ * Add system log
+ */
+public function test_add_system_log()
+{
+
+    // Add
+    $client = new log();
+    $client->add_system_log('alert', 1, 'test.php', 52, 'system unit test');
+    $this->assertFileContains(SITE_PATH . '/storage/logs/alert.log', 'system unit test');
+    $this->assertFileContains(SITE_PATH . '/storage/logs/system.log', 'system unit test');
+
+}
+
+
 
 }
 

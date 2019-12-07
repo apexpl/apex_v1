@@ -205,6 +205,9 @@ public function test_last_seen()
     $this->assertEquals('7 mins 51 secs ago', $client->last_seen(time() - 471), "Last seen for 7 mins 51 secs ago does not work");
     $this->assertEquals('3 hours 41 mins ago', $client->last_seen(time() - 13283), "Last seen for 3 hours 41 mins 23 secs ago does not work");
 
+    $ok = $client->last_seen(time() - 153755);
+    $this->assertNotEmpty($ok);
+
 }
 
 

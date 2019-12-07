@@ -69,9 +69,7 @@ public function get_record(string $record_id):array
 { 
 
     // Get row
-    if (!$row = db::get_idrow('admin', $record_id)) { 
-        $row = array();
-    }
+    $row = db::get_idrow('admin', $record_id);
     $row['password'] = '';
 
     // Return

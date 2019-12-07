@@ -40,9 +40,7 @@ public function process(string $html, array $data = array()):string
     }
 
     // Load tab control
-    if (!$tabcontrol = components::load('tabcontrol', $alias, $package, '', $data)) { 
-        return "<b>ERROR: </b> Unable to load the tab control '$alias' from package '$package''.  Component does not exist.";
-    }
+    $tabcontrol = components::load('tabcontrol', $alias, $package, '', $data);
 
     // Process tab control, if needed
     if (method_exists($tabcontrol, 'process')) { 

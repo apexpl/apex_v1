@@ -41,13 +41,8 @@ class event_response extends event_message implements EventResponseInterface
 public function __construct(EventMessageInterface $msg)
 { 
 
-    // Set request properties
-    $this->type = $msg->get_type();
-    $this->routing_key = $msg->get_routing_key();
-    $this->function = $msg->get_function();
-    $this->caller = $msg->get_caller();
-    $this->request = $msg->get_request();
-    $this->params = $msg->get_params();
+    // Import perties
+    $this->import_properties($msg);
 
 }
 

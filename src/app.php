@@ -1259,39 +1259,6 @@ public static function echo_response()
 }
 
 /**
- * Stop execution, and display a template
- *
- * Stops execution, and displays the provided template.  Useful if for
- * example, to display the previous template with user errors.
- *
- * @param string $uri The URI to display
- * @param bool $prepend_area If true, will prepend the area (eg. /admin/, /members/) to the URI.  Used for displaying system templates that reside in every area (500.tpl, 2fa.tpl, etc.).  Defaults to false.
- */
-public static function echo_template(string $uri, bool $prepend_area = false)
-{
-
-    // Debug
-    debug::add(1, tr("Forcing non-standard output of template: {1}", $uri));
-
-    // Set route
-    if ($prepend_area === true && self::$area != 'public') {
-        $uri = self::$area . '/' . $uri;
-    }
-    self::set_uri($uri);
-
-    // Echo template
-    self::set_res_body(view::parse());
-    self::echo_response();
-
-    // Finish session
-    debug::finish_session();
-
-    // Exit
-    exit(0);
-
-}
-
-/**
  * Add event
  *
  * Used when request is being processed by an event listener.  Adds event

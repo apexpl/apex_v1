@@ -8,8 +8,13 @@ use apex\svc\db;
 use apex\svc\components;
 use apex\svc\forms;
 use apex\app\web\ajax;
+use apex\app\exceptions\ComponentException;
 
 
+/**
+ * Class that handles the 'delete_rows' AJAX function to 
+ * automatically delete rows from a data table.
+ */
 class delete_rows extends ajax
 {
 
@@ -25,7 +30,7 @@ public function process()
 
 // Get package / alias
     if (!list($package, $parent, $alias) = components::check('table', app::_post('table'))) { 
-        trigger_error("The table '' either does not exists, or no package was defined and exists in more than one package.", E_USER_ERROR);
+        throw new ComponentException('not_exists_alias', 'table', app::_post('table'));
     }
 
     // Load table

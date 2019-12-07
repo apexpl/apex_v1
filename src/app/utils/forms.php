@@ -67,11 +67,14 @@ public function validate_fields(string $error_type = 'template', array $required
     // Check required fields
     foreach ($required as $var) { 
         $value = app::_post($var) ?? '';
-        if ($value == '') { 
-            $label = $labels[$var] ?? ucwords(str_replace("_", " ", $var));
+        if ($value != '') { continue; }
 
-            if ($error_type == 'template') { view::add_callout(tr("The form field %s was left blank, and is required", $label), 'error'); }
-            else { throw new FormException('field_required', $label); }
+        // Give error message
+        $label = $labels[$var] ?? ucwords(str_replace("_", " ", $var));
+        if ($error_type == 'template') { 
+            view::add_callout(tr("The form field %s was left blank, and is required", $label), 'error'); 
+        } else { 
+            throw new FormException('field_required', $label); 
         }
     }
 
@@ -101,22 +104,28 @@ public function validate_fields(string $error_type = 'template', array $required
         }
 
         // Give error if needed
-        if ($errmsg != '') { 
-            if ($error_type == 'template') { view::add_callout(tr($errmsg, $label), 'error'); }
-            else { throw new ApexException('error', $errmsg, $label); }
+        if ($errmsg == '') { continue; }
+        if ($error_type == 'template') { 
+            view::add_callout(tr($errmsg, $label), 'error'); 
+        } else { 
+            throw new ApexException('error', $errmsg, $label); 
         }
     }
 
     // Minlength
     foreach ($minlength as $var => $length) { 
         $value = app::_post($var) ?? '';
+        if (strlen($value) >= $length) { continue; }
+        $label = $labels[$var] ?? ucwords(str_replace("_", " ", $var));
 
-        if (strlen($value) < $length) { 
-            $label = $labels[$var] ?? ucwords(str_replace("_", " ", $var));
-            $errmsg = tr("The form field %s must be a minimum of %i characters in length.", $label, $length);
+        // Get error
+        $errmsg = tr("The form field %s must be a minimum of %i characters in length.", $label, $length);
 
-            if ($error_type == 'template') { view::add_callout($errmsg, 'error'); }
-            else {throw new ApexException('error', $errmsg); }
+        // Set error
+        if ($error_type == 'template') { 
+            view::add_callout($errmsg, 'error'); 
+        } else {
+            throw new ApexException('error', $errmsg); 
         }
     }
 

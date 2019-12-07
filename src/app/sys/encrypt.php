@@ -67,9 +67,7 @@ public function generate_rsa_keypair(int $userid, string $type = 'user', string 
     );
 
     // Generate private key
-    if (!$res = openssl_pkey_new($config)) { 
-        throw new EncryptException('unable_generate_rsa', $userid, $type);
-    }
+    $res = openssl_pkey_new($config);
 
     // Export private key
         openssl_pkey_export($res, $privkey);
@@ -360,12 +358,11 @@ public function import_pgp_key(string $type, int $userid, string $public_key)
     if (!$vars = gnupg_import($pgp, $public_key)) { 
         throw new EncryptException('invalid_pgp_key');
     }
-    if (!isset($vars['fingerprint'])) { 
-        throw new EncryptException('invalid_pgp_key');
-    }
 
-    // Update database, if user already exists
-    if ($key_id = db::get_field("SELECT id FROM encrypt_pgp_keys WHERE type = %s AND userid = %i", $type, $userid)) { 
+    // Check for row
+    if ($row = db::get_row("SELECT * FROM encrypt_pgp_keys WHERE type = %s AND userid = %i", $type, $userid)) { 
+
+        // Update database, if user already exists
         db::update('encrypt_pgp_keys', array(
             'fingerprint' => $vars['fingerprint'],
         'pgp_key' => $public_key),
