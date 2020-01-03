@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\form;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\encrypt;
+use apex\libc\db;
+use apex\libc\encrypt;
 
 
 class repo 

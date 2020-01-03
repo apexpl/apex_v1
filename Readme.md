@@ -1,7 +1,9 @@
 
-# apex
+# Apex Software Platform
 
-Powerful PHP framework that allows for the efficient, streamlined development of high quality, secure, professional online operations.  Click on one of the below links to continue:
+Powerful PHP software platform that allows you to efficiently develop, deploy and maintain robust 
+online operations that generally consit of an administration panel, public web site, and 
+optional member's area.  Please click on the below links for further information.
 
 * [Installation Guide](docs/install.md) -- or -- [Docker Installation](docs/docker.md)
 * [Developer Training Guide](docs/training/index.md)

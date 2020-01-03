@@ -16,13 +16,13 @@ $app = new \apex\app('http');
  * Pass the request off to the correct HTTP controller, 
  * which is dependant on the first segment of the URI.
  */
-$app->call(["apex\\core\\controller\\http_requests\\" . $app->get_http_controller(), 'process']);
+$app::call(["apex\\core\\service\\http_requests\\" . $app->get_http_controller(), 'process']);
 
 /**
  * Now that the request is handled, go ahead and 
  * output the response to the web browser.
  */
-$app->echo_response();
+$app::echo_response();
 
 /**
  * Gracefully exit.

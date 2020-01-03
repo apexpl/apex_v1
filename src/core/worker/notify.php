@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\worker;
 
 use apex\app;
-use apex\svc\io;
-use apex\svc\redis;
+use apex\libc\io;
+use apex\libc\redis;
 use apex\app\msg\emailer;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\EventMessageInterface as event;

@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Sftp\SftpAdapter;
@@ -22,7 +22,7 @@ use League\Flysystem\FileNotFoundException;
 /**
  * Remote File Storage Handler
  *
- * Service: apex\svc\storage
+ * Service: apex\libc\storage
  *
  * Handles the management of file storage via the remote/flysystem package, 
  * allowing for files to be distributed amongst multiple servers / services such as AWS.
@@ -38,7 +38,7 @@ use League\Flysystem\FileNotFoundException;
  * namespace apex;
  * 
  * use apex\app;
- * use apex\svc\storage;
+ * use apex\libc\storage;
  *
  (
  ( // Set cache item
@@ -168,6 +168,11 @@ public function add(string $dest, string $filename, string $visibility = 'public
     // Check file
     if (!file_exists($filename)) { 
         throw new StorageException('file_not_exists', $this->adapter_type, $filename, $dest);
+    }
+
+    // Delete file, if already exists
+    if ($this->has($dest) === true && $can_overwrite === true) { 
+        $this->delete($dest);
     }
 
     // Stream file, if greater than 1MB
@@ -343,6 +348,11 @@ public function rename(string $from, string $dest):bool
     // Debug
     debug::add(3, tr("Renaming remote file {1} to {2}", $from, $dest));
 
+    // Delete file, if exists
+    if ($this->has($dest) === true) { 
+        $this->delete($dest);
+    }
+
     // Rename file
     try {
         $response = $this->fs->rename($from, $dest);
@@ -368,6 +378,11 @@ public function copy(string $from, string $dest):bool
 
     // Debug
     debug::add(3, tr("Copying remote file {1} to {2}", $from, $dest));
+
+    // Delete file, if already exists
+    if ($this->has($dest) === true) { 
+        $this->delete($dest);
+    }
 
 // Copy file
     try {

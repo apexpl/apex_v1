@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\date;
-use apex\svc\storage;
+use apex\libc\db;
+use apex\libc\date;
+use apex\libc\storage;
 use apex\app\io\backups;
 
 

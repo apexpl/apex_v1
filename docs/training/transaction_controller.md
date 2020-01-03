@@ -17,7 +17,7 @@ declare(strict_types = 1);
 namespace apex\transaction\controller\transaction;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 
 /**
  * Lottery winning transaction controller.

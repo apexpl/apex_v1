@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\table;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\components;
 
 
 class notifications 
@@ -17,14 +17,14 @@ class notifications
     // Set columns
     public $columns = array(
     'id' => 'ID',
-    'controller' => 'Type',
+    'adapter' => 'Type',
     'recipient' => 'Recipient',
     'subject' => 'Subject',
     'manage' => 'Manage'
     );
 
     // Other variables
-    public $sortable = array('id', 'controller','recipient','subject');
+    public $sortable = array('id', 'adapter','recipient','subject');
     public $rows_per_page = 25;
     public $delete_button = 'Delete Checked Notifications';
     public $delete_dbtable = 'notifications';
@@ -71,7 +71,7 @@ public function get_rows(int $start = 0, string $search_term = '',string $order_
 { 
 
     // Get SQL
-    $rows = db::query("SELECT id,controller,recipient,subject FROM notifications ORDER BY $order_by LIMIT $start,$this->rows_per_page");
+    $rows = db::query("SELECT id,adapter,recipient,subject FROM notifications ORDER BY $order_by LIMIT $start,$this->rows_per_page");
 
     // Get rows
     $results = array();
@@ -99,13 +99,13 @@ public function get_rows(int $start = 0, string $search_term = '',string $order_
 public function format_row(array $row):array
 { 
 
-    // Load controller
-    $controller = components::load('controller', $row['controller'], 'core', 'notifications');
+    // Load adapter
+    $adapter = components::load('adapter', $row['adapter'], 'core', 'messages');
 
     // Format row
     $row['id_raw'] = $row['id'];
-    $row['controller'] = $controller->display_name ?? 'Unknown';
-    $row['recipient'] = method_exists($controller, 'get_recipient_name') === true ? $controller->get_recipient_name($row['recipient']) : $row['recipient'];
+    $row['adapter'] = $adapter->display_name ?? 'Unknown';
+    $row['recipient'] = method_exists($adapter, 'get_recipient_name') === true ? $adapter->get_recipient_name($row['recipient']) : $row['recipient'];
     $row['manage'] = "<center><a href=\"/admin/settings/notifications_edit?notification_id=$row[id]\" class=\"btn btn-primary btn-md\">Manage</a></center>";
     $row['id'] = '<center>' . $row['id'] . '</center>';
 

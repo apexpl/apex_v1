@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\msg\utils;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
+use apex\libc\components;
 use apex\app\msg\objects\event_response;
 use apex\app\interfaces\msg\EventMessageInterface;
 use apex\app\interfaces\msg\EventResponseInterface;

@@ -3,14 +3,14 @@
 namespace apex;
 
 use apex\app;
-use apex\svc\redis;
+use apex\libc\redis;
 use apex\app\pkg\package;
 
 class pkg_core
 {
 
 // Set package variables
-public $version = '1.3.0';
+public $version = '1.4.0';
 public $access = 'public';
 public $name = 'Core Framework';
 public $description = 'The core package of the framework, and is required for all installations of the software.';
@@ -34,13 +34,8 @@ $this->menus = array();
 $this->menus[] = array(
     'area' => 'public', 
     'position' => 'top', 
-    'menus' => array(
-        'index'=> 'Home', 
-        'about' => 'About Us', 
-        'register' => 'Sign Up', 
-        'login' => 'Login', 
-        'contact' => 'Contact Us'
-    )
+    'alias' => 'index', 
+    'name' => 'Home'
 );
 
 // Admin menu -- Setup header
@@ -82,6 +77,7 @@ $this->ext_files = array(
     'bootstrap/docker/*',  
     'docs/components/*', 
     'docs/core/*', 
+    'docs/guides/*', 
     'docs/training/*', 
     'etc/constants.php',
     'etc/core/stdlists',  
@@ -97,7 +93,7 @@ $this->ext_files = array(
     'public/robots.txt', 
     'src/app.php', 
     'src/app/*', 
-    'src/svc/*',  
+    'src/libc/*',  
     'tests/core/*', 
     'views/themes/koupon/*', 
     'views/themes/limitless/*', 
@@ -108,7 +104,7 @@ $this->ext_files = array(
 // Notifications
 $this->notifications = array();
 $this->notifications[] = array(
-    'controller' => 'system', 
+    'adapter' => 'system', 
     'sender' => 'admin:1', 
     'recipient' => 'user', 
     'content_type' => 'text/plain', 
@@ -202,11 +198,13 @@ private function define_config()
         'site_phone' => '',
         'site_tagline' => '', 
         'site_facebook' => '', 
-        'site_twitter' => 'https://twitter.com/DizakMatt', 
+        'site_twitter' => 'https://twitter.com/ApexPlatform', 
         'site_linkedin' => '', 
         'site_instagram' => '', 
         'site_youtube' => '', 
         'site_reddit' => '',
+        'site_github' => '', 
+        'site_dribble' => '', 
         'site_about_us' => 'You may specify the text for this section through the Settings->General->Site Info tab of the administration panel.'
     );
     $vars = array_merge($vars, $site_vars);

@@ -4,12 +4,12 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\io;
-use apex\svc\storage;
-use apex\svc\date;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\io;
+use apex\libc\storage;
+use apex\libc\date;
 use apex\app\exceptions\ApexException;
 
 /**

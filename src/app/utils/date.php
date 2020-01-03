@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 use apex\app\utils\hashes;
 use apex\app\exceptions\ApexException;
 
@@ -12,7 +12,7 @@ use apex\app\exceptions\ApexException;
 /**
  * Date Library
  *
- * Service: apex\svc\date
+ * Service: apex\libc\date
  *
  * Handles various date functions, such ad adding / subtracting intervals from 
  * dates, getting the log date, etc. 
@@ -28,7 +28,7 @@ use apex\app\exceptions\ApexException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\date;
+ * use apex\libc\date;
  *
  * // Add interval
  * $new_date = date::add_interval('M1');

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\msg\objects;
 
 use apex\app;
-use apex\svc\debug;
+use apex\libc\debug;
 use apex\app\web\ajax;
 use apex\app\interfaces\msg\WebSocketMessageInterface;
 

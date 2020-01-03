@@ -4,13 +4,13 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
-use apex\svc\encrypt;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
+use apex\libc\encrypt;
 use apex\app\sys\network;
-use apex\svc\components;
-use apex\svc\io;
+use apex\libc\components;
+use apex\libc\io;
 use apex\app\pkg\package_config;
 use apex\app\pkg\package;
 use apex\app\pkg\theme;
@@ -83,8 +83,10 @@ public function help($vars)
     $response .= "\tUPGRADES\n";
     $response .= str_pad('create_upgrade PACKAGE [VERSION]', 40) . "Create new upgrade point on specified package.  optionally, specify version of upgrade\n\n";
     $response .= str_pad('publish_upgrade PACKAGE', 40) . "Publish open upgrade on specified package\n";
-    $response .= str_pad('upgrade [PACKAGE]', 40) . "Downloads and installd all upgrades available.\n";
     $response .= str_pad('check_upgrades', 40) . "Lists all upgrades available to the system\n";
+    $response .= str_pad('upgrade [PACKAGE]', 40) . "Downloads and installd all upgrades available.\n";
+    $response .= str_pad('rollback PACKAGE [VERSION]    ', 40) . "Reverts package to the specified version.\n";
+
 
     // Theme commands
     $response .= "\tTHEMES\n";
@@ -456,7 +458,6 @@ public function publish_upgrade($vars)
 
     // Set variables
     $pkg_alias = $vars[0] ?? '';
-    $version = $vars[1] ?? '';
 
     // Debug
     debug::add(4, tr("CLI: Start publishing upgrade point for package: {1}", $pkg_alias), 'info');
@@ -628,6 +629,61 @@ public function upgrade($vars, network $client, upgrade $upgrade_client)
 }
 
 /**
+ * Rollback an upgrade
+ *
+ * Usage:  php apex.php rollback PACKAGE [VERSION]
+ *
+ * @param iterable $vars The command line arguments specified by the user.
+ */
+public function rollback($vars)
+{
+
+    // Checks
+    $pkg_alias = $vars[0] ?? '';
+    $version = $vars[1] ?? '';
+
+    // Get package
+    if (!$pkg = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $pkg_alias)) { 
+        throw new PackageException('not_exists', $pkg_alias);
+    }
+
+    // Get rollback version, if needed
+    if ($version == '') { 
+
+        // Ask for rollback
+        echo "Please select which version you would like to revert to.\n\n";
+        // Go through previously installed upgrades
+        $x=1;
+        $prev_versions = array();
+        $rows = db::query("SELECT * FROM internal_upgrades WHERE package = %s AND status = 'installed' AND prev_version != '' ORDER BY id DESC LIMIT 0,25", $pkg_alias);
+        foreach ($rows as $row) { 
+            echo "    [$x] v" . $row['prev_version'] . "\n";
+            $prev_versions[(string) $x] = $row['prev_version'];
+        $x++; }
+
+        // Get rollback version
+        do {
+            echo "Version: ";
+            $version_num = trim(readline());
+            $version = $prev_versions[$version_num] ?? '';
+        } while ($version == '');
+
+    }
+
+    // Debug
+    debug::add(2, tr("Starting to rollback package {1} to version {2}", $pkg_alias, $version));
+
+    // Rollback package
+    $upgrade = app::make(upgrade::class);
+    $upgrade->rollback($pkg_alias, $version);
+
+    // Debug
+    debug::add(1, tr("Successfully rolled back package {1} to version {2}", $pkg_alias, $version));
+
+}
+
+
+/**
  * create a new theme 
  *
  * Usage:  php apex.php create_theme ALIAS [AREA] 
@@ -664,6 +720,50 @@ public function create_theme($vars)
 
     // Return
     return $response;
+
+}
+
+/**
+ * Initialize a theme
+ *
+ * Usage:  php apex.php init_theme ALIAS
+ *
+ * @param iterable $vars The command line arguments specified by the user.
+ */
+public function init_theme($vars)
+{
+
+    // Check theme
+    $theme_alias = $vars[0] ?? '';
+    if (!is_dir(SITE_PATH . '/views/themes/' . $theme_alias)) { 
+        throw new ThemeException('not_exists', $theme_alias);
+    }
+
+    // Debug
+    debug::add(1, tr("Starting to initialize theme {1}", $theme_alias));
+
+    // Set variables
+    $client = app::make(theme::client);
+    $theme_dir = SITE_PATH . '/views/themes/' . $theme_alias;
+    $dirs = array('sections', 'tpl', 'layouts');
+
+    // Go through dirs
+    foreach ($dirs as $dir) { 
+        if (!is_dir("$theme_dir/$dir")) { continue; }
+
+        // Get files
+        $files = io::parse_dir("$theme_dir/$dir");
+        foreach ($files as $file) { 
+            if (!preg_match("/\.tpl$/", $file)) { continue; }
+            $client->init_file("$theme_dir/$dir/$file");
+        }
+    }
+
+    // Debug
+    debug::add(1, tr("Successfully initialized theme {1}", $theme_alias));
+
+    // Return
+    return "Successfully initialized the theme $theme_alias, and all files have been updated appropriately.";
 
 }
 
@@ -840,9 +940,9 @@ public function change_theme($vars)
  * PACKAGE:[PARENT:]ALIAS OWNER php apex.php create template URI OWNER TYPE is 
  * the component type (eg. htmlfunc, table, form). PACKAGE is required, and is 
  * the package alias the component is being created under. PARENT is only 
- * required for the types 'tabpage', 'controller', and 'trigger'. ALIAS is the 
+ * required for the types 'tabpage', 'adapter', and 'trigger'. ALIAS is the 
  * alias of the new component. OWNER is only required for type 'template', 
- * 'trigger', 'controller', and 'tabpage'.  This is the package who owns the 
+ * 'trigger', 'adapter', and 'tabpage'.  This is the package who owns the 
  * package, even though the component may reside in another package. URI is 
  * only required for 'template', and is the URI of the new template. 
  *
@@ -860,7 +960,7 @@ public function create($vars)
     debug::add(4, tr("CLI: Start component creation, type: {1}, component alias: {2}, owner: {3}", $type, $comp_alias, $owner), 'info');
 
     // Perform checks
-    if (!in_array($type, COMPONENT_TYPES)) { 
+    if (!in_array($type, array_keys(COMPONENT_TYPES))) { 
         throw new ComponentException('invalid_type', $type);
     } elseif ($type != 'view' && ($comp_alias == '' || !preg_match("/^(\w+):(\w+)/", $comp_alias)) ){ 
         throw new ComponentException('invalid_comp_alias', $type, $comp_alias);

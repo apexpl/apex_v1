@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\views;
 
 use apex\app;
-use apex\svc\auth;
-use apex\svc\view;
+use apex\libc\auth;
+use apex\libc\view;
 
 /**
  * All code below this line is automatically executed when this template is viewed, 

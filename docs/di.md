@@ -2,136 +2,15 @@
 # Dependency Injection
 
 Apex fully implements PSR11 compliant dependency injection, and uses the [app class](app.md) as the container.  If you are unfamiliar with 
-dependency injection, a good starting guide can be found at: [Getting Started - The Dependency Injection Container for Humans](http://php-di.org/doc/getting-started.html)
+dependency injection, two good starting points can be found at the guide titled [Getting Started - The Dependency Injection Container for Humans](http://php-di.org/doc/getting-started.html), 
+and a Youtube talk titled [Demystifying Dependency Injection Containers](https://www.youtube.com/watch?v=y7EbrV4ChJs&t=507s).  This manual assumes 
+you are already familiar with depenency injection, and understand its concept.
 
-1. <a href="#overview">Overview</a>
-2. <a href="#container_methods">Container Methods</a>
-3. <a href="#injection_methods">Injection Methods</a>
+1. <a href="#container_methods">Container Methods</a>
+2. <a href="#injection_methods">Injection Methods</a>
     1. <a href="#constructor_injection">Constructor Injection</a>
     2. <a href="#method_injection">Method Injection</a>
     3. <a href="#annotation_injection">Addnotation Injection</a>
-
-
-
-<a name="overview"></a>
-## Overview
-
-To put it simply, dependency injection (DI for short) changes the software so instead of constantly giving
-"tools" to your classes by passing parameters to them or always creating new instances of classes, you simply
-provide a toolbox and allow each class to pick out what it needs, as it needs it.  Instead of you always
-passing off tools to each class / method, the classes just specify what they need and it is provided
-(injected) to them.
-
-
-#### Example
-
-You should always try to load classes via the container in case they either have dependencies themselves, or
-will be injected into other classes during execution.  For an example, say we have a user and store objects,
-both of which are required by an orders class.  Somewhere in our code we would create our two objects such as:
-
-~~~php
-namespace apex;
-
-use apex\app;
-use apex\users\user;
-use apex\retail\store;
-
-// Some variables
-$userid = 847;
-$store_id = 23;
-
-// Define our user, and set in container
-$user = app::make(user::class, ['id' => $userid]);
-$user->modify_something();
-app::set(user::class, $user);
-
-// Define our store, and set in container
-$store = app::make(store::class, ['store_id' => $store_id]);
-app::set(store::class, $store);
-~~~
-
-Instead of creating a new instance of the user class with `$user = new user()` we created it via the
-container's make() method.  This is done so any dependencies the user class has will be automatically
-injected to it.  We also set both classes via the set() method, and they are now sitting in our container
-ready for injection.
-
-Now when a new order needs to be created, we will need both the user and store objects, plus say an emailer
-class.  It could look something like:
-
-~~~php
-namespace apex\cart;
-
-use apex\app;
-use apex\users\user;
-use apex\retail\store;
-use apex\app\msg\emailer;
-
-class order
-{
-
-    // Properties
-    private $user;
-    private $store;
-    private $emailer;
-    private $note;
-    /**
-     * Constructor.  Grab our dependencies.
-     */
-    public function __construct(user $user, store $store, emailer $emailer, string $note = '')
-    {
-
-        // Set properties
-        $this->user = $user;
-        $this->store = $store;
-        $this->emailer = $emailer;
-        $this->note = note;
-
-    }
-
-    /**
-     * Add order
-     */
-    public function add()
-    {
-
-        // Load user profile
-        $profile = $this->user->load();
-
-        // Send e-mails
-        $this->emailer->process_emails();
-
-        // Add order //
-        $order_id = // do something //
-
-        // Return
-        return $order_id;
-
-    }
-
-}
-~~~
-
-Now when we want to add a new order, we can load the class and call the add() method directly with:
-
-~~~php
-namespace apex;
-
-use apex\app;
-use apex\cart\order;
-
-// Add new order
-$order_id = app::call([order::class, 'add'], ['note' => 'some order note']);
-~~~
-
-The above will create a new instance of the order class, and automatically inject the user and store objects
-we previously defined into the constructor.  Plus since we defined the emailer class within our "use"
-statements in the order class, it will be injected into the constructor as well.  if an emailer object has
-already been defined in the container it will be used, and otherwise a new instance of the emailer class will
-be created.
-
-That's dependency injection in a nutshell.  Instead of specifically passing the user and store objects to the
-orders class, the orders class simply grabs them from our container as needed.  Plus since we defined the
-emailer class in our "use" statements, it will be injected as well.
 
 
 <a name="container_methods"></a>
@@ -176,8 +55,7 @@ class some_class
 
         // Create a user class, if we don't have one
         if (!app::has(user::class)) {
-            $user = app::make(user::class, ['id'] => $default_userid]);
-            app::set(user::class, $user);
+            $user = app::makeset(user::class, ['id'] => $default_userid]);
         }
 
         // Get the store
@@ -185,7 +63,7 @@ class some_class
         $store->check_if_open();
 
         // Call the add() method on order class
-        app::call([order::class, 'add']);
+        app::call([order::class, 'add'], ['note' => 'Some test note']);
 
         // Call process() on emailer
         $this->emailer->process();

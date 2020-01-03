@@ -4,16 +4,16 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
 use apex\app\exceptions\ComponentException;
 
 
 /**
  * Components Library
  *
- * Service: apex\svc\components
+ * Service: apex\libc\components
  *
  * Handles all internal components, such as checking whether or not a 
  * component exists, loading a component via the dependency injection 
@@ -30,7 +30,7 @@ use apex\app\exceptions\ComponentException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\components;
+ * use apex\libc\components;
  *
  * // Load a component
  * $client = components::load('worker', 'myworker', 'somepackage');
@@ -162,7 +162,7 @@ private function get_class_name(string $type, string $alias, string $package, st
 { 
 
     // Initialize
-    if ($type == 'tabpage') { $type = 'tabcontrol'; }
+    if (isset(COMPONENT_PARENT_TYPES[$type])) { $type = COMPONENT_PARENT_TYPES[$type]; }
 
     // Get class name
     $class_segments = array('', 'apex', $package);
@@ -192,35 +192,19 @@ public function get_file(string $type, string $alias, string $package, string $p
     debug::add(5, tr("Getting PHP component file, type: {1}, package: {2}, parent: {3}, alias: {4}", $type, $package, $parent, $alias));
 
     // Ensure valid components type
-    if (!in_array($type, COMPONENT_TYPES)) { 
+    if (!in_array($type, array_keys(COMPONENT_TYPES))) { 
         return '';
     }
 
-    // Get view file, if needed
-    if ($type == 'view') { 
-        $php_file = 'views/php/' . $alias . '.php';
-        return $php_file;
-
-    // Unit test
-    } elseif ($type == 'test') { 
-        $php_file = 'tests/' . $package . '/' . $alias . '_test.php';
-        return $php_file;
-    }
-
-    // Set variables
-    $file_type = $type == 'tabpage' ? 'tabcontrol' : $type;
-
-    // Get PHP file
-    $php_file =  'src/' . $package . '/';
-    if ($file_type != 'lib') { $php_file .= $file_type . '/'; }
-    if ($parent != '') { $php_file .= $parent . '/'; }
-    $php_file .= $alias . '.php';
-
-    // Debug
-    debug::add(5, tr("Got PHP component file, {1}", $php_file));
+    // Set replacements
+    $replace = array(
+        '~package~' => $package, 
+        '~parent~' => $parent, 
+        '~alias~' => $alias
+    );
 
     // Return
-    return $php_file;
+    return strtr(COMPONENT_TYPES[$type], $replace);
 
 }
 
@@ -237,24 +221,20 @@ public function get_file(string $type, string $alias, string $package, string $p
 public function get_tpl_file(string $type, string $alias, string $package, string $parent = ''):string
 { 
 
-    // Check view
-    if ($type == 'view') { 
-        $tpl_file = 'views/tpl/' . $alias . '.tpl';
-        return $tpl_file;
+    // Check type
+    if (!in_array($type, array_keys(COMPONENT_TPL_FILES))) { 
+        return '';
     }
 
-    // Get TPL file
-if (in_array($type, array('tabpage', 'modal', 'htmlfunc'))) { 
-        $tpl_file = 'views/components/' . $type . '/' . $package . '/';
-        if ($parent != '') { $tpl_file .= $parent . '/'; }
-        $tpl_file .= $alias . '.tpl';
-
-        // Return
-        return $tpl_file;
-    }
+    // Set replacements
+    $replace = array(
+        '~package~' => $package, 
+        '~parent~' => $parent, 
+        '~alias~' => $alias
+    );
 
     // Return
-    return '';
+    return strtr(COMPONENT_TPL_FILES[$type], $replace);
 
 }
 
@@ -331,27 +311,27 @@ public function get_all_files(string $type, string $alias, string $package, stri
  *
  * @return string The relative file path within the Github repo.
  */
-public function get_github_file(string $file, string $pkg_alias):string
+public function get_compile_file(string $file, string $pkg_alias):string
 {
 
-    // Get the Github file
-    $git_file = '';
+    // Get the compile file
+    $new_file = '';
     if (preg_match("/^src\/(.+?)\/(.+)$/", $file, $match)) { 
-        $git_file = $match[1] == $pkg_alias ? 'src/' : 'child/' . $match[1] . '/';
-        $git_file .= $match[2];
+        $new_file = $match[1] == $pkg_alias ? 'src/' : 'child/' . $match[1] . '/';
+        $new_file .= $match[2];
 
     } elseif (preg_match("/^tests\/$pkg_alias\/(.+)$/", $file, $match)) { 
-        $git_file = 'tests/' . $match[1];
+        $new_file = 'tests/' . $match[1];
 
     } elseif (preg_match("/^docs\/$pkg_alias\/(.+)$/", $file, $match)) { 
-        $git_file = 'docs/' . $match[1];
+        $new_file = 'docs/' . $match[1];
 
     } elseif (preg_match("/^views\/(.+)$/", $file, $match)) { 
-        $git_file = $file;
+        $new_file = $file;
     }
 
     // Return
-    return $git_file;
+    return $new_file;
 
 }
 

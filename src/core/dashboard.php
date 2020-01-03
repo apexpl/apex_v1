@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\components;
 
 /**
  * Handles the dashboard widegts for the core package, plus other 

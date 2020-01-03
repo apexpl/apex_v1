@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 
 /**
  * Class that andles the crontab job.

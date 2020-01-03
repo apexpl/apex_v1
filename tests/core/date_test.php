@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\utils\date;
 use apex\app\exceptions\ApexException;
 use apex\app\tests\test;
@@ -225,7 +225,7 @@ private function check_date($date)
     }
 
 // Check year
-    $ok = preg_match("/^201/", $match[1]) ? true : false;
+    $ok = preg_match("/^20/", $match[1]) ? true : false;
     $this->assertTrue($ok, "Year is not correct in date, $date");
 
     // Check month

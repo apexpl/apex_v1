@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex;
 
 use apex\app;
-use apex\svc\debug;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\view;
+use apex\libc\debug;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\view;
 use apex\app\sys\container;
 use apex\app\msg\emailer;
 use apex\app\exceptions\ApexException;
@@ -458,7 +458,7 @@ public static function verify_2fa(array $vars)
     self::$verified_2fa = true;
 
     // Handle request
-    self::call(["apex\\core\\controller\\http_requests\\" . $vars['http_controller'], 'process']);
+    self::call(["apex\\core\\service\\http_requests\\" . $vars['http_controller'], 'process']);
 
 }
 
@@ -629,7 +629,7 @@ public static function set_uri(string $uri, bool $prepend_area = false, bool $lo
     self::$uri_segments = explode('/', $uri);
 
     // Check for http controller
-    if (file_exists(SITE_PATH . '/src/core/controller/http_requests/' . self::$uri_segments[0] . '.php')) {
+    if (file_exists(SITE_PATH . '/src/core/service/http_requests/' . self::$uri_segments[0] . '.php')) {
         self::$http_controller = array_shift(self::$uri_segments);
         if (count(self::$uri_segments) == 0) {
             self::$uri_segments[] = 'index';

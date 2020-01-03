@@ -4,22 +4,24 @@ declare(strict_types = 1);
 namespace apex\core\table;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
+use apex\libc\components;
+use apex\libc\date;
 
 
+/**
+ * Data table for all crontab jobs.
+ */
 class crontab 
 {
 
 
-
-
     // Set columns
     public $columns = array(
-    'display_name' => 'Name',
-    'autorun' => 'Active',
-    'time_interval' => 'Interval',
-    'lastrun_time' => 'Last Executed',
-    'nextrun_time' => 'Next Execution'
+        'name' => 'Name',
+        'autorun' => 'Active',
+        'time_interval' => 'Interval',
+        'nextrun_time' => 'Next Execution'
     );
 
     // Basic variables
@@ -28,8 +30,8 @@ class crontab
 
     // Form field
     public $form_field = 'checkbox';
-    public $form_name = 'crontab_id';
-    public $form_value = 'id';
+    public $form_name = 'cron_alias';
+    public $form_value = 'cron_alias';
 
 /**
  * Get total number of rows. 
@@ -45,7 +47,7 @@ public function get_total(string $search_term = ''):int
 { 
 
     // Get total
-    $total = db::get_field("SELECT count(*) FROM internal_crontab");
+    $total = db::get_field("SELECT count(*) FROM internal_components WHERE type = 'crontab'");
     if ($total == '') { $total = 0; }
 
     // Return
@@ -69,13 +71,34 @@ public function get_total(string $search_term = ''):int
 public function get_rows(int $start = 0, string $search_term = '', string $order_by = 'display_name asc'):array
 { 
 
-    // Get rows
-    $rows = db::query("SELECT * FROM internal_crontab ORDER BY $order_by LIMIT $start,$this->rows_per_page");
-
-    // Go through rows
+// Go through crontab jobs
     $results = array();
+    $rows = db::query("SELECT * FROM internal_components WHERE type = 'cron' ORDER BY package,alias");
     foreach ($rows as $row) { 
-        array_push($results, $this->format_row($row));
+
+        // Load component
+        if (!$cron = components::load('cron', $row['alias'], $row['package'])) { 
+            continue;
+        }
+        $autorun = $cron->autorun ?? 1;
+        $interval = $cron->time_interval ?? '';
+
+        // Get nextrun time
+        if ($execute_time = db::get_field("SELECT execute_time FROM internal_tasks WHERE adapter = 'crontab' AND alias = %s", $row['package'] . ':' . $row['alias'])) { 
+        $execute_time = fdate($execute_time, true);
+        } else { 
+            $execute_time = 'Not Scheduled';
+        }
+
+        // Set vars
+        $vars = array(
+            'cron_alias' => $row['package'] . ':' . $row['alias'], 
+            'name' => ($cron->name ?? ucwords(str_replace('_', ' ', $row['alias']))), 
+            'autorun' => ($autorun == 1 ? 'Yes' : 'No'), 
+            'time_interval' => date::parse_date_interval($interval), 
+            'nextrun_time' => $execute_time
+        );
+        $results[] = $vars;
     }
 
     // Return
@@ -83,33 +106,6 @@ public function get_rows(int $start = 0, string $search_term = '', string $order
 
 }
 
-/**
- * Formats a single row for display within the web browser. 
- *
- * Has one database table row passed to it, an associative array, which can 
- * then be formatted as necessary for display within the web brwoser.  This 
- * takes the raw contents from the database and converts it to displable 
- * format. 
- *
- * @param array $row The row from the database.
- *
- * @return array The resulting array that should be displayed to the browser.
- */
-public function format_row(array $row):array
-{ 
-
-    // Format row
-    $row['autorun'] = $row['autorun'] == 1 ? 'Yes' : 'No';
-    $row['nextrun_time'] = fdate(date('Y-m-d H:i:s', (int) $row['nextrun_time']), true);
-    $row['lastrun_time'] = fdate(date('Y-m-d H:i:s', (int) $row['lastrun_time']), true);
-
-
-
-    // Return
-    return $row;
-
 }
 
-
-}
 

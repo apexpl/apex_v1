@@ -17,9 +17,10 @@ Below contains links to the sections within this page:
 3. <a href="#send_cli">send_cli($action, $params)</a>
 4. <a href="#invoke_method">invoke_method($object, $method, $params)</a>
 5. <a href="#wait_exception">waitException($message)</a>
-6. <a href="#auto_login">auto_login()</a>
-7. <a href="#testing_emails">Testing E-Mail messages</a>
-8. <a href="#custom_assertions">Custom Assertions</a>
+6. <a href="#get_demo_user">get_demo_user($type = 'user')</a>
+7. <a href="#auto_login">auto_login()</a>
+8. <a href="#testing_emails">Testing E-Mail messages</a>
+9. <a href="#custom_assertions">Custom Assertions</a>
 
 
 
@@ -145,6 +146,14 @@ function test_something()
 
 }
 ~~~
+
+
+<a name="get_demo_user">
+### `$this->get_demo_user($type = 'user');`
+
+**Description:** Used to obtain the ID# of the demo user / administrator for testing purposes.  This is the user specified within the server variables inside the phpunit.xml file.  If the user does not 
+currently exist, it will be automatically created for cases where the user was previously deleted by another test, you will always be able to 
+obtain the ID# with this method.
 
 
 <a name="auto_login"></a>

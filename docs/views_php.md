@@ -2,7 +2,7 @@
 # Views - PHP Methods
 
 There are a few PHP methods that you will need when developing views to assign merge variables, add callout
-messages, and so on.  These are available via the *apex\svc\view* service, meaning they are
+messages, and so on.  These are available via the *apex\libc\view* service, meaning they are
 statically available, and are explained below.
 
 
@@ -30,7 +30,7 @@ error / warning messages that are displayed at the top of the page.  The `$type`
 namespace apex;
 
 use apex\app;
-use apex\svc\view;
+use apex\libc\view;
 
 view::add_callout(tr("Successfully added new blog post, %s", $title));
 

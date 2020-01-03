@@ -27,8 +27,8 @@ declare(strict_types = 1);
 namespace apex\casino\worker;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\redis;
 use apex\app\interfaces\msg\EventMessageInterface as event;
 
 class parse_template

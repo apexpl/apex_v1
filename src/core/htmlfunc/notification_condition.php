@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\htmlfunc;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\view;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\view;
+use apex\libc\components;
 use apex\app\web\html_tags;
 use apex\core\admin;
 
@@ -59,16 +59,16 @@ public function process(string $html, array $data = array()):string
         $condition = json_decode(base64_decode($row['condition_vars']), true);
         $sender = $row['sender'];
         $recipient = $row['recipient'];
-        $data['controller'] = $row['controller'];
+        $data['adapter'] = $row['adapter'];
     }
 
-    // Check controller exists
-    if (!components::check('controller', 'core:notifications:' . $data['controller'])) { 
-        return "<b>ERROR:</b> The notification controller '$data[controller]' does not exist.";
+    // Check adapter exists
+    if (!components::check('adapter', 'core:messages:' . $data['adapter'])) { 
+        return "<b>ERROR:</b> The notification adapter '$data[adapter]' does not exist.";
     }
 
     // Load component
-    $client = components::load('controller', $data['controller'], 'core', 'notifications');
+    $client = components::load('adapter', $data['adapter'], 'core', 'messages');
 
     // Create admin options
     $admin = $this->admin;

@@ -13,7 +13,7 @@ accessed statically providing easy and efficient access.
 namespace apex;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 
 $value = 'john';
 $rows = db::query("SELECT * FROM table_name WHERE some_column = %s", $value);

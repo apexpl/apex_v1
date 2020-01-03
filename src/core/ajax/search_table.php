@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\ajax;
 
 use apex\app;
-use apex\svc\components;
+use apex\libc\components;
 use apex\app\utils\tables;
 use apex\app\web\ajax;
 use apex\app\exceptions\ComponentException;

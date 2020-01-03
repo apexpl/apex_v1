@@ -4,17 +4,17 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
+use apex\libc\components;
 use apex\app\exceptions\ComponentException;
 
 
 /**
  * Hashes Library
  *
- * Service: apex\svc\hashes
+ * Service: apex\libc\hashes
  *
  * Handles the various has operations against the hashes defined within the 
  * $this->hash array within package.php configuration files.  Allows you to 
@@ -31,7 +31,7 @@ use apex\app\exceptions\ComponentException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\hashes;
+ * use apex\libc\hashes;
  * 
  * // Get variables
 s

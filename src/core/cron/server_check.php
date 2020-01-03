@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
-use apex\svc\redis;
+use apex\libc\redis;
 
 
 /**

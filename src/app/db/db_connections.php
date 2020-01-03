@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\db;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\redis;
 use apex\app\db\mysql;
 
 

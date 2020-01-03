@@ -53,9 +53,9 @@ declare(strict_types = 1);
 namespace apex\views;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\view;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\view;
+use apex\libc\debug;
 
 /**
  * All code below this line is automatically executed when this template is viewed, 

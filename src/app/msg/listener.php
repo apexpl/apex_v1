@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\components;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\ListenerInterface;
 use apex\app\interfaces\msg\EventMessageInterface;

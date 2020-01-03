@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\components;
-use apex\svc\io;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\components;
+use apex\libc\io;
 use apex\app\db\db_connections;
 use apex\core\admin;
 use apex\core\notification;

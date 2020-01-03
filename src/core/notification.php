@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace apex\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\components;
-use apex\svc\forms;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\components;
+use apex\libc\forms;
 use apex\app\msg\emailer;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\CommException;
@@ -34,17 +34,17 @@ class Notification
 
 
 /**
- * Get available merge fields from a certain notification controller. 
+ * Get available merge fields from a certain notification adapter 
  *
- * @param string $controller The notification controller to obtain merge fields of.
+ * @param string $adapter The notification adapter to obtain merge fields of.
  *
  * @return array All availalbe merge fields.
  */
-public function get_merge_fields(string $controller):string
+public function get_merge_fields(string $adapter):string
 { 
 
     // Debug
-    debug::add(5, tr("Obtaining merge fields for notification controller, {1}", $controller));
+    debug::add(5, tr("Obtaining merge fields for notification adapter, {1}", $adapter));
 
     // Set systems fields
     $fields = array();
@@ -76,11 +76,11 @@ public function get_merge_fields(string $controller):string
         'date_created' => 'Date Created'
     );
 
-    // Load controller
-    if (!list($package, $parent, $alias) = components::check('controller', 'core:notifications:' . $controller)) { 
-        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $controller);
+    // Load adapter
+    if (!list($package, $parent, $alias) = components::check('adapter', 'core:messages:' . $adapter)) { 
+        throw new ComponentException('not_exists_alias', 'adapter', 'core:messages:' . $adapter);
     }
-    $client = components::load('controller', $controller, 'core', 'notifications');
+    $client = components::load('adapter', $adapter, 'core', 'messages');
 
     // Get fields
     if (method_exists($client, 'get_merge_fields')) { 
@@ -107,17 +107,17 @@ public function get_merge_fields(string $controller):string
 /**
  * Get mrege variables for an e-mail notification 
  *
- * @param string $controller The e-mail notification controller
+ * @param string $adapter The e-mail notification adapter
  * @param int $userid The ID# of the user, if appropriate
  * @param array $data Any additional data passed when processing the e-mail notifications
  *
  * @return array Returns a key-value pair of all merge variables
  */
-public function get_merge_vars(string $controller, int $userid = 0, array $data = array()):array
+public function get_merge_vars(string $adapter, int $userid = 0, array $data = array()):array
 { 
 
     // Debug
-    debug::add(5, tr("Obtaining merge ariables for e-mail notification controller {1}, userid: {2}", $controller, $userid));
+    debug::add(5, tr("Obtaining merge ariables for e-mail notification adapter {1}, userid: {2}", $adapter, $userid));
 
     // Get install URL
     $url = isset($_SERVER['_HTTPS']) ? 'https://' : 'http://';
@@ -136,7 +136,7 @@ public function get_merge_vars(string $controller, int $userid = 0, array $data 
     );
 
     // Get user profile, fi needed
-    if ($userid > 0 && redis::exists('user:' . $userid) !== false) { 
+    if ($userid > 0 && redis::exists('user:' . $userid) == 1) { 
         $user = app::make(user::class, ['id' => (int) $userid]);
         $profile = $user->load(false, true);
 
@@ -145,13 +145,13 @@ public function get_merge_vars(string $controller, int $userid = 0, array $data 
         }
     }
 
-    // Load controller
-    if (!list($package, $parent, $alias) = components::check('controller', 'core:notifications:' . $controller)) { 
-        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $controller);
+    // Load adapter
+    if (!list($package, $parent, $alias) = components::check('adapter', 'core:messages:' . $adapter)) { 
+        throw new ComponentException('not_exists_alias', 'adapter', 'core:messages:' . $adapter);
     }
-    $client = components::load('controller', $controller, 'core', 'notifications');
+    $client = components::load('adapter', $adapter, 'core', 'messages');
 
-    // Get vars from controller, if available
+    // Get vars from adapter, if available
     if (method_exists($client, 'get_merge_vars')) { 
         $tmp_vars = $client->get_merge_vars($userid, $data);
         $vars = array_merge($vars, $tmp_vars);
@@ -217,35 +217,36 @@ public function send($userid, int $notification_id, $data)
     }
     $condition = json_decode(base64_decode($row['condition_vars']), true);
 
-    // Load controller
-    $controller = components::load('controller', $row['controller'], 'core', 'notifications');
+    // Load adapter
+    $adapter = components::load('adapter', $row['adapter'], 'core', 'messages');
 
     // Get sender info
-    if ((!method_exists($controller, 'get_recipient')) || (!list($from_email, $from_name) = $controller->get_recipient($row['sender'], $userid, $data))) { 
+    if ((!method_exists($adapter, 'get_recipient')) || (!list($from_email, $from_name) = $adapter->get_recipient($row['sender'], $userid, $data))) { 
         if (!list($from_email, $from_name) = $this->get_recipient($row['sender'], $userid)) { 
             throw new CommException('no_sender', '', '', $row['sender']);
         }
     }
 
     // Change recipient for 2FA
-    if ($row['controller'] == 'system' && isset($condition['action']) && $condition['action'] == '2fa') { 
+    if ($row['adapter'] == 'system' && isset($condition['action']) && $condition['action'] == '2fa') { 
         $row['recipient'] = app::get_area() == 'admin' ? 'admin:' . app::get_userid() : 'user';
+        if (app::get_area() == 'admin') { $userid = 0; }
     }
 
     // Get recipient info
-    if ((!method_exists($controller, 'get_recipient')) || (!list($to_email, $to_name) = $controller->get_recipient($row['recipient'], $userid, $data))) { 
+    if ((!method_exists($adapter, 'get_recipient')) || (!list($to_email, $to_name) = $adapter->get_recipient($row['recipient'], $userid, $data))) { 
         if (!list($to_email, $to_name) = $this->get_recipient($row['recipient'], $userid)) { 
             throw new CommException('no_recipient', '', '', $row['recipient']);
         }
     }
 
     // Set variables
-    $reply_to = $controller->reply_to ?? $row['reply_to'];
-    $cc = $controller->cc ?? $row['cc'];
-        $bcc = $controller->bcc ?? $row['bcc'];
+    $reply_to = $adapter->reply_to ?? $row['reply_to'];
+    $cc = $adapter->cc ?? $row['cc'];
+        $bcc = $adapter->bcc ?? $row['bcc'];
 
     // Get merge variables
-    $merge_vars = $this->get_merge_vars($row['controller'], $userid, $data);
+    $merge_vars = $this->get_merge_vars($row['adapter'], $userid, $data);
 
     // Format message
     $subject = $row['subject']; $message = base64_decode($row['contents']);
@@ -272,17 +273,17 @@ public function create(array $data = array())
 { 
 
     // Perform checks
-    if (!isset($data['controller'])) { 
-        throw new ApexException('error', "No notification controller was defined upon creating e-mail notification");
+    if (!isset($data['adapter'])) { 
+        throw new ApexException('error', "No notification adapter was defined upon creating e-mail notification");
     } elseif (!isset($data['sender'])) { 
         throw new ApexException('error', "No sender variable defined when trying to create e-mail notification");
     } elseif (!isset($data['recipient'])) { 
         throw new ApexException('error', "No recipient variable defined when creating e-mail notification");
     }
 
-    // Load controller
-    if (!$client = components::load('controller', $data['controller'], 'core', 'notifications')) { 
-        throw new ComponentException('not_exists_alias', 'controller', 'core:notifications:' . $data['controller']);
+    // Load adapter
+    if (!$client = components::load('adapter', $data['adapter'], 'core', 'messages')) { 
+        throw new ComponentException('not_exists_alias', 'adapter', 'core:messages:' . $data['adapter']);
     }
 
     // Get condition
@@ -293,7 +294,7 @@ public function create(array $data = array())
 
     // Add to DB
     db::insert('notifications', array(
-        'controller' => $data['controller'],
+        'adapter' => $data['adapter'],
         'sender' => $data['sender'],
         'recipient' => $data['recipient'],
         'reply_to' => ($data['reply_to'] ?? ''),
@@ -345,8 +346,8 @@ public function edit($notification_id)
         throw new CommException('not_exists', '', '', $notification_id);
     }
 
-    // Load controller
-    $client = components::load('controller', $row['controller'], 'core', 'notifications');
+    // Load adapter
+    $client = components::load('adapter', $row['adapter'], 'core', 'messages');
 
     // Get condition
     $condition = array();
@@ -400,18 +401,18 @@ public function create_options($selected = ''):string
     $options = '<option value="custom">Send Custom Message</option>';
 
     // Go through notifications
-    $last_controller = '';
-    $rows = db::query("SELECT id,controller,subject FROM notifications ORDER BY controller,subject");
+    $last_adapter = '';
+    $rows = db::query("SELECT id,adapter,subject FROM notifications ORDER BY adapter,subject");
     foreach ($rows as $row) { 
 
-        // Load controller, if needed
-        if ($last_controller != $row['controller']) { 
-            $controller = components::load('controller', $row['controller'], 'core', 'notifications');
-            $name = $controller->display_name ?? ucwords($row['controller']);
+        // Load adapter, if needed
+        if ($last_adapter != $row['adapter']) { 
+            $adapter = components::load('adapter', $row['adapter'], 'core', 'messages');
+            $name = $adapter->display_name ?? ucwords(str_replace("_", " ", $row['adapter']));
 
-            if ($last_controller != '') { $options .= "</optgroup>"; }
+            if ($last_adapter != '') { $options .= "</optgroup>"; }
             $options .= "<optgroup name=\"$name\">";
-            $last_controller = $row['controller'];
+            $last_adapter = $row['adapter'];
         }
 
     // Add to options
@@ -428,7 +429,7 @@ public function create_options($selected = ''):string
  * Add a mass e-mailing to the queue 
  *
  * @param string $type The type of notification.  Must be either 'email' or 'sms'
- * @param string $controller The controller to user to gather the recipients.  Defaults to 'users'
+ * @param string $adapter The adapter to user to gather the recipients.  Defaults to 'users'
  * @param string $message The contents of the message to send
  * @param string $subject The subject of the e-mail message
  * @param string $from_name The sender name of the e-mail message
@@ -436,13 +437,13 @@ public function create_options($selected = ''):string
  * @param string $reply_to The reply-to e-mail address of the e-mail message
  * @param array $condition An array containing the filter criteria defining which users to broadcast to.
  */
-public function add_mass_queue(string $type, string $controller, string $message, string $subject = '', string $from_name = '', string $from_email = '', string $reply_to = '', array $condition = array())
+public function add_mass_queue(string $type, string $adapter, string $message, string $subject = '', string $from_name = '', string $from_email = '', string $reply_to = '', array $condition = array())
 { 
 
     // Add to database
     db::insert('notifications_mass_queue', array(
         'type' => $type,
-        'controller' => $controller,
+        'adapter' => $adapter,
         'from_name' => $from_name,
         'from_email' => $from_email,
         'reply_to' => $reply_to,

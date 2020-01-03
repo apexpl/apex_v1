@@ -63,7 +63,7 @@ Variable | Type | Description
 namespace apex;
 
 use apex\app;
-use apex\svc\debug;
+use apex\libc\debug;
 
 // Do something //
 $amount = 15;
@@ -100,7 +100,7 @@ added.
 namespace apex;
 
 use apex\app;
-use apex\svc\log;
+use apex\libc\log;
 
 log::info("Here is some info about what's happening");
 

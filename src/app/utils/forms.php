@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\debug;
-use apex\svc\view;
-use apex\svc\components;
+use apex\libc\debug;
+use apex\libc\view;
+use apex\libc\components;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\ComponentException;
 use apex\app\exceptions\FormException;
@@ -15,7 +15,7 @@ use apex\app\exceptions\FormException;
 /**
  * HTML Forms Library
  *
- * Service: apex\svc\forms
+ * Service: apex\libc\forms
  *
  * Handles various form functionality such as easy server-side validation of 
  * form components, obtaining an uploaded file, the value of a checkbox, date 
@@ -32,7 +32,7 @@ use apex\app\exceptions\FormException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\forms;
+ * use apex\libc\forms;
  *
  * // Validate the users:register form
  * forms::validate_form('users:register');
@@ -203,7 +203,9 @@ public function validate_form(string $form_alias, string $error_type = 'template
     $this->validate_fields($error_type, $a_required, $a_datatypes, $a_minlength, $a_maxlength, $a_labels);
 
     // Perform any additional form validation
-    $form->validate($data);
+    if (method_exists($form, 'validate')) { 
+        $form->validate($data);
+    }
 
     // Debug
     debug::add(2, tr("Completed validating form component with alias {1}", $form_alias));

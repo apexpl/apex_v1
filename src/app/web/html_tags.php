@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace apex\app\web;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\view;
-use apex\svc\date;
-use apex\svc\hashes;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\view;
+use apex\libc\date;
+use apex\libc\hashes;
 use apex\core\dashboard;
 
 
@@ -154,6 +154,49 @@ public function page_title(array $attr, string $text):string
 }
 
 /**
+ * social_links
+ *
+ * Returns a list of all social media links with FontAwesome icons 
+ * depending on what social media profiles administrator has defined.
+ *
+ * @param array $attr All attributes passed within the HTML tag.
+ * @param string $text The text between the opening and closing tags, if applicable.
+ *
+ * @return string The resulting HTML code.
+ */
+public function social_links(array $attr, string $text):string
+{
+
+    // Set supported social networks
+    $social_networks = array(
+        'facebook', 
+        'twitter', 
+        'youtube', 
+        'linkedin', 
+        'instagram', 
+        'github', 
+        'reddit', 
+        'dribble'
+    );
+
+    // Go through social networks
+    $html = '';
+    foreach ($social_networks as $alias) { 
+        $url = app::_config('core:site_' . $alias) ?? '';
+        if ($url == '') { continue; }
+
+        // Add to html
+        $html .= "<a href=\"$url\" target=\"_blank\"><span class=\"fa fa-" . $alias . "\"></span></a> ";
+    }
+
+    // Return
+    return $html;
+
+}
+
+/**
+ * form
+ *
  * Replaced with a standard <form> tag, and unless attributes are defined to 
  * the contrary, the action points to the current template being displayed, 
  * with a method of POST. 

@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\io;
-use apex\svc\components;
-use apex\svc\encrypt;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\io;
+use apex\libc\components;
+use apex\libc\encrypt;
 use apex\app\exceptions\RepoException;
 use ZipArchive;
 use CurlFile;

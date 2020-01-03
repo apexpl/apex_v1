@@ -4,16 +4,16 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\redis;
-use apex\svc\log;
-use apex\svc\date;
+use apex\libc\redis;
+use apex\libc\log;
+use apex\libc\date;
 use apex\app\interfaces\DebuggerInterface;
 
 
 /**
  * Debugger
  * 
- * Service: apex\svc\debug
+ * Service: apex\libc\debug
  *
  * Handles logging all debugger line items, and displaying the ( debug results 
  * within the browser when necessary. 
@@ -29,7 +29,7 @@ use apex\app\interfaces\DebuggerInterface;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\debug;
+ * use apex\libc\debug;
  *
  * // Add debug entry
  * debug::add(2, "Something happened here", 'info');
@@ -143,7 +143,7 @@ public function finish_session()
         'registry' => array(
             'request_method' => app::get_method(),
             'service' => 'http',
-            'http_controller' => app::get_http_controller(),
+            'http_adapter' => app::get_http_controller(),
             'uri' => app::get_uri(),
             'ip_address' => app::get_ip(),
             'user_agent' => app::get_user_agent(),

@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\web\ajax;
 use apex\app\tests\test;
 
@@ -146,6 +146,9 @@ public function test_ajax_delete_rows_not_exists()
  */
 public function test_ajax_search_autosuggest()
 {
+
+    // Ensure demo user
+    $userid = $this->get_demo_user();
 
     // Set request
     $request = array(

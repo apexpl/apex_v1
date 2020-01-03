@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\log;
-use apex\svc\io;
-use apex\svc\auth;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\log;
+use apex\libc\io;
+use apex\libc\auth;
 use apex\app\sys\debug;
 use apex\app\tests\test;
 
@@ -218,6 +218,7 @@ public function test_login()
 
     // Logout
     auth::logout();
+    app::set_area('admin');
 
     // Login
     $vars = array(

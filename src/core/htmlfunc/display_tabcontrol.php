@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\core\htmlfunc;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\view;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\view;
+use apex\libc\components;
 
 
 class display_tabcontrol

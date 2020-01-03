@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\tabcontrol\dashboard;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 
 /**
  * Handles the specifics of the one tab page, and is 

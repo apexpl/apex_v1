@@ -4,15 +4,15 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
-use apex\svc\redis;
-use apex\svc\debug;
+use apex\libc\redis;
+use apex\libc\debug;
 use apex\app\interfaces\CacheInterface;
 
 
 /**
  * Cache Handler
  *
- * Service: apex\svc\cache
+ * Service: apex\libc\cache
  *
  * Handles all cache items and related functionality, including set, get, and 
  * expire cache items.
@@ -28,7 +28,7 @@ use apex\app\interfaces\CacheInterface;
  * namespace apex;
  * 
  * use apex\app;
- * use apex\svc\cache;
+ * use apex\libc\cache;
  *
  (
  ( // Set cache item

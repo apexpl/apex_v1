@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\exceptions;
 
 use apex\app;
-use apex\svc\log;
-use apex\svc\debug;
-use apex\svc\date;
-use apex\svc\view;
+use apex\libc\log;
+use apex\libc\debug;
+use apex\libc\date;
+use apex\libc\view;
 
 
 /**

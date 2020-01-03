@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\test;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\auth;
+use apex\libc\db;
+use apex\libc\auth;
 use apex\app\sys\encrypt;
-use apex\svc\io;
+use apex\libc\io;
 use apex\app\tests\test;
 
 
@@ -44,6 +44,9 @@ public function setUp():void
  */
 public function test_rsa()
 { 
+
+	// Get demo user
+	$userid = $this->get_demo_user();
 
 // Get ID# of demo user
     if (!$userid = db::get_field("SELECT id FROM users WHERE username = %s", $_SERVER['apex_test_username'])) { 

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\form;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 
 
 class cms_menus 

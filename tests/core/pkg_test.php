@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\io;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\io;
 use apex\app\pkg\package;
 use apex\app\pkg\package_config;
 use apex\app\pkg\pkg_component;
@@ -169,7 +169,7 @@ public function test_component_create_parent_not_exists()
 {
 
     $this->waitException('parent does not exist');
-    pkg_component::create('controller', 'core:junk_alias:unit_test', 'unit_test');
+    pkg_component::create('adapter', 'core:junk_alias:unit_test', 'unit_test');
 
 }
 
@@ -180,7 +180,7 @@ public function test_component_create_no_owner()
 {
 
     $this->waitException('no owner package was specified');
-    pkg_component::create('controller', 'core:http_requests:utest', '');
+    pkg_component::create('adapter', 'core:http_requests:utest', '');
 
 }
 

@@ -4,15 +4,15 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\date;
-use apex\svc\io;
+use apex\libc\date;
+use apex\libc\io;
 use apex\app\interfaces\LoggerInterface;
 
 
 /**
  * Log Handler
  *
- * Service: apex\svc\log
+ * Service: apex\libc\log
  *
  * Handles all logging and ebugging of Apex, and is fully PSR3 compliant. 
  * Supports the 7 log levels, log channels, and PSR compliant placeholders 
@@ -29,7 +29,7 @@ use apex\app\interfaces\LoggerInterface;
  * namespace apex;
  * 
  * use apex\app;
- * use apex\svc\log;
+ * use apex\libc\log;
  *
  */
 class log implements LoggerInterface

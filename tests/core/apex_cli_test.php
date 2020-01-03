@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\io;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\io;
+use apex\libc\components;
 use apex\app\sys\apex_cli;
 use apex\app\pkg\package;
 use apex\app\pkg\package_config;
@@ -200,6 +200,11 @@ private function create_package_init_remove()
     io::remove_dir(SITE_PATH . '/public/unit_test');
     io::remove_dir(SITE_PATH . '/docs/unit_test');
 
+    // Delete child adapter
+    if (file_exists(SITE_PATH . '/src/core/service/http_requests/utest.php')) { 
+        @unlink(SITE_PATH . '/src/core/service/http_requests/utest.php');
+    }
+
     // Delete test12345.tpl file
     if (file_exists(SITE_PATH . '/views/tpl/public/test12345.tpl')) { 
         @unlink(SITE_PATH . '/views/tpl/public/test12345.tpl');
@@ -226,7 +231,7 @@ public function test_scan()
 { 
 
     // Save files
-    file_put_contents(SITE_PATH . "/etc/$this->pkg_alias/package.php", base64_decode('PD9waHAKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxzdmNcZGI7CnVzZSBhcGV4XHN2Y1xyZWRpczsKCi8qKgogKiBUZXN0IHBhY2thZ2UKICovCmNsYXNzIHBrZ191bml0X3Rlc3QgCnsKCiAgICAvLyBCYXNpYyBwYWNrYWdlIHZhcmlhYmxlcwogICAgcHVibGljICRhY2Nlc3MgPSAncHVibGljJzsKICAgIHB1YmxpYyAkbmFtZSA9ICd1bml0X3Rlc3QnOwogICAgcHVibGljICRkZXNjcmlwdGlvbiA9ICcnOwoKLyoqCiogVGhlIGNvbnN0cnVjdG9yIHRoYXQgZGVmaW5lcyB0aGUgdmFyaW91cyBjb25maWd1cmF0aW9uIAoqIGFycmF5cyBvZiB0aGUgcGFja2FnZSBzdWNoIGFzIGNvbmZpZyB2YXJzLCBoYXNoZXMsIAoqIG1lbnVzLCBhbmQgc28gb24uCioKKiBQbGVhc2Ugc2VlIHRoZSBBcGV4IGRvY3VtZW50YXRpb24gZm9yIGEgZnVsbCBleHBsYW5hdGlvbi4KKi8KcHVibGljIGZ1bmN0aW9uIF9fY29uc3RydWN0KCkgCnsKCi8vIENvbmZpZwokdGhpcy0+Y29uZmlnID0gYXJyYXkoCiAgICAnbmFtZScgPT4gJ1VuaXQgVGVzdCcsIAogICAgJ3Rlc3RfaWQnID0+IDQ1NgopOwoKLy8gSGFzaGVzCiR0aGlzLT5oYXNoID0gYXJyYXkoKTsKJHRoaXMtPmhhc2hbJ2hvdXNlcyddID0gYXJyYXkoCiAgICAnMWInID0+ICcxIEJlZHJvb20nLCAKICAgICcyYicgPT4gJzIgQmVkcm9vbScsIAogICAgJzNiMnMnID0+ICczIEJlZHJvb20gMiBTdG9yZXknCik7CgokdGhpcy0+aGFzaFsnZ2FtZXMnXSA9IGFycmF5KAogICAgJ3N0cmF0JyA9PiAnU3RyYXRlZ3knLCAKICAgICdhY3QnID0+ICdBY3Rpb24nLCAKICAgICdycCcgPT4gJ1JvbGUgUGxheWluZycKKTsKCgovLyBNZW51cwokdGhpcy0+bWVudXMgPSBhcnJheSgpOwokdGhpcy0+bWVudXNbXSA9IGFycmF5KAogICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgJ3Bvc2l0aW9uJyA9PiAnYm90dG9tJywgCiAgICAndHlwZScgPT4gJ2hlYWRlcicsIAogICAgJ2FsaWFzJyA9PiAnaGRyX3VuaXRfdGVzdCcsIAogICAgJ25hbWUnID0+ICdVbml0IFRlc3QnCik7CgokdGhpcy0+bWVudXNbXSA9IGFycmF5KAogICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgJ3Bvc2l0aW9uJyA9PiAnYWZ0ZXIgaGRyX3VuaXRfdGVzdCcsIAogICAgJ3R5cGUnID0+ICdwYXJlbnQnLCAKICAgICdpY29uJyA9PiAnZmEgZmEtZncgZmEtY29nJywgCiAgICAnYWxpYXMnID0+ICd0ZXN0aW5nJywgCiAgICAnbmFtZScgPT4gJ1Rlc3RpbmcnLCAKICAgICdtZW51cycgPT4gYXJyYXkoCiAgICAgICAgJ2NyZWF0ZScgPT4gJ0NyZWF0ZSBURXN0JywgCiAgICAgICAgJ2VkaXQnID0+ICdFZGl0IFRlc3QnLCAKICAgICAgICAnZGVsZXRlJyA9PiAnRGVsZXRlIFRFc3QnCiAgICApCik7CgokdGhpcy0+bWVudXNbXSA9IGFycmF5KAogICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgJ3Bvc2l0aW9uJyA9PiAnYm90dG9tJywgCiAgICAncGFyZW50JyA9PiAnc2V0dGluZ3MnLCAKICAgICd0eXBlJyA9PiAnaW50ZXJuYWwnLCAKICAgICdhbGlhcycgPT4gJ3VuaXRfdGVzdCcsIAogICAgJ25hbWUnID0+ICdVbml0IFRlc3QnCik7CgokdGhpcy0+ZXh0X2ZpbGVzID0gYXJyYXkoCiAgICAnc3JjL3VuaXRfdGVzdC50eHQnLCAKICAgICdwdWJsaWMvdW5pdF90ZXN0LyonCik7CgokdGhpcy0+cGxhY2Vob2xkZXJzID0gYXJyYXkoCiAgICAncHVibGljL3VuaXRfdGVzdCcgPT4gYXJyYXkoJ2Fib3ZlX2Zvcm0nLCAnYmVsb3dfZm9ybScpCik7CgokdGhpcy0+Ym94bGlzdHMgPSBhcnJheSgKICAgIGFycmF5KAogICAgICAgICdhbGlhcycgPT4gJ3VuaXRfdGVzdDpzZXR0aW5ncycsIAogICAgICAgICdocmVmJyA9PiAnYWRtaW4vc2V0dGluZ3MvdW5pdF90ZXN0X2dlbmVyYWwnLCAKICAgICAgICAndGl0bGUnID0+ICdHZW5lcmFsIFNFdHRpbmdzJywgCiAgICAgICAgJ2Rlc2NyaXB0aW9uJyA9PiAnVGhlIHRlc3QgZ2VuZXJhbCBzZXR0aW5ncycKICAgICksIAogICAgYXJyYXkoCiAgICAgICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0OnNldHRpbmdzJywgCiAgICAgICAgJ2hyZWYnID0+ICdhZG1pbi9zZXR0aW5ncy91bml0X3Rlc3RfZGVsZXRlYWxsJywgCiAgICAgICAgJ3RpdGxlJyA9PiAnRGVsZXRlIEFMbCcsIAogICAgICAgICdkZXNjcmlwdGlvbicgPT4gJ0RlbGV0ZSBhbGwgdGhlIHVuaXQgdGVzdHMnCiAgICApCik7CgovLyBEYXNoYm9hcmQgaXRlbXMKJHRoaXMtPmRhc2hib2FyZF9pdGVtcyA9IGFycmF5KAogICAgYXJyYXkoCiAgICAgICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgICAgICd0eXBlJyA9PiAndG9wJywgCiAgICAgICAgJ2RpdmlkJyA9PiAndW5pdF90ZXN0JywgCiAgICAgICAgJ3BhbmVsX2NsYXNzJyA9PiAncGFuZWwgYmctdGVhbC00MDAnLCAKICAgICAgICAnaXNfZGVmYXVsdCcgPT4gMCwgCiAgICAgICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0JywgCiAgICAgICAgJ3RpdGxlJyA9PiAnVW5pdCBUZXN0JywgCiAgICAgICAgJ2Rlc2NyaXB0aW9uJyA9PiAndW5pdCB0ZXN0IGRlc2NyaXB0aW9uJwogICAgKSwKICAgIGFycmF5KAogICAgICAgICdhcmVhJyA9PiAnYWRtaW4nLCAKICAgICAgICAndHlwZScgPT4gJ3JpZ2h0JywgCiAgICAgICAgJ2RpdmlkJyA9PiAndW5pdF90ZXN0X2xlZnQnLCAKICAgICAgICAncGFuZWxfY2xhc3MnID0+ICdwYW5lbCBiZy10ZWFsLTQwMCcsIAogICAgICAgICdpc19kZWZhdWx0JyA9PiAwLCAKICAgICAgICAnYWxpYXMnID0+ICd1bml0X3Rlc3RfbGVmdCcsIAogICAgICAgICd0aXRsZScgPT4gJ1VuaXQgVGVzdCBMZWZ0JywgCiAgICAgICAgJ2Rlc2NyaXB0aW9uJyA9PiAndW5pdCB0ZXN0IGxlZnQgZGVzY3JpcHRpb24nCiAgICApIAopOwoKLy8gTm90aWZpY2F0aW9ucwokdGhpcy0+bm90aWZpY2F0aW9ucyA9IGFycmF5KCk7CiR0aGlzLT5ub3RpZmljYXRpb25zW10gPSBhcnJheSgKICAgICdjb250cm9sbGVyJyA9PiAnc3lzdGVtJywgCiAgICAnc2VuZGVyJyA9PiAnYWRtaW46MScsIAogICAgJ3JlY2lwaWVudCcgPT4gJ3VzZXInLCAKICAgICdjb250ZW50X3R5cGUnID0+ICd0ZXh0L3BsYWluJywgCiAgICAnc3ViamVjdCcgPT4gJ1VuaXQgVGVzdCcsIAogICAgJ2NvbnRlbnRzJyA9PiAnJywgCiAgICAnY29uZF9hY3Rpb24nID0+ICcyZmEnCik7CgovLyBDb21wb3NlciBkZXBlbmRlbmRpY2VzCiR0aGlzLT5jb21wb3Nlcl9kZXBlbmRlbmNpZXMgPSBhcnJheSgKICAgICd1bml0L3Rlc3QnID0+ICcqJwopOwoKLy8gRGVwZW5kZW5jaWVzCiR0aGlzLT5kZXBlbmRlbmNpZXMgPSBhcnJheSgndXNlcnMnKTsKCgoKCgp9CgovKioKICogSW5zdGFsbCBiZWZvcmUKICovCnB1YmxpYyBmdW5jdGlvbiBpbnN0YWxsX2JlZm9yZSgpCnsKCiAgICByZWRpczo6c2V0KCd0ZXN0OnBhY2thZ2U6YmVmb3JlJywgJ3VuaXRfdGVzdCcpOwoKfQoKLyoqCiAqIGluc3RhbGwgYWZ0ZXIKICovCnB1YmxpYyBmdW5jdGlvbiBpbnN0YWxsX2FmdGVyKCkKewogICAgcmVkaXM6OnNldCgndGVzdDpwYWNrYWdlOmFmdGVyJywgJ3VuaXRfdGVzdCcpOwp9CgovKioKICogUmVtb3ZlCiAqLwpwdWJsaWMgZnVuY3Rpb24gcmVtb3ZlKCkKewogICAgcmVkaXM6OnNldCgndGVzdDpwYWNrYWdlOnJlbW92ZScsICd1bml0X3Rlc3QnKTsKfQoKLyoqCiAqIFJlc2V0CiAqLwpwdWJsaWMgZnVuY3Rpb24gcmVzZXQoKQp7CiAgICByZWRpczo6c2V0KCd0ZXN0OnBhY2thZ2U6cmVzZXQnLCAndW5pdF90ZXN0Jyk7Cn0KCgoKCn0KCgoK'));
+    file_put_contents(SITE_PATH . "/etc/$this->pkg_alias/package.php", base64_decode('PD9waHAKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxsaWJjXGRiOwp1c2UgYXBleFxsaWJjXHJlZGlzOwoKLyoqCiAqIFRlc3QgcGFja2FnZQogKi8KY2xhc3MgcGtnX3VuaXRfdGVzdCAKewoKICAgIC8vIEJhc2ljIHBhY2thZ2UgdmFyaWFibGVzCiAgICBwdWJsaWMgJGFjY2VzcyA9ICdwdWJsaWMnOwogICAgcHVibGljICRuYW1lID0gJ3VuaXRfdGVzdCc7CiAgICBwdWJsaWMgJGRlc2NyaXB0aW9uID0gJyc7CgovKioKKiBUaGUgY29uc3RydWN0b3IgdGhhdCBkZWZpbmVzIHRoZSB2YXJpb3VzIGNvbmZpZ3VyYXRpb24gCiogYXJyYXlzIG9mIHRoZSBwYWNrYWdlIHN1Y2ggYXMgY29uZmlnIHZhcnMsIGhhc2hlcywgCiogbWVudXMsIGFuZCBzbyBvbi4KKgoqIFBsZWFzZSBzZWUgdGhlIEFwZXggZG9jdW1lbnRhdGlvbiBmb3IgYSBmdWxsIGV4cGxhbmF0aW9uLgoqLwpwdWJsaWMgZnVuY3Rpb24gX19jb25zdHJ1Y3QoKSAKewoKLy8gQ29uZmlnCiR0aGlzLT5jb25maWcgPSBhcnJheSgKICAgICduYW1lJyA9PiAnVW5pdCBUZXN0JywgCiAgICAndGVzdF9pZCcgPT4gNDU2Cik7CgovLyBIYXNoZXMKJHRoaXMtPmhhc2ggPSBhcnJheSgpOwokdGhpcy0+aGFzaFsnaG91c2VzJ10gPSBhcnJheSgKICAgICcxYicgPT4gJzEgQmVkcm9vbScsIAogICAgJzJiJyA9PiAnMiBCZWRyb29tJywgCiAgICAnM2IycycgPT4gJzMgQmVkcm9vbSAyIFN0b3JleScKKTsKCiR0aGlzLT5oYXNoWydnYW1lcyddID0gYXJyYXkoCiAgICAnc3RyYXQnID0+ICdTdHJhdGVneScsIAogICAgJ2FjdCcgPT4gJ0FjdGlvbicsIAogICAgJ3JwJyA9PiAnUm9sZSBQbGF5aW5nJwopOwoKCi8vIE1lbnVzCiR0aGlzLT5tZW51cyA9IGFycmF5KCk7CiR0aGlzLT5tZW51c1tdID0gYXJyYXkoCiAgICAnYXJlYScgPT4gJ2FkbWluJywgCiAgICAncG9zaXRpb24nID0+ICdib3R0b20nLCAKICAgICd0eXBlJyA9PiAnaGVhZGVyJywgCiAgICAnYWxpYXMnID0+ICdoZHJfdW5pdF90ZXN0JywgCiAgICAnbmFtZScgPT4gJ1VuaXQgVGVzdCcKKTsKCiR0aGlzLT5tZW51c1tdID0gYXJyYXkoCiAgICAnYXJlYScgPT4gJ2FkbWluJywgCiAgICAncG9zaXRpb24nID0+ICdhZnRlciBoZHJfdW5pdF90ZXN0JywgCiAgICAndHlwZScgPT4gJ3BhcmVudCcsIAogICAgJ2ljb24nID0+ICdmYSBmYS1mdyBmYS1jb2cnLCAKICAgICdhbGlhcycgPT4gJ3Rlc3RpbmcnLCAKICAgICduYW1lJyA9PiAnVGVzdGluZycsIAogICAgJ21lbnVzJyA9PiBhcnJheSgKICAgICAgICAnY3JlYXRlJyA9PiAnQ3JlYXRlIFRFc3QnLCAKICAgICAgICAnZWRpdCcgPT4gJ0VkaXQgVGVzdCcsIAogICAgICAgICdkZWxldGUnID0+ICdEZWxldGUgVEVzdCcKICAgICkKKTsKCiR0aGlzLT5tZW51c1tdID0gYXJyYXkoCiAgICAnYXJlYScgPT4gJ2FkbWluJywgCiAgICAncG9zaXRpb24nID0+ICdib3R0b20nLCAKICAgICdwYXJlbnQnID0+ICdzZXR0aW5ncycsIAogICAgJ3R5cGUnID0+ICdpbnRlcm5hbCcsIAogICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0JywgCiAgICAnbmFtZScgPT4gJ1VuaXQgVGVzdCcKKTsKCiR0aGlzLT5leHRfZmlsZXMgPSBhcnJheSgKICAgICdzcmMvdW5pdF90ZXN0LnR4dCcsIAogICAgJ3B1YmxpYy91bml0X3Rlc3QvKicKKTsKCiR0aGlzLT5wbGFjZWhvbGRlcnMgPSBhcnJheSgKICAgICdwdWJsaWMvdW5pdF90ZXN0JyA9PiBhcnJheSgnYWJvdmVfZm9ybScsICdiZWxvd19mb3JtJykKKTsKCiR0aGlzLT5ib3hsaXN0cyA9IGFycmF5KAogICAgYXJyYXkoCiAgICAgICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0OnNldHRpbmdzJywgCiAgICAgICAgJ2hyZWYnID0+ICdhZG1pbi9zZXR0aW5ncy91bml0X3Rlc3RfZ2VuZXJhbCcsIAogICAgICAgICd0aXRsZScgPT4gJ0dlbmVyYWwgU0V0dGluZ3MnLCAKICAgICAgICAnZGVzY3JpcHRpb24nID0+ICdUaGUgdGVzdCBnZW5lcmFsIHNldHRpbmdzJwogICAgKSwgCiAgICBhcnJheSgKICAgICAgICAnYWxpYXMnID0+ICd1bml0X3Rlc3Q6c2V0dGluZ3MnLCAKICAgICAgICAnaHJlZicgPT4gJ2FkbWluL3NldHRpbmdzL3VuaXRfdGVzdF9kZWxldGVhbGwnLCAKICAgICAgICAndGl0bGUnID0+ICdEZWxldGUgQUxsJywgCiAgICAgICAgJ2Rlc2NyaXB0aW9uJyA9PiAnRGVsZXRlIGFsbCB0aGUgdW5pdCB0ZXN0cycKICAgICkKKTsKCi8vIERhc2hib2FyZCBpdGVtcwokdGhpcy0+ZGFzaGJvYXJkX2l0ZW1zID0gYXJyYXkoCiAgICBhcnJheSgKICAgICAgICAnYXJlYScgPT4gJ2FkbWluJywgCiAgICAgICAgJ3R5cGUnID0+ICd0b3AnLCAKICAgICAgICAnZGl2aWQnID0+ICd1bml0X3Rlc3QnLCAKICAgICAgICAncGFuZWxfY2xhc3MnID0+ICdwYW5lbCBiZy10ZWFsLTQwMCcsIAogICAgICAgICdpc19kZWZhdWx0JyA9PiAwLCAKICAgICAgICAnYWxpYXMnID0+ICd1bml0X3Rlc3QnLCAKICAgICAgICAndGl0bGUnID0+ICdVbml0IFRlc3QnLCAKICAgICAgICAnZGVzY3JpcHRpb24nID0+ICd1bml0IHRlc3QgZGVzY3JpcHRpb24nCiAgICApLAogICAgYXJyYXkoCiAgICAgICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgICAgICd0eXBlJyA9PiAncmlnaHQnLCAKICAgICAgICAnZGl2aWQnID0+ICd1bml0X3Rlc3RfbGVmdCcsIAogICAgICAgICdwYW5lbF9jbGFzcycgPT4gJ3BhbmVsIGJnLXRlYWwtNDAwJywgCiAgICAgICAgJ2lzX2RlZmF1bHQnID0+IDAsIAogICAgICAgICdhbGlhcycgPT4gJ3VuaXRfdGVzdF9sZWZ0JywgCiAgICAgICAgJ3RpdGxlJyA9PiAnVW5pdCBUZXN0IExlZnQnLCAKICAgICAgICAnZGVzY3JpcHRpb24nID0+ICd1bml0IHRlc3QgbGVmdCBkZXNjcmlwdGlvbicKICAgICkgCik7CgovLyBOb3RpZmljYXRpb25zCiR0aGlzLT5ub3RpZmljYXRpb25zID0gYXJyYXkoKTsKJHRoaXMtPm5vdGlmaWNhdGlvbnNbXSA9IGFycmF5KAogICAgJ2FkYXB0ZXInID0+ICdzeXN0ZW0nLCAKICAgICdzZW5kZXInID0+ICdhZG1pbjoxJywgCiAgICAncmVjaXBpZW50JyA9PiAndXNlcicsIAogICAgJ2NvbnRlbnRfdHlwZScgPT4gJ3RleHQvcGxhaW4nLCAKICAgICdzdWJqZWN0JyA9PiAnVW5pdCBUZXN0JywgCiAgICAnY29udGVudHMnID0+ICcnLCAKICAgICdjb25kX2FjdGlvbicgPT4gJzJmYScKKTsKCi8vIENvbXBvc2VyIGRlcGVuZGVuZGljZXMKJHRoaXMtPmNvbXBvc2VyX2RlcGVuZGVuY2llcyA9IGFycmF5KAogICAgJ3VuaXQvdGVzdCcgPT4gJyonCik7CgovLyBEZXBlbmRlbmNpZXMKJHRoaXMtPmRlcGVuZGVuY2llcyA9IGFycmF5KCd1c2VycycpOwoKCgoKCn0KCi8qKgogKiBJbnN0YWxsIGJlZm9yZQogKi8KcHVibGljIGZ1bmN0aW9uIGluc3RhbGxfYmVmb3JlKCkKewoKICAgIHJlZGlzOjpzZXQoJ3Rlc3Q6cGFja2FnZTpiZWZvcmUnLCAndW5pdF90ZXN0Jyk7Cgp9CgovKioKICogaW5zdGFsbCBhZnRlcgogKi8KcHVibGljIGZ1bmN0aW9uIGluc3RhbGxfYWZ0ZXIoKQp7CiAgICByZWRpczo6c2V0KCd0ZXN0OnBhY2thZ2U6YWZ0ZXInLCAndW5pdF90ZXN0Jyk7Cn0KCi8qKgogKiBSZW1vdmUKICovCnB1YmxpYyBmdW5jdGlvbiByZW1vdmUoKQp7CiAgICByZWRpczo6c2V0KCd0ZXN0OnBhY2thZ2U6cmVtb3ZlJywgJ3VuaXRfdGVzdCcpOwp9CgovKioKICogUmVzZXQKICovCnB1YmxpYyBmdW5jdGlvbiByZXNldCgpCnsKICAgIHJlZGlzOjpzZXQoJ3Rlc3Q6cGFja2FnZTpyZXNldCcsICd1bml0X3Rlc3QnKTsKfQoKCgoKfQoKCgo='));
 
     // Save external files
     io::create_dir(SITE_PATH . '/public/unit_test');
@@ -248,7 +253,7 @@ public function test_scan()
     $this->check_package_configuration();
 
     // Save updated package.php file, and scan again
-    file_put_contents(SITE_PATH . "/etc/$this->pkg_alias/package2.php", base64_decode('PD9waHAKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxzdmNcZGI7CnVzZSBhcGV4XHN2Y1xyZWRpczsKCgovKioKICogdGVzdCBwYWNrYWdlCiAqLwpjbGFzcyBwa2dfdW5pdF90ZXN0MiAKewoKICAgIC8vIEJhc2ljIHBhY2thZ2UgdmFyaWFibGVzCiAgICBwdWJsaWMgJGFjY2VzcyA9ICdwdWJsaWMnOwogICAgcHVibGljICRuYW1lID0gJ3VuaXRfdGVzdCc7CiAgICBwdWJsaWMgJGRlc2NyaXB0aW9uID0gJyc7CgovKioKKiBUaGUgY29uc3RydWN0b3IgdGhhdCBkZWZpbmVzIHRoZSB2YXJpb3VzIGNvbmZpZ3VyYXRpb24gCiogYXJyYXlzIG9mIHRoZSBwYWNrYWdlIHN1Y2ggYXMgY29uZmlnIHZhcnMsIGhhc2hlcywgCiogbWVudXMsIGFuZCBzbyBvbi4KKgoqIFBsZWFzZSBzZWUgdGhlIEFwZXggZG9jdW1lbnRhdGlvbiBmb3IgYSBmdWxsIGV4cGxhbmF0aW9uLgoqLwpwdWJsaWMgZnVuY3Rpb24gX19jb25zdHJ1Y3QoKSAKewoKLy8gQ29uZmlnCiR0aGlzLT5jb25maWcgPSBhcnJheSgKICAgICduYW1lJyA9PiAndXBkYXRlIFRlc3QnLCAKICAgICd1cGRhdGVfdGVzdCcgPT4gJ3llcycKKTsKCi8vIEhhc2hlcwokdGhpcy0+aGFzaCA9IGFycmF5KCk7CiR0aGlzLT5oYXNoWydob3VzZXMnXSA9IGFycmF5KAogICAgJzFiJyA9PiAnMSBCZWRyb29tLCAxIEJhdGgnLCAKICAgICc0YicgPT4gJzQgQmVkcm9vbXMnLCAKICAgICczYjJzJyA9PiAnMyBCZWRyb29tIDIgU3RvcmV5JwopOwoKLy8gTWVudXMKJHRoaXMtPm1lbnVzID0gYXJyYXkoKTsKJHRoaXMtPm1lbnVzW10gPSBhcnJheSgKICAgICdhcmVhJyA9PiAnYWRtaW4nLCAKICAgICdwb3NpdGlvbicgPT4gJ2JvdHRvbScsIAogICAgJ3R5cGUnID0+ICdoZWFkZXInLCAKICAgICdhbGlhcycgPT4gJ2hkcl91bml0X3Rlc3QnLCAKICAgICduYW1lJyA9PiAnVW5pdCBUZXN0JwopOwoKJHRoaXMtPm1lbnVzW10gPSBhcnJheSgKICAgICdhcmVhJyA9PiAnYWRtaW4nLCAKICAgICdwb3NpdGlvbicgPT4gJ2FmdGVyIGhkcl91bml0X3Rlc3QnLCAKICAgICd0eXBlJyA9PiAncGFyZW50JywgCiAgICAnaWNvbicgPT4gJ2ZhIGZhLWZ3IGZhLWNvZycsIAogICAgJ2FsaWFzJyA9PiAndGVzdGluZycsIAogICAgJ25hbWUnID0+ICdUZXN0aW5nJywgCiAgICAnbWVudXMnID0+IGFycmF5KAogICAgICAgICdjcmVhdGUnID0+ICdVcGRhdGVkIE5hbWUnLCAKICAgICAgICAnZGVsZXRlJyA9PiAnRGVsZXRlIFRFc3QnLCAKICAgICAgICAndmlld2FsbCcgPT4gJ1ZpZXcgQUxsIFRlc3QnCiAgICApCik7CgoKJHRoaXMtPmV4dF9maWxlcyA9IGFycmF5KAogICAgJ3NyYy91bml0X3Rlc3QudHh0JwopOwoKJHRoaXMtPnBsYWNlaG9sZGVycyA9IGFycmF5KAogICAgJ3B1YmxpYy91bml0X3Rlc3QnID0+IGFycmF5KCAnYmVsb3dfZm9ybScsICd0b3BfcGFnZScsICdib3R0b21fcGFnZScpCik7CgokdGhpcy0+Ym94bGlzdHMgPSBhcnJheSgKICAgIGFycmF5KAogICAgICAgICdhbGlhcycgPT4gJ3VuaXRfdGVzdDpzZXR0aW5ncycsIAogICAgICAgICdocmVmJyA9PiAnYWRtaW4vc2V0dGluZ3MvdW5pdF90ZXN0X292ZXJ2aWV3JywgCiAgICAgICAgJ3RpdGxlJyA9PiAnT3ZlcnZpZXcgU2V0dGluZ3MnLCAKICAgICAgICAnZGVzY3JpcHRpb24nID0+ICdUaGUgdGVzdCBnZW5lcmFsIHNldHRpbmdzJwogICAgKSwgCiAgICBhcnJheSgKICAgICAgICAnYWxpYXMnID0+ICd1bml0X3Rlc3Q6c2V0dGluZ3MnLCAKICAgICAgICAnaHJlZicgPT4gJ2FkbWluL3NldHRpbmdzL3VuaXRfdGVzdF9kZWxldGVhbGwnLCAKICAgICAgICAndGl0bGUnID0+ICdVcGRhdGUgVGVzdCcsIAogICAgICAgICdkZXNjcmlwdGlvbicgPT4gJ0RlbGV0ZSBhbGwgdGhlIHVuaXQgdGVzdHMnCiAgICApCik7CgovLyBEYXNoYm9hcmQgaXRlbXMKJHRoaXMtPmRhc2hib2FyZF9pdGVtcyA9IGFycmF5KAogICAgYXJyYXkoCiAgICAgICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgICAgICd0eXBlJyA9PiAndG9wJywgCiAgICAgICAgJ2RpdmlkJyA9PiAndW5pdF90ZXN0JywgCiAgICAgICAgJ3BhbmVsX2NsYXNzJyA9PiAncGFuZWwgYmctdGVhbC00MDAnLCAKICAgICAgICAnaXNfZGVmYXVsdCcgPT4gMCwgCiAgICAgICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0JywgCiAgICAgICAgJ3RpdGxlJyA9PiAnVXBkYXRlIFRlc3QnLCAKICAgICAgICAnZGVzY3JpcHRpb24nID0+ICd1bml0IHRlc3QgZGVzY3JpcHRpb24nCiAgICApCik7CgoKCgoKfQoKfQogICAKCg=='));
+    file_put_contents(SITE_PATH . "/etc/$this->pkg_alias/package2.php", base64_decode('PD9waHAKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxsaWJjXGRiOwp1c2UgYXBleFxsaWJjXHJlZGlzOwoKCi8qKgogKiB0ZXN0IHBhY2thZ2UKICovCmNsYXNzIHBrZ191bml0X3Rlc3QyIAp7CgogICAgLy8gQmFzaWMgcGFja2FnZSB2YXJpYWJsZXMKICAgIHB1YmxpYyAkYWNjZXNzID0gJ3B1YmxpYyc7CiAgICBwdWJsaWMgJG5hbWUgPSAndW5pdF90ZXN0JzsKICAgIHB1YmxpYyAkZGVzY3JpcHRpb24gPSAnJzsKCi8qKgoqIFRoZSBjb25zdHJ1Y3RvciB0aGF0IGRlZmluZXMgdGhlIHZhcmlvdXMgY29uZmlndXJhdGlvbiAKKiBhcnJheXMgb2YgdGhlIHBhY2thZ2Ugc3VjaCBhcyBjb25maWcgdmFycywgaGFzaGVzLCAKKiBtZW51cywgYW5kIHNvIG9uLgoqCiogUGxlYXNlIHNlZSB0aGUgQXBleCBkb2N1bWVudGF0aW9uIGZvciBhIGZ1bGwgZXhwbGFuYXRpb24uCiovCnB1YmxpYyBmdW5jdGlvbiBfX2NvbnN0cnVjdCgpIAp7CgovLyBDb25maWcKJHRoaXMtPmNvbmZpZyA9IGFycmF5KAogICAgJ25hbWUnID0+ICd1cGRhdGUgVGVzdCcsIAogICAgJ3VwZGF0ZV90ZXN0JyA9PiAneWVzJwopOwoKLy8gSGFzaGVzCiR0aGlzLT5oYXNoID0gYXJyYXkoKTsKJHRoaXMtPmhhc2hbJ2hvdXNlcyddID0gYXJyYXkoCiAgICAnMWInID0+ICcxIEJlZHJvb20sIDEgQmF0aCcsIAogICAgJzRiJyA9PiAnNCBCZWRyb29tcycsIAogICAgJzNiMnMnID0+ICczIEJlZHJvb20gMiBTdG9yZXknCik7CgovLyBNZW51cwokdGhpcy0+bWVudXMgPSBhcnJheSgpOwokdGhpcy0+bWVudXNbXSA9IGFycmF5KAogICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgJ3Bvc2l0aW9uJyA9PiAnYm90dG9tJywgCiAgICAndHlwZScgPT4gJ2hlYWRlcicsIAogICAgJ2FsaWFzJyA9PiAnaGRyX3VuaXRfdGVzdCcsIAogICAgJ25hbWUnID0+ICdVbml0IFRlc3QnCik7CgokdGhpcy0+bWVudXNbXSA9IGFycmF5KAogICAgJ2FyZWEnID0+ICdhZG1pbicsIAogICAgJ3Bvc2l0aW9uJyA9PiAnYWZ0ZXIgaGRyX3VuaXRfdGVzdCcsIAogICAgJ3R5cGUnID0+ICdwYXJlbnQnLCAKICAgICdpY29uJyA9PiAnZmEgZmEtZncgZmEtY29nJywgCiAgICAnYWxpYXMnID0+ICd0ZXN0aW5nJywgCiAgICAnbmFtZScgPT4gJ1Rlc3RpbmcnLCAKICAgICdtZW51cycgPT4gYXJyYXkoCiAgICAgICAgJ2NyZWF0ZScgPT4gJ1VwZGF0ZWQgTmFtZScsIAogICAgICAgICdkZWxldGUnID0+ICdEZWxldGUgVEVzdCcsIAogICAgICAgICd2aWV3YWxsJyA9PiAnVmlldyBBTGwgVGVzdCcKICAgICkKKTsKCgokdGhpcy0+ZXh0X2ZpbGVzID0gYXJyYXkoCiAgICAnc3JjL3VuaXRfdGVzdC50eHQnCik7CgokdGhpcy0+cGxhY2Vob2xkZXJzID0gYXJyYXkoCiAgICAncHVibGljL3VuaXRfdGVzdCcgPT4gYXJyYXkoICdiZWxvd19mb3JtJywgJ3RvcF9wYWdlJywgJ2JvdHRvbV9wYWdlJykKKTsKCiR0aGlzLT5ib3hsaXN0cyA9IGFycmF5KAogICAgYXJyYXkoCiAgICAgICAgJ2FsaWFzJyA9PiAndW5pdF90ZXN0OnNldHRpbmdzJywgCiAgICAgICAgJ2hyZWYnID0+ICdhZG1pbi9zZXR0aW5ncy91bml0X3Rlc3Rfb3ZlcnZpZXcnLCAKICAgICAgICAndGl0bGUnID0+ICdPdmVydmlldyBTZXR0aW5ncycsIAogICAgICAgICdkZXNjcmlwdGlvbicgPT4gJ1RoZSB0ZXN0IGdlbmVyYWwgc2V0dGluZ3MnCiAgICApLCAKICAgIGFycmF5KAogICAgICAgICdhbGlhcycgPT4gJ3VuaXRfdGVzdDpzZXR0aW5ncycsIAogICAgICAgICdocmVmJyA9PiAnYWRtaW4vc2V0dGluZ3MvdW5pdF90ZXN0X2RlbGV0ZWFsbCcsIAogICAgICAgICd0aXRsZScgPT4gJ1VwZGF0ZSBUZXN0JywgCiAgICAgICAgJ2Rlc2NyaXB0aW9uJyA9PiAnRGVsZXRlIGFsbCB0aGUgdW5pdCB0ZXN0cycKICAgICkKKTsKCi8vIERhc2hib2FyZCBpdGVtcwokdGhpcy0+ZGFzaGJvYXJkX2l0ZW1zID0gYXJyYXkoCiAgICBhcnJheSgKICAgICAgICAnYXJlYScgPT4gJ2FkbWluJywgCiAgICAgICAgJ3R5cGUnID0+ICd0b3AnLCAKICAgICAgICAnZGl2aWQnID0+ICd1bml0X3Rlc3QnLCAKICAgICAgICAncGFuZWxfY2xhc3MnID0+ICdwYW5lbCBiZy10ZWFsLTQwMCcsIAogICAgICAgICdpc19kZWZhdWx0JyA9PiAwLCAKICAgICAgICAnYWxpYXMnID0+ICd1bml0X3Rlc3QnLCAKICAgICAgICAndGl0bGUnID0+ICdVcGRhdGUgVGVzdCcsIAogICAgICAgICdkZXNjcmlwdGlvbicgPT4gJ3VuaXQgdGVzdCBkZXNjcmlwdGlvbicKICAgICkKKTsKCgoKCgp9Cgp9CiAgIAoK'));
     require_once(SITE_PATH . "/etc/$this->pkg_alias/package2.php");
     $new_pkg = new \apex\pkg_unit_test2();
 
@@ -465,7 +470,7 @@ protected function check_redis_component($type, $alias, $package, $parent)
     $chk = $type . ':' . $alias;
     $var = redis::hget('config:components_package', $chk);
     $this->assertnotnull($var, "Component does not exists in redis packages hash, $chk");
-    if ($var != 2 && $var != $this->pkg_alias) { 
+    if ($var != 2 && $var != $package) { 
         $this->assertequals($this->pkg_alias, $var, "Component is invalid in redis packages hash, $chk -- $var");
     } else { $this->asserttrue(true); }
 
@@ -497,7 +502,6 @@ public function test_create($type, $comp_alias, $owner, $files)
  */
 protected function verify_component_created($type, $comp_alias, $owner, $files)
 { 
-    if ($type == 'worker') { sleep(1); }
 
     // Check files
     foreach ($files as $file => $text) { 
@@ -513,12 +517,11 @@ protected function verify_component_created($type, $comp_alias, $owner, $files)
 
     // Check if we need to load component
     $ok = true;
-    if ($type == 'controller' && $parent == '') { $ok = false; }
-    elseif (in_array($type, array('lib', 'view', 'tabpage', 'test'))) { $ok = false; }
+    if (in_array($type, array('worker', 'lib', 'view', 'tabpage', 'test'))) { $ok = false; }
 
     // Load component, if needed
     if ($ok === true) { 
-        if (!$client = components::load($type, $alias, $package, $parent)) { 
+        if (!$client = components::load($type, $alias, $package, $parent)) {  
             $this->asserttrue(false, "Unable to load component, type: $type, package: $package, parent: $parent, alias: $alias");
         } else { $this->asserttrue(true); }
     }
@@ -558,8 +561,10 @@ public function provider_create()
     $vars = array(
         array('ajax', $pkg . ':utest', '', array("src/$pkg/ajax/utest.php" => "class utest")), 
         array('autosuggest', $pkg . ':find_test', '', array("src/$pkg/autosuggest/find_test.php" => "class find_test")), 
-        array('controller', $pkg . ':providers', $pkg, array()),
-        array('controller', $pkg . ':providers:general', $pkg, array("src/$pkg/controller/providers/general.php" => "class general")), 
+        array('service', $pkg . ':providers', $pkg, array("src/$pkg/service/providers.php" => 'class providers')),
+        array('adapter', $pkg . ':providers:general', $pkg, array("src/$pkg/service/providers/general.php" => "class general")),
+        array('adapter', 'core:http_requests:utest', $pkg, array("src/core/service/http_requests/utest.php" => "class utest")),  
+        array('cli', $pkg . ':utest', '', array("src/$pkg/cli/utest.php" => "class utest")), 
         array('cron', $pkg . ':utest', '', array("src/$pkg/cron/utest.php" => "class utest")), 
         array('form', $pkg . ':utest', '', array("src/$pkg/form/utest.php" => "class utest")), 
         array('htmlfunc', $pkg . ':utest', '', array("src/$pkg/htmlfunc/utest.php" => "class utest", "views/components/htmlfunc/$pkg/utest.tpl" => "")),
@@ -618,53 +623,44 @@ public function test_publish_verify()
 
     // Verify unpacked directory
     $this->assertdirectoryexists($tmp_dir, "Invalid zip archive, unable to publish package.");
-    $this->assertdirectoryexists("$tmp_dir/files", "Invalid zip archive, unable to publish package.");
+    $this->assertdirectoryexists("$tmp_dir/etc", "Invalid zip archive, unable to publish package.");
+    $this->assertdirectoryexists("$tmp_dir/src", "Invalid zip archive, unable to publish package.");
     $this->assertdirectoryisreadable($tmp_dir, "Invalid zip archive, unable to publish package.");
-    $this->assertdirectoryisreadable("$tmp_dir/files", "Invalid zip archive, unable to publish package.");
+    $this->assertdirectoryisreadable("$tmp_dir/etc", "Invalid zip archive, unable to publish package.");
+    $this->assertdirectoryisreadable("$tmp_dir/src", "Invalid zip archive, unable to publish package.");
 
-    // Verrify package files are there
-    $files = array('package.php', 'toc.json', 'components.json');
+    $files = array(
+        'etc/package.php', 
+        'src/ajax/utest.php', 
+        'src/autosuggest/find_test.php', 
+        'src/service/providers.php', 
+        'src/service/providers/general.php', 
+        'src/cli/utest.php', 
+        'src/cron/utest.php', 
+        'src/form/utest.php', 
+        'src/htmlfunc/utest.php', 
+        'src/mytest.php', 
+        'child/core/service/http_requests/utest.php', 
+        'src/modal/utest.php', 
+        'views/components/modal/unit_test/utest.tpl', 
+        'src/tabcontrol/utest.php', 
+        'src/tabcontrol/utest/profile.php', 
+        'views/components/tabpage/unit_test/utest/profile.tpl', 
+        'src/table/utest.php', 
+        'views/php/admin/testing/create.php', 
+        'views/tpl/admin/testing/create.tpl', 
+        'tests/misc_test.php', 
+        'ext/public/unit_test/t1.txt', 
+        'ext/public/unit_test/t2.txt', 
+        'ext/src/unit_test.txt', 
+        'docs/index.md', 
+        'src/tpl/public/test12345.tpl'
+    );
+
+    // GO through files
     foreach ($files as $file) { 
-        $this->assertfileexists("$tmp_dir/$file", "The file $file does not exist within zip archive, unable to publish");
-        $this->assertfileisreadable("$tmp_dir/$file", "File is not readable $file within zip archive, unable to publish");
-    }
-
-
-    // Get JSON to verify against
-    $verify_components = json_decode(base64_decode('W3sidHlwZSI6ImFqYXgiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6InV0ZXN0IiwidmFsdWUiOiIifSx7InR5cGUiOiJhdXRvc3VnZ2VzdCIsIm9yZGVyX251bSI6MCwicGFja2FnZSI6InVuaXRfdGVzdCIsInBhcmVudCI6IiIsImFsaWFzIjoiZmluZF90ZXN0IiwidmFsdWUiOiIifSx7InR5cGUiOiJjb250cm9sbGVyIiwib3JkZXJfbnVtIjowLCJwYWNrYWdlIjoidW5pdF90ZXN0IiwicGFyZW50IjoiIiwiYWxpYXMiOiJwcm92aWRlcnMiLCJ2YWx1ZSI6IiJ9LHsidHlwZSI6ImNvbnRyb2xsZXIiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiJwcm92aWRlcnMiLCJhbGlhcyI6ImdlbmVyYWwiLCJ2YWx1ZSI6IiJ9LHsidHlwZSI6ImNyb24iLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6InV0ZXN0IiwidmFsdWUiOiIifSx7InR5cGUiOiJmb3JtIiwib3JkZXJfbnVtIjowLCJwYWNrYWdlIjoidW5pdF90ZXN0IiwicGFyZW50IjoiIiwiYWxpYXMiOiJ1dGVzdCIsInZhbHVlIjoiIn0seyJ0eXBlIjoiaHRtbGZ1bmMiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6InV0ZXN0IiwidmFsdWUiOiIifSx7InR5cGUiOiJsaWIiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6Im15dGVzdCIsInZhbHVlIjoiIn0seyJ0eXBlIjoibW9kYWwiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6InV0ZXN0IiwidmFsdWUiOiIifSx7InR5cGUiOiJ0YWJjb250cm9sIiwib3JkZXJfbnVtIjowLCJwYWNrYWdlIjoidW5pdF90ZXN0IiwicGFyZW50IjoiIiwiYWxpYXMiOiJ1dGVzdCIsInZhbHVlIjoiIn0seyJ0eXBlIjoidGFicGFnZSIsIm9yZGVyX251bSI6MCwicGFja2FnZSI6InVuaXRfdGVzdCIsInBhcmVudCI6InV0ZXN0IiwiYWxpYXMiOiJwcm9maWxlIiwidmFsdWUiOiIifSx7InR5cGUiOiJ0YWJsZSIsIm9yZGVyX251bSI6MCwicGFja2FnZSI6InVuaXRfdGVzdCIsInBhcmVudCI6IiIsImFsaWFzIjoidXRlc3QiLCJ2YWx1ZSI6IiJ9LHsidHlwZSI6InZpZXciLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6ImFkbWluXC90ZXN0aW5nXC9jcmVhdGUiLCJ2YWx1ZSI6IiJ9LHsidHlwZSI6InRlc3QiLCJvcmRlcl9udW0iOjAsInBhY2thZ2UiOiJ1bml0X3Rlc3QiLCJwYXJlbnQiOiIiLCJhbGlhcyI6Im1pc2MiLCJ2YWx1ZSI6IiJ9LHsidHlwZSI6IndvcmtlciIsIm9yZGVyX251bSI6MCwicGFja2FnZSI6InVuaXRfdGVzdCIsInBhcmVudCI6IiIsImFsaWFzIjoidXRlc3QiLCJ2YWx1ZSI6InVzZXJzLnByb2ZpbGUifV0='), true);
-    $verify_toc = json_decode(base64_decode('eyJzcmNcL3VuaXRfdGVzdFwvYWpheFwvdXRlc3QucGhwIjoxLCJzcmNcL3VuaXRfdGVzdFwvYXV0b3N1Z2dlc3RcL2ZpbmRfdGVzdC5waHAiOjIsInNyY1wvdW5pdF90ZXN0XC9jb250cm9sbGVyXC9wcm92aWRlcnMucGhwIjozLCJzcmNcL3VuaXRfdGVzdFwvY29udHJvbGxlclwvcHJvdmlkZXJzXC9nZW5lcmFsLnBocCI6NCwic3JjXC91bml0X3Rlc3RcL2Nyb25cL3V0ZXN0LnBocCI6NSwic3JjXC91bml0X3Rlc3RcL2Zvcm1cL3V0ZXN0LnBocCI6Niwic3JjXC91bml0X3Rlc3RcL2h0bWxmdW5jXC91dGVzdC5waHAiOjcsInZpZXdzXC9jb21wb25lbnRzXC9odG1sZnVuY1wvdW5pdF90ZXN0XC91dGVzdC50cGwiOjgsInNyY1wvdW5pdF90ZXN0XC9teXRlc3QucGhwIjo5LCJzcmNcL3VuaXRfdGVzdFwvbW9kYWxcL3V0ZXN0LnBocCI6MTAsInZpZXdzXC9jb21wb25lbnRzXC9tb2RhbFwvdW5pdF90ZXN0XC91dGVzdC50cGwiOjExLCJzcmNcL3VuaXRfdGVzdFwvdGFiY29udHJvbFwvdXRlc3QucGhwIjoxMiwidmlld3NcL2NvbXBvbmVudHNcL3RhYnBhZ2VcL3VuaXRfdGVzdFwvdXRlc3RcL3Byb2ZpbGUudHBsIjoxNiwic3JjXC91bml0X3Rlc3RcL3RhYmNvbnRyb2xcL3V0ZXN0XC9wcm9maWxlLnBocCI6MTUsInNyY1wvdW5pdF90ZXN0XC90YWJsZVwvdXRlc3QucGhwIjoxNywidmlld3NcL3BocFwvYWRtaW5cL3Rlc3RpbmdcL2NyZWF0ZS5waHAiOjE4LCJ2aWV3c1wvdHBsXC9hZG1pblwvdGVzdGluZ1wvY3JlYXRlLnRwbCI6MTksInRlc3RzXC91bml0X3Rlc3RcL21pc2NfdGVzdC5waHAiOjIwLCJzcmNcL3VuaXRfdGVzdFwvd29ya2VyXC91dGVzdC5waHAiOjIxLCJzcmNcL3VuaXRfdGVzdC50eHQiOjIyLCJwdWJsaWNcL3VuaXRfdGVzdFwvdDIudHh0IjoyMywicHVibGljXC91bml0X3Rlc3RcL3QxLnR4dCI6MjQsImRvY3NcL3VuaXRfdGVzdFwvaW5kZXgubWQiOjI1LCJzcmNcL3VuaXRfdGVzdFwvdHBsXC9wdWJsaWNcL3Rlc3QxMjM0NS50cGwiOjI2fQ=='), true);
-
-    // Get actual JSON
-    $toc = json_decode(file_get_contents("$tmp_dir/toc.json"), true);
-    $components = json_decode(file_get_contents("$tmp_dir/components.json"), true);
-
-    // Compare TOC files
-    foreach ($verify_toc as $file => $num) { 
-        $this->assertcontains($file, array_keys($toc), "TOC does not contain the file, $file");
-    }
-
-    // Reverse verify TOC files
-    foreach ($toc as $file => $num) { 
-        $this->assertcontains($file, array_keys($verify_toc), "Extra file is in TOC, $file");
-    }
-
-    // GO through components
-    $verify_comps = array();
-    foreach ($verify_components as $row) { 
-        $verify_comps[] = implode(":", array($row['type'], $row['parent'], $row['alias']));
-    }
-
-    // Go through actual comps
-    $comps = array();
-    foreach ($components as $row) { 
-        $line = implode(":", array($row['type'], $row['parent'], $row['alias']));
-        $this->assertcontains($line, $verify_comps, "Have an extra component, $line");
-        $comps[] = $line;
-    }
-
-    // Reverse check the compons
-    foreach ($verify_comps as $line) { 
-        $this->assertcontains($line, $comps, "Missing component in JSON, $line");
+        $this->assertFileExists("$tmp_dir/$file");
+        $this->assertFileIsReadable("$tmp_dir/$file");
     }
 
 }
@@ -677,7 +673,7 @@ public function test_delete_children()
 
     // Delete
     $this->delete_component('tabpage', $this->pkg_alias . ':utest:profile', $this->pkg_alias, array("src/$this->pkg_alias/tabcontrol/utest/profile.php" => "class profile", "views/components/tabpage/$this->pkg_alias/utest/profile.tpl" => ""));
-    $this->delete_component('controller', $this->pkg_alias . ':providers:general', '', array("src/$this->pkg_alias/controller/providers/general.php" => ""));
+    $this->delete_component('adapter', $this->pkg_alias . ':providers:general', '', array("src/$this->pkg_alias/service/providers/general.php" => ""));
     $this->asserttrue(true);
 
 }
@@ -690,7 +686,7 @@ public function test_delete($type, $comp_alias, $owner, $files)
 { 
 
     // Skip, if needed
-    if ($type == 'tabpage' || ($type == 'controller' && $comp_alias = $this->pkg_alias . ':providers:general')) { 
+    if ($type == 'tabpage' || ($type == 'adapter' && $comp_alias = $this->pkg_alias . ':providers:general')) { 
         $this->asserttrue(true);
         return;
     }
@@ -805,8 +801,7 @@ public function test_install()
     }
 
     // Check files
-    $files = array();
-    //$files = array('package.php', 'install.sql', 'remove.sql', 'reset.sql');
+    $files = array('package.php', 'install.sql', 'remove.sql', 'reset.sql');
     foreach ($files as $file) { 
         $this->assertfileexists(SITE_PATH . "/etc/$this->pkg_alias/$file", "Creating package did not create the /etc/$file file");
         $this->assertfileiswritable(SITE_PATH . "/etc/$this->pkg_alias/$file", "Package creation did not create writeable file at /etc/$file");
@@ -834,7 +829,8 @@ public function test_install()
 }
 
 /**
- * Verify installed components @dataProvider provider_create 
+ * Verify installed components 
+ * @dataProvider provider_create 
  */
 public function test_install_verify_components($type, $comp_alias, $owner, $files)
 { 
@@ -874,7 +870,7 @@ public function test_create_upgrade()
     $this->assertdirectoryiswritable($upgrade_dir);
 
     // Check upgrade files
-    $files = array('upgrade.php', 'install.sql', 'rollback.sql', 'components.json');
+    $files = array('upgrade.php', 'install.sql', 'rollback.sql');
     foreach ($files as $file) { 
         $this->assertfileexists("$upgrade_dir/$file");
         $this->assertfileiswritable("$upgrade_dir/$file");
@@ -908,7 +904,7 @@ public function test_publish_upgrade()
     file_put_contents(SITE_PATH . '/docs/unit_test/index.md', "<h1>Update Test</h1>\n\n");
 
     // Send request
-    $response = $this->send_cli('publish_upgrade', array($this->pkg_alias, '', '1'));
+    $response = $this->send_cli('publish_upgrade', array($this->pkg_alias, '1'));
     $this->assertStringContains($response, "Successfully published the appropriate upgrade");
 
     // Check database row

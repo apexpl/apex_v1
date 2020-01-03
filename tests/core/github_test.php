@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\io;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\io;
 use apex\app\pkg\github;
 use apex\app\tests\test;
 
@@ -80,7 +80,7 @@ public function test_init_repo()
     $lines = file(SITE_PATH . '/src/' . $this->pkg_alias . '/git/git.sh');
     $this->assertEquals('git init', trim($lines[1]));
     $this->assertEquals('git remote add origin https://github.com/apexpl/git_test.git', trim($lines[2]));
-    $this->assertEquals('git add src/another_lib.php', trim($lines[4]));
+    $this->assertEquals('git add src/another_lib.php', trim($lines[3]));
     $this->assertEquals('git push -u origin master', trim($lines[6]));
 
 }
@@ -110,10 +110,10 @@ public function test_upgrade()
     file_put_contents(SITE_PATH . '/src/' . $this->pkg_alias . '/upgrade.php', $code);
 
     // Publish upgrade
-    $response = $this->send_cli('publish_upgrade', array($this->pkg_alias, 1));
+    $response = $this->send_cli('publish_upgrade', array($this->pkg_alias, '1'));
     $this->assertStringContains($response, 'publish to the git repository');
     $lines = file(SITE_PATH . '/src/' . $this->pkg_alias . '/git/git.sh');
-    $this->assertEquals('git add src/upgrade.php', trim($lines[2]));
+    $this->assertEquals('git add src/upgrade.php', trim($lines[1]));
 
 }
 

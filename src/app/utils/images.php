@@ -4,16 +4,16 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\forms;
-use apex\svc\io;
-use apex\svc\cache;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\forms;
+use apex\libc\io;
+use apex\libc\cache;
 
 /**
  * Image Handling Library
  *
- * Service: apex\svc\images
+ * Service: apex\libc\images
  *
  * Class to handle image storage and manipulation, including 
  * uploading / adding new images, generating thumbnails, 
@@ -30,7 +30,7 @@ use apex\svc\cache;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\images;
+ * use apex\libc\images;
  *
  * // Upload image
  * $product_id = 432;

@@ -22,7 +22,7 @@ listeners.  Dispatching messages is very simple, and for example:
 namespace apex;
 
 use apex\app;
-use apex\svc\msg;
+use apex\libc\msg;
 use apex\app\msg\objects\event_message;
 
 // Define some message, can be anything -- variable, array, object, etc.
@@ -61,7 +61,7 @@ event message:
 namespace apex;
 
 use apex\app;
-use apex\svc\msg;
+use apex\libc\msg;
 use apex\app\msg\objects\event_message;
 
 $data =

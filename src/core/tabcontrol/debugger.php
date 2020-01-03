@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\tabcontrol;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\view;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\view;
+use apex\libc\redis;
 use apex\app\utils\hashes;
 
 /**
@@ -61,7 +61,7 @@ public function process(array $data)
     if (!isset($data['registry'])) { return; }
 
     // Get URI
-    //$uri = $data['registry']['panel'] == 'public' ? 'public' : $data['registry']['http_controller'];
+    //$uri = $data['registry']['panel'] == 'public' ? 'public' : $data['registry']['http_adapter'];
     $uri = '/' . $data['registry']['uri'];
 
     // Get authenticated user

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\debug;
+use apex\libc\debug;
 
 
 /**

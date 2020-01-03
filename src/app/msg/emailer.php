@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\msg;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\msg;
 use apex\app\msg\utils\smtp_connections;
 use apex\app\msg\objects\email_message;
 use apex\app\msg\objects\event_message;
@@ -135,20 +135,20 @@ private function dispatch_phpmail(EmailMessageInterface $msg)
  * and additional variables.  Checks each notification against the condition, 
  * and sends any that match. 
  *
- * @param string $controller The notification controller / type alias of which to check.
+ * @param string $adapter The notification adapter / type alias of which to check.
  * @param int $userid The user ID# for which notifications are being processed against.
  * @param array $condition Associative array containing details on the current request, and is checked against the condition notifications were created with.
- * @param array $data Associatve array that is passed to the notification controller, and contains any additional information to retrieve merge variables (eg. transaction ID#, support ticket ID#, etc.)
+ * @param array $data Associatve array that is passed to the notification adapter, and contains any additional information to retrieve merge variables (eg. transaction ID#, support ticket ID#, etc.)
  */
-public function process_emails(string $controller, int $userid = 0, array $condition = array(), array $data = array())
+public function process_emails(string $adapter, int $userid = 0, array $condition = array(), array $data = array())
 { 
 
     // Debug
-    debug::add(3, tr("Checking e-mail notifications for controller {1}, user ID# {2}", $controller, $userid));
+    debug::add(3, tr("Checking e-mail notifications for adapter {1}, user ID# {2}", $adapter, $userid));
 
     // Check for notifications
-    $controller_alias = $controller;
-    $rows = DB::query("SELECT * FROM notifications WHERE controller = %s ORDER BY id", $controller);
+    $adapter_alias = $adapter;
+    $rows = DB::query("SELECT * FROM notifications WHERE adapter = %s ORDER BY id", $adapter);
     foreach ($rows as $row) { 
 
         // Get conditions

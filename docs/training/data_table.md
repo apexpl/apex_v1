@@ -15,8 +15,8 @@ declare(strict_types = 1);
 namespace apex\training\table;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\users\user;
 
 /**

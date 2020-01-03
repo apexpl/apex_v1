@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\io;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\io;
 use apex\app\pkg\package_config;
 use apex\app\pkg\pkg_component;
 use PhpAmqpLib\Connection\AMQPStreamConnection;

@@ -92,8 +92,8 @@ public function provider_check()
     array('htmlfunc', 'core:somejunk', false), 
         array('lib', 'core:admin', true), 
         array('lib', 'core:junk', false), 
-        array('controller', 'core:http_requests:http', true), 
-        array('controller', 'core:http_requests_somejunk', false)
+        array('adapter', 'core:http_requests:http', true), 
+        array('adapter', 'core:http_requests_somejunk', false)
     );
 
     // Return
@@ -134,7 +134,7 @@ public function provider_get_class_name()
         array('worker', 'logs', 'core', '', "\\apex\\core\\worker\\logs"), 
         array('lib', 'admin', 'core', '', "\\apex\\core\\admin"), 
         array('htmlfunc', 'display_form', 'core', '', "\\apex\\core\\htmlfunc\\display_form"), 
-        array('controller', 'http', 'core', 'http_requests', "\\apex\\core\\controller\\http_requests\\http"), 
+        array('adapter', 'http', 'core', 'http_requests', "\\apex\\core\\service\\http_requests\\http"), 
         array('tabcontrol', 'debugger', 'core', '', "\\apex\\core\\tabcontrol\\debugger"), 
         array('tabpage', 'line_items', 'core', 'debugger', "\\apex\\core\\tabcontrol\\debugger\\line_items")
     );
@@ -170,7 +170,7 @@ public function provider_get_file()
         array('htmlfunc', 'display_table', 'core', '', 'src/core/htmlfunc/display_table.php'), 
         array('view', 'admin/settings/general', 'core', '', 'views/php/admin/settings/general.php'), 
         array('test', 'admin_panel', 'core', '', 'tests/core/admin_panel_test.php'), 
-        array('controller', 'http', 'core', 'http_requests', 'src/core/controller/http_requests/http.php'), 
+        array('adapter', 'http', 'core', 'http_requests', 'src/core/service/http_requests/http.php'), 
         array('lib', 'admin', 'core', '', 'src/core/admin.php'),
         array('tabcontrol', 'debugger', 'core', '', 'src/core/tabcontrol/debugger.php'),  
         array('tabpage', 'line_items', 'core', 'debugger', 'src/core/tabcontrol/debugger/line_items.php')
@@ -302,16 +302,16 @@ public function test_load_tabcontrol_invalid()
 }
 
 /**
- * Get git file
+ * Get compile file
  */
-public function test_get_githut_file()
+public function test_get_compile_file()
 {
 
     // Initialize
     $checks = array(
         'src/core/admin.php' => 'src/admin.php', 
         'src/core/tabcontrol/debugger.php' => 'src/tabcontrol/debugger.php', 
-        'src/users/controller/general/core.php' => 'child/users/controller/general/core.php', 
+        'src/users/service/general/core.php' => 'child/users/service/general/core.php', 
         'tests/core/admin_panel_test.php' => 'tests/admin_panel_test.php', 
         'views/tpl/admin/settings/general.tpl' => 'views/tpl/admin/settings/general.tpl', 
         'docs/core/index.md' => 'docs/index.md'
@@ -320,7 +320,7 @@ public function test_get_githut_file()
     // Check all files
     $client = new components();
     foreach ($checks as $source => $dest) { 
-        $this->assertEquals($dest, $client->get_github_file($source, 'core'));
+        $this->assertEquals($dest, $client->get_compile_file($source, 'core'));
     }
 
 }

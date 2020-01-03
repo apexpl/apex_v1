@@ -19,7 +19,7 @@ ensure a user is authenticated via 2FA.
 namespace apex;
 
 use apex\app;
-use apex\svc\auth;
+use apex\libc\auth;
 
 // Withdraw funds
 if (app::get_action() == 'withdraw') {

@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\sys\network;
-use apex\svc\io;
-use apex\svc\components;
+use apex\libc\io;
+use apex\libc\components;
 use apex\app\exceptions\PackageException;
 use apex\app\exceptions\RepoException;
 use apex\app\exceptions\UpgradeException;
@@ -84,7 +84,7 @@ public function create(string $pkg_alias, string $version = '')
     file_put_contents("$this->upgrade_dir/rollback.sql", "");
 
     // Save upgrade.php file
-    $conf = base64_decode('PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcREI7CnVzZSBhcGV4XHJlZ2lzdHJ5Owp1c2UgYXBleFxsb2c7CnVzZSBhcGV4XGRlYnVnOwoKY2xhc3MgdXBncmFkZV9+cGFja2FnZX5ffnZlcnNpb25+CnsKCi8qKgoqIEluc3RhbGwgYmVmb3JlLiAgVGhpcyBjb2RlIGlzIGV4ZWN1dGVkIGJlZm9yZSBhbnkgZmlsZXMgLyBjb21wb25lbnRzCiogYXJlIHVwZGF0ZWQuCiovCnB1YmxpYyBmdW5jdGlvbiBpbnN0YWxsX2JlZm9yZSgpCnsKCgp9CgovKioKKiBJbnN0YWxsIGFmdGVyLiAgVGhpcyBjb2RlIGlzIGV4ZWN1dGVkIGFmdGVyIGFsbCBmaWxlcyAvIGNvbXBvbmVudHMgCiogaGF2ZSBiZWVuIHVwZ3JhZGVkLgoqLwpwdWJsaWMgZnVuY3Rpb24gaW5zdGFsbF9hZnRlcigpCnsKCgp9CgovKioKKiBST2xsYmFjay4gIFRoaXMgY29kZSBpcyBleGVjdXRlZCB1cG9uIHRoZSB1cGdyYWRlIGJlaW5nIHJvbGxlZCBiYWNrLgoqLwpwdWJsaWMgZnVuY3Rpb24gcm9sbGJhY2soKQp7Cgp9Cgp9Cgo=');
+    $conf = base64_decode('PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXMgPSAxKTsKCm5hbWVzcGFjZSBhcGV4OwoKdXNlIGFwZXhcYXBwOwp1c2UgYXBleFxsaWJjXGRiOwp1c2UgYXBleFxsaWJjXGRlYnVnOwoKCi8qKgogKiBDbGFzcyB0aGF0IGNvbnRhaW5zIGFueSBuZWNlc3NhcnkgUEhQIHRvIGJlIHNleGVjdXRlZCBkdXJpbmcgdGhlIAogKiBpbnN0YWxsYXRpb24gb2YgdGhpcyB1cGdyYWRlLgogKi8KY2xhc3MgdXBncmFkZV9+cGFja2FnZX5ffnZlcnNpb25+CnsKCi8qKgogKiBJbnN0YWxsIGJlZm9yZS4gIFRoaXMgY29kZSBpcyBleGVjdXRlZCBiZWZvcmUgYW55IGZpbGVzIC8gY29tcG9uZW50cwogKiBhcmUgdXBkYXRlZC4KICovCnB1YmxpYyBmdW5jdGlvbiBpbnN0YWxsX2JlZm9yZSgpCnsKCgp9CgovKioKICogSW5zdGFsbCBhZnRlci4gIFRoaXMgY29kZSBpcyBleGVjdXRlZCBhZnRlciBhbGwgZmlsZXMgLyBjb21wb25lbnRzIAogKiBoYXZlIGJlZW4gdXBncmFkZWQuCiAqLwpwdWJsaWMgZnVuY3Rpb24gaW5zdGFsbF9hZnRlcigpCnsKCgp9CgovKioKICogUm9sbGJhY2suLiAgVGhpcyBjb2RlIGlzIGV4ZWN1dGVkIHVwb24gdGhlIHVwZ3JhZGUgYmVpbmcgcm9sbGVkIGJhY2suCiAqLwpwdWJsaWMgZnVuY3Rpb24gcm9sbGJhY2soKQp7Cgp9Cgp9Cgo=');
     $conf = str_replace("~package~", $pkg_alias, $conf);
     $conf = str_replace("~version~", str_replace(".","_", $version), $conf);
     file_put_contents("$this->upgrade_dir/upgrade.php", $conf);
@@ -121,71 +121,31 @@ public function create_file_hash(int $upgrade_id)
         throw new UpgradeException('not_exists', $upgrade_id);
     }
 
-    // Load package
-    $pkg_client = new package_config($package);
-    $pkg = $pkg_client->load();
+    // Delete existing hashes
+    db::query("DELETE FROM internal_file_hashes WHERE upgrade_id = %i", $upgrade_id);
 
     // Debug
     debug::add(4, tr("Starting to create file hash for upgrade for package, {1}", $package));
 
-    // Delete existing hashes
-    db::query("DELETE FROM internal_file_hashes WHERE upgrade_id = %i", $upgrade_id);
+    // Compile package
+    $client = app::make(package::class, ['pkg_alias' => $package]);
+    $tmp_dir = $client->compile($package);
 
-    // Go through all components
-    $comps = array();
-    $rows = db::query("SELECT * FROM internal_components WHERE owner = %s ORDER BY id", $package);
-    foreach ($rows as $row) { 
+    // Go through all files
+    $files = io::parse_dir($tmp_dir);
+    foreach ($files as $file) { 
 
-        $files = components::get_all_files($row['type'], $row['alias'], $row['package'], $row['parent']);
-        foreach ($files as $file) { 
-            $this->add_single_file_hash($upgrade_id, $file);
-        }
-
-        // Add to $components array
-        $vars = array(
-            'type' => $row['type'],
-            'order_num' => $row['order_num'],
-            'package' => $row['package'],
-            'parent' => $row['parent'],
-            'alias' => $row['alias'],
-            'value' => $row['value']
-        );
-        array_push($comps, $vars);
+        // Add to database
+        db::insert('internal_file_hashes', array(
+            'is_system' => 0, 
+            'upgrade_id' => $upgrade_id,
+            'filename' => $file, 
+            'file_hash' => sha1_file("$tmp_dir/$file"))
+        ); 
     }
-
-    // Go through external files
-    foreach ($pkg->ext_files as $file) { 
-        $this->add_single_file_hash($upgrade_id, $file);
-    }
-
-    // Save components.json file
-    file_put_contents("$this->upgrade_dir/components.json", json_encode($comps));
 
     // Debug
     debug::add(3, tr("Successfully compiled file hash for upgrade point of package, {1}", $package));
-
-}
-
-/**
- * Add single file hash 
- *
- * @param int $upgrade_id The ID# of the upgrade
- * @param string $file The file to add, relative to the installation directory
- */
-protected function add_single_file_hash(int $upgrade_id, string $file)
-{ 
-
-    // Get SHA1 hash
-    if (!file_exists(SITE_PATH . '/' . $file)) { return; }
-    $file_hash = sha1(file_get_contents(SITE_PATH . '/' . $file));
-
-    // Add to database
-    db::insert('internal_file_hashes', array(
-        'is_system' => 0,
-        'upgrade_id' => $upgrade_id,
-        'filename' => $file,
-        'file_hash' => $file_hash)
-    );
 
 }
 
@@ -215,97 +175,64 @@ public function compile($upgrade_id)
     // Debug
     debug::add(4, tr("Compiling upgrade for package {1}, version {2}", $upgrade['package'], $upgrade['version']));
 
-    // Load package
-    $pkg_client = new package_config($upgrade['package']);
-    $pkg = $pkg_client->load();
-
     // Create tmp directory
-        $this->upgrade_dir = sys_get_temp_dir() . '/apex_upgrade_' . $upgrade['package'];
-    if (is_dir($this->upgrade_dir)) { io::remove_dir($this->upgrade_dir); }
-    io::create_dir($this->upgrade_dir);
-    io::create_dir("$this->upgrade_dir/files");
-    io::create_dir("$this->upgrade_dir/pkg");
+        $upgrade_dir = sys_get_temp_dir() . '/apex_upgrade_' . $upgrade['package'];
+    io::create_blank_dir($upgrade_dir);
 
     // Get current file hash
-    $this->file_hash = db::get_hash("SELECT filename,file_hash FROM internal_file_hashes WHERE upgrade_id = %s", $upgrade_id);
+    $file_hash = db::get_hash("SELECT filename,file_hash FROM internal_file_hashes WHERE upgrade_id = %s", $upgrade_id);
 
-    // GO through all components
-    $done = array();
-    $rows = db::query("SELECT * FROM internal_components WHERE owner = %s", $upgrade['package']);
-    foreach ($rows as $row) { 
-        $this->compile_component($row);
-        $done[] = implode(":", array($row['type'], $row['package'], $row['parent'], $row['alias']));
+    // Compile package
+    $client = app::make(package::class, ['pkg_alias' => $upgrade['package']]);
+    $tmp_dir = $client->compile($upgrade['package']);
+
+    // Go through all files
+    $files = io::parse_dir($tmp_dir);
+    foreach ($files as $file) { 
+
+        // Get hashes
+        $hash = sha1_file("$tmp_dir/$file");
+        $chk_hash = $file_hash[$file] ?? '';
+        if ($hash == $chk_hash) { continue; }
+
+        // Copy o ver file
+        io::create_dir(dirname("$upgrade_dir/$file"));
+        copy("$tmp_dir/$file", "$upgrade_dir/$file");
     }
-
-    // Go through external files
-    foreach ($pkg->ext_files as $file) { 
-        $this->compile_single_file($file);
-    }
-
-    // Go through documentation
-    $docs_dirs = $upgrade['package'] == 'core' ? array('', 'components', 'core', 'training', 'user_manual') : array($upgrade['package']);
-    foreach ($docs_dirs as $docdir) { 
-        if (!is_dir(SITE_PATH . "/docs/$docdir")) { continue; }
-        $docs_files = io::parse_dir(SITE_PATH . "/docs/$docdir", false);
-        foreach ($docs_files as $doc_file) { 
-            $this->compile_single_file("docs/$docdir/$doc_file");
-        }
-    }
-
-    // Save components.json file
-    file_put_contents("$this->upgrade_dir/toc.json", json_encode($this->toc));
-    file_put_contents("$this->upgrade_dir/components.json", json_encode($this->components));
 
     // Debug
     debug::add(5, tr("Compiling upgrade, went through all existing components, package {1}, version {2}", $upgrade['package'], $upgrade['version']));
 
-    // Get previous components
-    $etc_dir = SITE_PATH . '/etc/' . $upgrade['package'] . '/upgrades/' . $upgrade['version'];
-    $prev_components = json_decode(file_get_contents("$etc_dir/components.json"), true);
-
     // Get deleted components
     $deleted = array();
-    foreach ($prev_components as $vars) { 
-        $chk = implode(":", array($vars['type'], $vars['package'], $vars['parent'], $vars['alias']));
-        if (in_array($chk, $done)) { continue; }
-        $deleted[] = $vars;
+    foreach ($file_hash as $file => $hash) { 
+        if (file_exists("$tmp_dir/$file")) { continue; }
+        $deleted[] = $file;
     }
-    file_put_contents("$this->upgrade_dir/deleted.json", json_encode($deleted));
+    file_put_contents("$upgrade_dir/deleted.json", json_encode($deleted));
 
     // Copy over basic upgrade files
+    $etc_dir = SITE_PATH . '/etc/' . $upgrade['package'] . '/upgrades/' . $upgrade['version'];
     $files = array('upgrade.php', 'install.sql', 'rollback.sql');
     foreach ($files as $file) { 
         if (!file_exists($etc_dir . '/' . $file)) { continue; }
-        copy($etc_dir . '/' . $file, "$this->upgrade_dir/$file");
+        copy($etc_dir . '/' . $file, "$upgrade_dir/$file");
     }
 
-    // Copy package files
-    $pkg_dir = SITE_PATH . '/etc/' . $upgrade['package'];
-    $pkg_files = array('package.php', 'install.sql', 'install_after.sql', 'reset.sql', 'remove.sql');
-    foreach ($pkg_files as $file) { 
-        if (!file_exists("$pkg_dir/$file")) { continue; }
-
-        // Update version if package.php file of core package
-        if ($upgrade['package'] == 'core' && $file == 'package.php') { 
-            $text = str_replace("~version~", $upgrade['version'], file_get_contents(SITE_PATH . '/etc/core/package.php'));
-            file_put_contents("$this->upgrade_dir/pkg/package.php", $text);
-            continue;
-        }
-
-        // Copy if not package.php of core package
-        copy("$pkg_dir/$file", "$this->upgrade_dir/pkg/$file");
-
-
-
+    // Update version in package.php, if core package
+    if ($upgrade['package'] == 'core') { 
+        $text = str_replace("~version~", $upgrade['version'], file_get_contents(SITE_PATH . '/etc/core/package.php'));
+        file_put_contents("$upgrade_dir/etc/package.php", $text);
     }
 
     // Archive file
     $zip_file = 'apex_upgrade_' . $upgrade['package'] . '-' . str_replace(".", "_", $upgrade['version']) . ".zip";
     $archive_file = sys_get_temp_dir() . '/' . $zip_file;
-    io::create_zip_archive($this->upgrade_dir, $archive_file);
+    io::create_zip_archive($upgrade_dir, $archive_file);
 
     // Clean up
-    io::remove_dir($this->upgrade_dir);
+    io::remove_dir($upgrade_dir);
+    io::remove_dir($tmp_dir);
 
     // Debug
     debug::add(4, tr("Successfully compiled upgrade, and archived it at {1}", $archive_file));
@@ -315,74 +242,7 @@ public function compile($upgrade_id)
 
 }
 
-/**
- * Compile single component 
- *
- * Compile a single component.  Will get the .php file of component, and check 
- * to see whether or not it is updated or added, and process accordingly. 
- *
- * @param array $row The database row from 'internal_components' table
- */
-protected function compile_component(array $row)
-{ 
 
-    // Debug
-    debug::add(5, tr("Compiling single component for upgrade, type: {1}, package: {2}, parent: {3}, alias: {4}", $row['type'], $row['package'], $row['parent'], $row['alias']));
-
-    // Get PHP file
-    $php_file = components::get_file($row['type'], $row['alias'], $row['package'], $row['parent']);
-    if ($php_file == '' || !file_exists(SITE_PATH . '/' . $php_file)) { 
-        return;
-    }
-
-    // Set vars
-    $vars = pkg_component::get_vars($row['type'], $row['alias'], $row['package'], $row['parent'], $row['value'], (int) $row['order_num']);
-
-    // Get SHA1 hashes
-    $chk_hash = sha1(file_get_contents(SITE_PATH . '/' . $php_file));
-    $cur_hash = $this->file_hash[$php_file] ?? '';
-
-// Check hashes
-    if ($cur_hash == '' ?? $cur_hash != $chk_hash) { 
-        $this->components[] = $vars;
-    }
-
-    // Go through all files
-    $files = components::get_all_files($row['type'], $row['alias'], $row['package'], $row['parent']);
-    foreach ($files as $file) { 
-        $this->compile_single_file($file);
-    }
-
-}
-
-/**
- * Compile single file 
- *
- * Compile a single file.  Checks the current SHA1 hash against the one stroed 
- * upon upgrade point creation, and adds file to upgrade if needed. 
- *
- * @param string $file Filename to check, relative to installation directory.
- */
-protected function compile_single_file(string $file)
-{ 
-
-    // Check file exists
-    if (!file_exists(SITE_PATH . '/' . $file)) { 
-        return;
-    }
-
-    // Get hashes
-    $chk_hash = sha1(file_get_contents(SITE_PATH . '/' . $file));
-    $cur_hash = $this->file_hash[$file] ?? '';
-
-    // Check hash
-    if ($cur_hash == '' || $cur_hash != $chk_hash) { 
-        copy(SITE_PATH . '/' . $file, $this->upgrade_dir . '/files/' . $this->file_num);
-        $this->toc[$file] = $this->file_num;
-        $this->file_num++;
-    }
-
-}
 
 /**
  * Publish upgrade 
@@ -428,12 +288,12 @@ public function publish(int $upgrade_id)
 
     // Publish package
     if ($upgrade['package'] != 'core') { 
-        $package = new package();
+        $package = app::make(package::class);
         $package->publish($upgrade['package']);
     }
 
     // Load package, check for GIthub repo
-    $client = new package_config($upgrade['package']);
+    $client = app::make(package_config::class, ['pkg_alias' => $upgrade['package']]);
     $pkg = $client->load();
     if (isset($pkg->git_repo_url) && $pkg->git_repo_url != '') { 
         $git = app::make(github::class);
@@ -513,120 +373,67 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     debug::add(3, tr("Starting to upgrade package {1} to version {2} from zip file", $pkg_alias, $version));
 
     // Unpack zip file
-    $this->upgrade_dir = sys_get_temp_dir() . '/apex_upgrade_' . $pkg_alias . '_' . $version;
-    if (is_dir($this->upgrade_dir)) { io::remove_dir($this->upgrade_dir); }
-    io::unpack_zip_archive($zip_file, $this->upgrade_dir);
+    $upgrade_dir = sys_get_temp_dir() . '/apex_upgrade_' . $pkg_alias . '_' . $version;
+    if (is_dir($upgrade_dir)) { io::remove_dir($upgrade_dir); }
+    io::unpack_zip_archive($zip_file, $upgrade_dir);
 
     // Create rollback dir
-    $rollback_dir = SITE_PATH . '/etc/' . $pkg_alias . '/rollback/' . $version;
-    if (is_dir($rollback_dir)) { io::remove_dir($rollback_dir); }
-    io::create_dir($rollback_dir);
-    io::create_dir("$rollback_dir/files");
-    io::create_dir("$rollback_dir/pkg");
+    $prev_version = db::get_field("SELECT version FROM internal_packages WHERE alias = %s", $pkg_alias);
+    $rollback_dir = SITE_PATH . '/etc/' . $pkg_alias . '/rollback/' . $prev_version;
+    io::create_blank_dir($rollback_dir);
 
     // Load upgrade file
     $class_name = "\\apex\\" . 'upgrade_' . $pkg_alias . '_' . str_replace('.', '_', $version);
-    require_once("$this->upgrade_dir/upgrade.php");
+    require_once("$upgrade_dir/upgrade.php");
     $upgrade = new $class_name();
 
     // Debug
     debug::add(4, tr("Installing upgrade, loaded upgrade class file, package {1}, version {2}", $pkg_alias, $version));
 
     // Run install SQL, if needed
-    io::execute_sqlfile("$this->upgrade_dir/install.sql");
- 
+    io::execute_sqlfile("$upgrade_dir/install.sql");
 
     // Execute PHP, if needed
     if (method_exists($upgrade, 'install_before')) { 
         $upgrade->install_before();
     }
 
-    // Set variables
-    $new_toc = array(
-    'files' => array(),
-    'delete' => array(),
-    'add' => array()
-    );
-    $new_num = 1;
-
     // Copy over files
-    $toc = json_decode(file_get_contents("$this->upgrade_dir/toc.json"), true);
-    foreach ($toc as $file => $file_num) { 
-
-        // Add to new TOC
-        if (file_exists(SITE_PATH . '/' . $file)) { 
-            copy(SITE_PATH . '/' . $file, "$rollback_dir/files/$new_num");
-            $new_toc['files'][$file] = $new_num;
-            $new_num++;
-        } else { 
-            array_push($new_toc['delete'], $file);
-        }
-
-        // Save file
-        if (!(file_exists(SITE_PATH . '/' . $file) && preg_match("/views\/tpl\/public\//", $file))) { 
-            if (file_exists(SITE_PATH . '/' . $file)) { @unlink(SITE_PATH . '/' . $file); }
-            io::create_dir(dirname(SITE_PATH . '/' . $file));
-            if (!file_exists("$this->upgrade_dir/files/$file_num")) { 
-                file_put_contents(SITE_PATH . '/' . $file, '');
-            } else { 
-                copy("$this->upgrade_dir/files/$file_num", SITE_PATH . '/' . $file);
-            }
-        }
-    }
+    $new_files = pkg_component::sync_from_dir($pkg_alias, $upgrade_dir, $rollback_dir);
+    file_put_contents("$rollback_dir/added.json", json_encode($new_files));
 
     // Debug
     debug::add(4, tr("Installing upgrade, copied over all files as necessary for package {1}, version {2}", $pkg_alias, $version));
 
-    // Go through components
-    $components = json_decode(file_get_contents("$this->upgrade_dir/components.json"), true);
-    foreach ($components as $row) { 
-        if ($row['type'] == 'view') { $comp_alias = $row['alias']; }
-        else { $comp_alias = $row['parent'] == '' ? $row['package'] . ':' . $row['alias'] : $row['package'] . ':' . $row['parent'] . ':' . $row['alias']; }
+    // Copy deleted files to rollback dir
+    $deleted = json_decode(file_get_contents("$upgrade_dir/deleted.json"), true);
+    foreach ($deleted as $file) {
 
-        pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num'], $pkg_alias);
+        // Parse filename
+        $parts = explode('/', $file);
+        $subdir = array_shift($parts);
+        if (!isset(pkg_component::$dest_dirs[$subdir])) { continue; }
+
+        // Get filename
+        $src_file = SITE_PATH . '/' . pkg_component::$dest_dirs[$subdir] . '/' . implode('/', $parts);
+        $src_file = str_replace('~alias~', $pkg_alias, $src_file);
+        if (!file_exists(SITE_PATH . '/' . $src_file)) { continue; }
+
+        // Copy file
+        io::create_dir(dirname("$rollback_dir/$file"));
+        copy(SITE_PATH . '/' . $src_file, "$rollback_dir/$file");
     }
 
-    // Delete needed components
-    $deleted = json_decode(file_get_contents("$this->upgrade_dir/deleted.json"), true);
-    foreach ($deleted as $row) { 
-
-        // Get files
-        $files = components::get_all_files($row['type'], $row['alias'], $row['package'], $row['parent']);
-        foreach ($files as $file) { 
-            if (!file_exists(SITE_PATH . '/' . $file)) { continue; }
-            copy(SITE_PATH . '/' .  $file, "$rollback_dir/files/$new_num");
-            $new_toc['files'][$file] = $new_num;
-            $new_num++;
-        }
-        array_push($new_toc['add'], $row);
-
-        // Delete component
-        $comp_alias = $row['parent'] == '' ? $pkg_alias . ':' . $row['alias'] : $pkg_alias . ':' . $row['parent'] . ':' . $row['alias'];
-        pkg_component::remove($row['type'], $comp_alias);
+    // Delete components
+    foreach ($deleted as $file) {
+        pkg_component::remove_from_filename($pkg_alias, $file);
     }
 
     // Debug
     debug::add(4, tr("Installing upgrade, successfully created / deleted all necessary components for package {1}, version {2}", $pkg_alias, $version));
 
-    // Copy over new package files
-    $etc_dir = SITE_PATH . '/etc/' . $pkg_alias;
-    $files = array('package.php', 'install.sql', 'install_after.sql', 'reset.sql', 'remove.sql', 'components.json');
-    foreach ($files as $file) { 
-
-        // Copy to rollback, if needed
-        if (file_exists("$etc_dir/$file")) { 
-            copy("$etc_dir/$file", "$rollback_dir/pkg/$file");
-            @unlink("$etc_dir/$file");
-        }
-
-        // Copy package file
-        if (file_exists("$this->upgrade_dir/pkg/$file")) { 
-            copy("$this->upgrade_dir/pkg/$file", "$etc_dir/$file");
-        }
-    }
-
     // Install package configuration
-    $pkg_client = new package_config($pkg_alias);
+    $pkg_client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
     $pkg_client->install_configuration();
 
     // Execute PHP, if needed
@@ -635,10 +442,10 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     }
 
     // Save rollback files
-    file_put_contents("$rollback_dir/changes.json", json_encode($new_toc));
-    if (file_exists("$this->upgrade_dir/rollback.sql")) { 
-        copy("$this->upgrade_dir/rollback.sql", "$rollback_dir/rollback.sql");
+    if (file_exists("$upgrade_dir/rollback.sql")) { 
+        copy("$upgrade_dir/rollback.sql", "$rollback_dir/rollback.sql");
     }
+    copy("$upgrade_dir/upgrade.php", "$rollback_dir/upgrade.php");
 
     // Update database
     db::query("UPDATE internal_packages SET version = %s, last_modified = now() WHERE alias = %s", $version, $pkg_alias);
@@ -647,11 +454,12 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     db::insert('internal_upgrades', array(
         'status' => 'installed',
         'package' => $pkg_alias,
-        'version' => $version)
+        'version' => $version, 
+        'prev_version' => $prev_version)
     );
 
     // Clean up
-    io::remove_dir($this->upgrade_dir);
+    io::remove_dir($upgrade_dir);
     if (file_exists($zip_file)) { @unlink($zip_file); }
 
     // Debug
@@ -686,12 +494,12 @@ public function rollback(string $pkg_alias, string $version)
     foreach ($rows as $row) { 
 
         // Check version
-        if (!version_compare($prev_version, $row['version'], '>')) { 
+        if (!version_compare($prev_version, $row['prev_version'], '>')) { 
             break;
         }
 
         // Rollback single upgrade
-        $this->rollback_single($pkg_alias, $row['version']);
+        $this->rollback_single($pkg_alias, $row['prev_version']);
     }
 
     debug::add(1, tr("Successfully performed rollback to package {1}, from version {2} to version {3}", $pkg_alias, $current_version, $prev_version), 'info');
@@ -716,47 +524,46 @@ protected function rollback_single(string $pkg_alias, string $version)
     // Debug
     debug::add(3, tr("Starting single rollback for package {1}, version {2}", $pkg_alias, version));
 
-    // Get changes
-    $toc = json_decode(file_get_contents("$rollback_dir/changes.json"), true);
+    // Load upgrade file
+    $class_name = "\\apex\\" . 'upgrade_' . $pkg_alias . '_' . str_replace('.', '_', $version);
+    require_once("$rollback_dir/upgrade.php");
+    $upgrade = new $class_name();
 
-    // Go through all files
-    foreach ($toc['files'] as $file => $file_num) { 
-        if (file_exists(SITE_PATH . '/' . $file)) { @unlink(SITE_PATH . '/' . $file); }
-        copy("$rollback_dir/files/$file_num", SITE_PATH . '/' . $file);
+    // Sync directories
+    pkg_component::sync_from_dir($pkg_alias, $rollback_dir);
+
+    // Delete newly added components
+    $added = json_decode(file_get_contents("$rollback_dir/added.json"), true);
+    foreach ($added as $file) {
+        pkg_component::remove_from_filename($pkg_alias, $file);
     }
 
-    // Delete necessary components
-    foreach ($toc['delete'] as $row) { 
-        $comp_alias = $row['parent'] == '' ? $pkg_alias . ':' . $row['alias'] : $pkg_alias . ':' . $row['parent'] . ':' . $row['alias'];
-        pkg_component::remove($row['type'], $comp_alias);
-    }
+    // Execute SQL file
+    io::execute_sqlfile("$rollback_dir/rollback.sql");
 
-    // Add components
-    foreach ($toc['add'] as $row) { 
-        $comp_alias = $row['parent'] == '' ? $pkg_alias . ':' . $row['alias'] : $pkg_alias . ':' . $row['parent'] . ':' . $row['alias'];
-        pkg_component::add($row['type'], $comp_alias, $row['value'], $row['order_num']);
-    }
-
-    // Copy over package files
-    $etc_dir = SITE_PATH . '/etc/' . $pkg_alias;
-    $files = array('package.php', 'install.sql', 'install_after.sql', 'reset.sql', 'remove.sql', 'components.json');
-    foreach ($files as $file) { 
-        if (file_exists("$etc_dir/$file")) { @unlink("$etc_dir/$file"); }
-        if (file_exists("$rollback_dir/pkg/$file")) { 
-            copy("$rollback_dir/pkg/$file", "$etc_dir/$file");
-        }
+    // Execute PHP, if needed
+    if (method_exists($upgrade, 'rollback')) { 
+        $upgrade->rollback();
     }
 
     // Load package configuration
-    $pkg_client = new package_config($pkg_alias);
-
+    $pkg_client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
     $pkg_client->install_configuration();
+
     // Update database
     db::query("UPDATE internal_packages SET version = %s WHERE alias = %s", $version, $pkg_alias);
     db::query("DELETE FROM internal_upgrades WHERE package = %s AND version = %s AND status = 'installed'", $pkg_alias, $version);
 
     // Debug
     debug::add(3, tr("Completed single rollback on package {1} to version {2}", $pkg_alias, $version));
+
+    // Update database
+    db::query("UPDATE internal_packages SET version = %s WHERE alias = %s", $version, $pkg_alias);
+    db::query("DELETE FROM internal_upgrades WHERE package = %s AND status = 'installed' AND prev_version = %s", $pkg_alias, $version);
+
+    // Clean up
+    io::remove_dir($rollback_dir);
+
 
 }
 

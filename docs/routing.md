@@ -8,14 +8,14 @@ the [app class](app.md) remains the main / central class which helps facilitate 
 ## Http / Middleware Controllers
 
 How the HTTP requests are routed depends directly on the first segment of the URI, and the http / middleware
-controllers installed within the */src/core/controller/http_requests/* directory.  If there is a controller
+adapters installed within the */src/core/service/http_requests/* directory.  If there is a adapter
 named the same as the first segment of the UIR, the request will be passed off to it.  Otherwise the request
-will be passed to the default "http.php" controller and treated as a page of the public web site.
+will be passed to the default "http.php" adapter and treated as a page of the public web site.
 
-For example, if accessing */admin/users/create*, the request will be handled by the "admin.php" controller. If
-accessing */image/product/53/thumb.jpg* the request will be handled by the "image.php" controller.  All
-requests for which the first segment of the URI does not match a specific controller will be handled by the
-default "http.php" controller and treated as a page of the public web site.
+For example, if accessing */admin/users/create*, the request will be handled by the "admin.php" adapter. If
+accessing */image/product/53/thumb.jpg* the request will be handled by the "image.php" adapter.  All
+requests for which the first segment of the URI does not match a specific adapter will be handled by the
+default "http.php" adapter and treated as a page of the public web site.
 
 
 ### Views Directory Structure
@@ -38,15 +38,15 @@ the view is displayed, and is specific to that view. Please recall the [Apex Req
 Variables](app.md#apex_request) within the app class, as they will be used often within these PHP files.
 
 
-### Create Http / Middleware Controller
+### Create Http / Middleware Adapter
 
-At times you will need to create your own HTTP controller, allowing all incoing requests to be handled in a 
-certain way.  For example, you may want all requests to the /invoice/ URI to be routed through a different controller.  To do this you 
-would createa  new controller, for example if the package you're developing is "mycart" in terminal you would type:
+At times you will need to create your own HTTP adapter, allowing all incoing requests to be handled in a 
+certain way.  For example, you may want all requests to the /invoice/ URI to be routed through a different adapter.  To do this you 
+would createa  new adapter, for example if the package you're developing is "mycart" in terminal you would type:
 
-`./apex create controller core:http_requests:invoice mycard`
+`./apex create adapter core:http_requests:invoice mycard`
 
-This will create a new PHP file at */src/core/controller/http_requests/invoice.php*, and will be packaged with the "mycart" package.  Simply 
+This will create a new PHP file at */src/core/service/http_requests/invoice.php*, and will be packaged with the "mycart" package.  Simply 
 modify this file as desired, and add a `process()` method, which will be executed for every incoming HTTP request.  More than likely, the 
 app::get_uri_segments() method will be useful, as it returns an array of all URI segments separated by a / character.  For example:
 
@@ -54,23 +54,22 @@ app::get_uri_segments() method will be useful, as it returns an array of all URI
 <?php
 declare(strict_types = 1);
 
-namespace apex\app\core\controller\http_requests;
+namespace apex\app\core\service\http_requests;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\view;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\view;
 
 
-class invoice {
+class invoice
+{
 
     public function process() { 
 
         // Get invoice ID#
         $invoice_id = app::get_uri_segments()[0] ?? 'Unknown';
-        echo "Invoice ID: $invoice_id\n";
-        exit(0);
-
+        app::set_res_body("Invoice ID: $invoice_id");
     }
 }
 ~~~
@@ -81,7 +80,7 @@ will output "Invoice ID: 85542TH34".
 
 ## CLI Commands
 
-Through the /apex.php script (or "apex" phar archive), you can develop and execute custom CLI commands by creating 
+Through the /apexscript), you can develop and execute custom CLI commands by creating 
 a "cli" component for each command.  For example, if developing a package named "mycard", and you want a custom CLI command 
 named "archive_orders", you could create a cli component within terminal with:
 
@@ -94,8 +93,6 @@ via terminal with:
 `./apex mycard.archive_orders`
 
 The above will execute the `process()` method within the */src/mycard/cli/archive_orders.php* PHP class.
-
-
 
 
 

@@ -4,13 +4,13 @@ declare(strict_types = 1);
 namespace apex\app\web;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\msg;
-use apex\svc\redis;
-use apex\svc\cache;
-use apex\svc\auth;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\msg;
+use apex\libc\redis;
+use apex\libc\cache;
+use apex\libc\auth;
+use apex\libc\components;
 use apex\app\web\html_tags;
 use apex\core\admin;
 use apex\users\user;
@@ -775,6 +775,8 @@ public function load_base_variables()
         'linkedin' => app::_config('core:site_linkedin'), 
         'youtube' => app::_config('core:site_youtube'), 
         'reddit' => app::_config('core:site_reddit'), 
+        'github' => app::_config('core:site_github'), 
+        'dribble' => app::_config('core:site_dribble'), 
         'instagram' => app::_config('core:site_instagram')
     );
     $this->assign('site', $site_vars);

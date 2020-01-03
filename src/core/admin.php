@@ -4,11 +4,11 @@ declare(strict_types = 1);
 namespace apex\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\view;
-use apex\svc\forms;
-use apex\svc\encrypt;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\view;
+use apex\libc\forms;
+use apex\libc\encrypt;
 use apex\app\exceptions\MiscException;
 
 

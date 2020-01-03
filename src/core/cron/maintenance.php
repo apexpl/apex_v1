@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\cron;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\io;
-use apex\svc\date;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\io;
+use apex\libc\date;
 use apex\app\msg\emailer;
 
 

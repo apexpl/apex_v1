@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\form;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\view;
+use apex\libc\db;
+use apex\libc\view;
 use apex\core\notification;
 
 
@@ -32,16 +32,16 @@ public function get_fields(array $data = array()):array
 { 
 
 
-    // Get controller
+    // Get adapter
     if (isset($data['record_id']) && $data['record_id'] > 0) { 
-        $controller = db::get_field("SELECT controller FROM notifications WHERE id = %i", $data['record_id']);
+        $adapter = db::get_field("SELECT adapter FROM notifications WHERE id = %i", $data['record_id']);
     } else { 
-        $controller = $data['controller'];
+        $adapter = $data['adapter'];
     }
 
     // Get merge fields
     $client = new notification();
-    $merge_fields = $client->get_merge_fields($controller);
+    $merge_fields = $client->get_merge_fields($adapter);
     view::assign('merge_variable_options', $merge_fields);
 
     // Define form fields

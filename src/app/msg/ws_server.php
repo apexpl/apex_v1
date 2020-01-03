@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\redis;
-use apex\svc\debug;
+use apex\libc\redis;
+use apex\libc\debug;
 use apex\app\web\ajax;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;

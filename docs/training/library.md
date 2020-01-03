@@ -16,8 +16,8 @@ declare(strict_types = 1);
 namespace apex\training;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\transaction\tx;
 use apex\transaction\processor;
 use apex\app\msg\emailer;

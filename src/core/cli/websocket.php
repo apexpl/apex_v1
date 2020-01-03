@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\cli;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\msg\ws_server;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;

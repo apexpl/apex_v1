@@ -4,14 +4,14 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\msg;
-use apex\svc\view;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\msg;
+use apex\libc\view;
+use apex\libc\redis;
 use apex\app\interfaces\AuthInterface;
-use apex\svc\io;
-use apex\svc\hashes;
+use apex\libc\io;
+use apex\libc\hashes;
 use apex\app\msg\objects\event_message;
 use apex\app\msg\emailer;
 use apex\core\admin;
@@ -21,7 +21,7 @@ use apex\users\user;
 /**
  * Authentication Library
  *
- * Service: apex\svc\auth
+ * Service: apex\libc\auth
  *
  * Handles all authentication functionality including checking for a valid 
  * session and whether or not a user is authenticated, 2FA requests, invalid / 
@@ -38,7 +38,7 @@ use apex\users\user;
  * namespace apex;
  * 
  * use apex\app;
- * use apex\svc\auth;
+ * use apex\libc\auth;
  *
  * // Auto login a user
  * $userid = 582;

@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\tests;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\msg;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\msg;
 use apex\app\msg\emailer;
 use apex\app\msg\utils\smtp_connections;
 use apex\app\msg\objects\email_message;

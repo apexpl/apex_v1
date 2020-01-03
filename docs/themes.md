@@ -82,6 +82,7 @@ Tag | Description
 `<a:callouts>` | Replaced with the callouts (ie. success / error messages) that are displayed on the top of the page.
 `<a:page_title>` | The title of the current page being displayed.  Apex will first check the database to see if a page title has been specifically defined for the page, and if not, will check the TPL code if any `<h1> ... </h1>` tags exist and use that, and otherwise will just default to the site name configuration variable. 
 `<a:nav_menu>` | The navigation menu of the area being displayed (administration panel, member area, public web site), and uses the HTML tags located within the `/views/themes/ALIAS/components/nav_menu.tpl` file of the theme being used.  Please refer to these *nav_menu.tpl* files to see proper formatting.
+`<a:social_links>` | Replaced with the social media links / icons as defined by the administrator via the Settings-&gt;General menu, Site Info tab.
 `<a:dropdown_alerts>` | Replaced with drop down items for the larets drop down list, generally located in top-right corner of themes.
 `<a:dropdown_messages>` | Replaced with the drop down items for the messages dropdown list, generally located in the top-right corner of themes.
 
@@ -104,6 +105,8 @@ values of these fields are defined within the Settings->General menu of the admi
 * ~site.twitter~
 * ~site.linkedin~
 * ~site.youtube~
+* ~site.github~
+* ~site.dribble~
 * ~site.reddit~
 * ~site.instagram~
 

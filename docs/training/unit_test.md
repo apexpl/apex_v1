@@ -15,10 +15,10 @@ declare(strict_types = 1);
 namespace tests\training;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\auth;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\auth;
+use apex\libc\components;
 use apex\app\tests\test;
 
 

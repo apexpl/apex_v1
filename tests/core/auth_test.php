@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
-use apex\svc\auth;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
+use apex\libc\auth;
 use apex\app\msg\emailer;
 use apex\app\tests\test;
 
@@ -48,6 +48,7 @@ public function test_2fa_admin_email()
     // Clear e-mail queue
     $emailer = app::get(emailer::class);
     $emailer->clear_queue();
+    app::set_area('admin');
 
     // Logout
     $html = $this->http_request('admin/logout');

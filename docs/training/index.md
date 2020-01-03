@@ -10,9 +10,11 @@ If desired, you may download the completed training project by installing the "t
 
 `./apex install training`
 
-This training guide is an introduction into Apex, and more training guides will follow in the 
-near future to cover all aspects of Apex.  Below shows the table of contents for this training guide, and natrually, start at the [Getting
-Started](getting_started.md) page.
+This section plus dozens of training guides will be developed 
+quickly over the coming weeks and months.  To keep notified when new training guides / lessons are available, please subscribe to the [Youtube channel](https://www.youtube.com/channel/UCif-Ix-hUt1OKqTkPilwmFA), [Facebook Page](https://www.facebook.com/ApexSoftwarePlatform) or 
+[Twitter](https://twitter.com/ApexPlatform).
+
+To continue, start with the Started](getting_started.md) page.
 
 1. [Getting Started](getting_started.md)
 2. [Create Database Tables](create_database.md)

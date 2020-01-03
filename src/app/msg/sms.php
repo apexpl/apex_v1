@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\msg;
+use apex\libc\msg;
 use apex\app\msg\objects\event_message;
 use apex\app\interfaces\msg\SMSMessageInterface;
 

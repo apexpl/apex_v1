@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\core\notification;
 use apex\app\tests\test;
 
@@ -40,28 +40,28 @@ public function tearDown():void
 }
 
 /**
- * Notification - merge_fields - invalid controller
+ * Notification - merge_fields - invalid adapter
  */
-public function test_notification_get_merge_fields_invalid_controller()
+public function test_notification_get_merge_fields_invalid_adapter()
 {
 
     // Get exception
     $this->waitException('does not exist');
     $client = app::make(notification::class);
-    $client->get_merge_fields('some_invalid_junk_controller');
+    $client->get_merge_fields('some_invalid_junk_adapter');
 
 }
 
 /**
- * Notification - merge_vars - invalid controller
+ * Notification - merge_vars - invalid adapter
  */
-public function test_notification_get_merge_vars_invalid_controller()
+public function test_notification_get_merge_vars_invalid_adapter()
 {
 
     // Get exception
     $this->waitException('does not exist');
     $client = app::make(notification::class);
-    $client->get_merge_vars('some_invalid_junk_controller');
+    $client->get_merge_vars('some_invalid_junk_adapter');
 
 }
 
@@ -78,12 +78,12 @@ public function test_send_not_exists()
 }
 
 /**
- * Create - no controller defined
+ * Create - no adapter defined
  */
-public function test_create_controller_undefined()
+public function test_create_adapter_undefined()
 {
 
-    $this->waitException('No notification controller was defined');
+    $this->waitException('No notification adapter was defined');
     $client = app::make(notification::class);
     $client->create(array());
 
@@ -97,7 +97,7 @@ public function test_create_sender_undefined()
 
     $this->waitException('No sender variable');
     $client = app::make(notification::class);
-    $client->create(array('controller' => 'system'));
+    $client->create(array('adapter' => 'system'));
 
 }
 
@@ -112,7 +112,7 @@ public function test_create_recipient_undefined()
 
     // Create
     $vars = array(
-        'controller' => 'system', 
+        'adapter' => 'system', 
         'sender' => 'admin:1'
     );
     $client->create($vars);
@@ -120,9 +120,9 @@ public function test_create_recipient_undefined()
 }
 
 /**
- * create - invalid controller
+ * create - invalid adapter
  */
-public function test_create_invalid_controller()
+public function test_create_invalid_adapter()
 {
 
     $this->waitException('does not exist');
@@ -130,7 +130,7 @@ public function test_create_invalid_controller()
 
     // Set vars
     $vars = array(
-        'controller' => 'some_junk_invalid_controller', 
+        'adapter' => 'some_junk_invalid_adapter', 
         'sender' => 'admin:1', 
         'recipient' => 'user'
     );
@@ -158,7 +158,7 @@ public function test_delete()
 
     // Set vars
     $vars = array(
-        'controller' => 'system', 
+        'adapter' => 'system', 
         'sender' => 'admin:1', 
         'recipient' => 'user', 
         'cond_action' => '2fa', 

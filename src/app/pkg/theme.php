@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\sys\network;
-use apex\svc\io;
+use apex\libc\io;
 use apex\app\exceptions\RepoException;
 use apex\app\exceptions\ThemeException;
 
@@ -377,6 +377,48 @@ return true;
 
 }
 
+/**
+ * Initialize a file
+ *
+ * Used via the apex\app\sys\apex_cli::init_theme() method, will go 
+ * through the specified file, and initialize for integration.  This includes 
+ * updating all links to JS / CSS / images with the ~theme_uri~ tag, updating 
+ * the page title, and so on.
+ *
+ * @param string $file Full path to the file to initialize.
+ */
+public function init_file(string $file)
+{
+
+    // Get contents
+    $html = file_get_contents($file);
+
+    // Go through all HTML tags
+    preg_match_all("/<(script|link|img) (.+?)>/i", $html, $tag_match, PREG_SET_ORDER);
+    foreach ($tag_match as $match) {
+
+        // Check for attribute
+        $attr_name = $match[1] == 'link' ? 'href' : 'src';
+        if (!preg_match("/$attr_name=\"(.+?)\"/i", $match[2], $attr_match)) { 
+            continue;
+        }
+        if (preg_match("/^(http|~theme_uri~)/i", $attr_match[1])) { continue; }
+
+        // Update as necessary
+        $attr = $attr_name . '="~theme_uri~/' . ltrim($attr_match[1], '/') . '"';
+        $html = str_replace($match[0], str_replace($attr_match[0], $attr, $match[0]), $html);
+    }
+
+    // Page title
+    $html = preg_replace("/<title>(.*?)<\/title>/si", "<title><a:page_title textonly=\"1\"></title>", $html);
+    $html = preg_replace("/(?\/)index\.html/", "/index", $html);
+
+    // Save file
+    file_put_contents($file, $html);
 
 }
+
+
+}
+
 

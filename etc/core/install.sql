@@ -82,19 +82,6 @@ CREATE TABLE internal_components (
     FOREIGN KEY (owner) REFERENCES internal_packages (alias) ON DELETE CASCADE
 ) engine=InnoDB;
 
-CREATE TABLE internal_crontab (
-    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
-    autorun TINYINT(1) NOT NULL DEFAULT 1, 
-    failed INT NOT NULL DEFAULT 0, 
-    time_interval VARCHAR(10) NOT NULL, 
-    nextrun_time INT NOT NULL DEFAULT 0, 
-    lastrun_time INT NOT NULL DEFAULT 0, 
-    package VARCHAR(100) NOT NULL, 
-    alias VARCHAR(100) NOT NULL, 
-    display_name VARCHAR(100) NOT NULL DEFAULT '', 
-    FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE
-) engine=InnoDB;
-
 CREATE TABLE internal_themes (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     is_owner TINYINT(1) NOT NULL DEFAULT 0, 
@@ -117,7 +104,7 @@ CREATE TABLE internal_boxlists (
     href VARCHAR(100) NOT NULL, 
     title VARCHAR(100) NOT NULL, 
     description TEXT NOT NULL, 
-	FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE, 
+    FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE, 
     FOREIGN KEY (owner) REFERENCES internal_packages (alias) ON DELETE CASCADE
 ) engine=InnoDB;
 
@@ -153,6 +140,7 @@ CREATE TABLE internal_upgrades (
     status ENUM('open','published','installed') NOT NULL DEFAULT 'installed', 
     package VARCHAR(100) NOT NULL, 
     version VARCHAR(15) NOT NULL,
+    prev_version VARCHAR(15) NOT NULL DEFAULT '', 
     date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE
 ) engine=InnoDB;
@@ -161,6 +149,15 @@ CREATE TABLE internal_backups (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     filename VARCHAR(50) NOT NULL, 
     expire_date TIMESTAMP NOT NULL
+) engine=InnoDB;
+
+CREATE TABLE internal_tasks (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,  
+    failed SMALLINT NOT NULL DEFAULT 0,
+    execute_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    adapter VARCHAR(100) NOT NULL, 
+    alias VARCHAR(100) NOT NULL, 
+    data LONGTEXT 
 ) engine=InnoDB;
 
 
@@ -304,7 +301,7 @@ CREATE TABLE encrypt_data_keys (
 CREATE TABLE notifications (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     is_active TINYINT(1) NOT NULL DEFAULT 1, 
-    controller VARCHAR(100) NOT NULL, 
+    adapter VARCHAR(100) NOT NULL, 
     sender VARCHAR(30) NOT NULL, 
     recipient VARCHAR(30) NOT NULL, 
     reply_to VARCHAR(100) NOT NULL DEFAULT '',  
@@ -344,7 +341,7 @@ CREATE TABLE notifications_queue (
 CREATE TABLE notifications_mass_queue (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     type ENUM('email','sms') NOT NULL DEFAULT 'email', 
-    controller VARCHAR(50) NOT NULL DEFAULT 'users', 
+    adapter VARCHAR(100) NOT NULL DEFAULT 'users', 
     status ENUM('pending','in_progress','complete') NOT NULL DEFAULT 'pending', 
     total_sent INT NOT NULL DEFAULT 0, 
     send_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 

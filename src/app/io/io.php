@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\exceptions\IOException;
 use apex\app\io\SqlParser;
 use ZipArchive;
@@ -14,7 +14,7 @@ use CurlFile;
 /**
  * I/O Library for File and Directory Handling.
  *
- * Service:  apex\svc\io
+ * Service:  apex\libc\io
  * 
  * This class contains various methods to aid in managing files and directories, plus allows 
  * for the sending of HTTP requests, and creation / unpacking of zip archives.
@@ -30,7 +30,7 @@ use CurlFile;
  * namespace apex;
  * 
  * use apex\app;
- * use apex\svc\io;
+ * use apex\libc\io;
  *
  * // Create a directory
  * io::create_dir($some_directory);
@@ -133,6 +133,28 @@ public function create_dir(string $dirname)
 
     // Return
     return true;
+
+}
+
+/**
+ * Create a blank directory.
+ * 
+ * Creates a new directory recursively, and will also first remove 
+ * the directory if it already exists, ensuring the newly 
+ * created directory is blank.
+ *
+ * @param string $dir_name The name of the directory to create.
+ */
+public function create_blank_dir(string $dir_name)
+{
+
+    // Remove, if exists
+    if (is_dir($dir_name)) { 
+        $this->remove_dir($dir_name);
+    }
+
+    // Create directory
+    $this->create_dir($dir_name);
 
 }
 
@@ -447,8 +469,7 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
     }
 
     // Create directory to unpack to
-    if (is_dir($dirname)) { $this->remove_dir($dirname); }
-    $this->create_dir($dirname);
+    $this->create_blank_dir($dirname);
 
     // Open zip file
     if (!$zip = zip_open($zip_file)) { 
@@ -463,10 +484,15 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
         $filename = str_replace("\\", "/", $filename);
         if ($filename == '') { continue; }
 
+        // Create directory, and continue
+        if (preg_match("/\/$/", $filename)) { 
+            $this->create_dir("$dirname/$filename");
+            continue;
+        }
+
         // Get contents
         $contents = '';
         while ($line = zip_entry_read($file)) { $contents .= $line; }
-        if ($contents == '') { continue; }
 
         // Debug
         debug::add(5, tr("Unpacking file from zip archive, {1}", $filename));

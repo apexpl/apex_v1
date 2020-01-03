@@ -25,7 +25,7 @@ declare(strict_types = 1);
 namespaces tests\mypackage;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 use apex\app\msg\emailer;
 use apex\app\tests\test;
 

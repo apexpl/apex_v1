@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\ajax;
 
 use apex\app;
-use apex\svc\redis;
+use apex\libc\redis;
 use apex\app\web\ajax;
 
 

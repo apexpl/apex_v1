@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\table;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\redis;
 
 
 /**

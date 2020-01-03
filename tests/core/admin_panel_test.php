@@ -4,13 +4,13 @@ declare(strict_types = 1);
 namespace tests\core;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\forms;
-use apex\svc\components;
-use apex\svc\encrypt;
-use apex\svc\auth;
-use apex\svc\io;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\forms;
+use apex\libc\components;
+use apex\libc\encrypt;
+use apex\libc\auth;
+use apex\libc\io;
 use apex\app\sys\network;
 use apex\app\db\db_connections;
 use apex\core\admin;
@@ -90,6 +90,7 @@ public function test_login()
         'password' => $_SERVER['apex_admin_password'], 
         'submit' => 'login'
     );
+    app::set_area('admin');
 
     $html = $this->http_request('/admin/login', 'POST', $vars);
 
@@ -674,19 +675,19 @@ public function test_page_admin_settings_notifications()
     $this->assertHasTable('core:notifications');
     $this->assertHasSubmit('create', 'Create E-Mail Notification');
 
-    // Send invalid controller to get code ocverage
+    // Send invalid adapter to get code ocverage
     $data = array(
         'html' => '', 
-        'data' => array('controller' => 'some_junk_controller_that_will_never_exist')
+        'data' => array('adapter' => 'some_junk_adapter_that_will_never_exist')
     );
     $response = components::call('process', 'htmlfunc', 'notification_condition', 'core', '', $data);
     $this->assertNotEmpty($response);
-    $this->assertStringContains($response, 'The notification controller');
+    $this->assertStringContains($response, 'The notification adapter');
     $this->assertStringContains($response, 'does not exist');
 
     // Send request to create e-mail notification
     $vars = array(
-        'controller' => 'users',
+        'adapter' => 'users',
         'submit' => 'create'
     );
     $html = $this->http_request('/admin/settings/notifications_create', 'POST', $vars);
@@ -700,7 +701,7 @@ public function test_page_admin_settings_notifications()
 
     // Set variables to create notification
     $vars = array(
-        'controller' => 'users',
+        'adapter' => 'users',
         'sender' => 'admin:' . $admin_id,
         'recipient' => 'user',
         'cond_action' => 'create',
@@ -1045,8 +1046,14 @@ public function test_page_admin_maintenance_cron_manager()
 
     // Ensure page loads
     $html = $this->http_request('admin/maintenance/cron_manager');
-    $this->assertPageTitle('Cron Manager');
+    $this->assertPageTitle('Task Manager');
     $this->assertHasTable('core:crontab');
+    $this->assertHasTable('core:tasks');
+    $this->assertHasHeading(3, 'Automated Tasks');
+    $this->assertHasHeading(3, 'Schedule Task');
+    $this->assertHasHeading(3, 'Task Queue');
+    $this->assertHasSubmit('run', 'Execute Checked Cron Jobs');
+    $this->assertHasSubmit('schedule', 'Schedule One-Time Task');
 
 }
 

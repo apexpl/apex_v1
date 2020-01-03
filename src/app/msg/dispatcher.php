@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\debug;
-use apex\svc\view;
+use apex\libc\debug;
+use apex\libc\view;
 use apex\app\msg\utils\msg_utils;
 use apex\app\interfaces\msg\DispatcherInterface;
 use apex\app\interfaces\msg\EventMessageInterface;
@@ -17,7 +17,7 @@ use apex\app\exceptions\ApexException;
 /**
  * Event Dispatcher
  *
- * Service: apex\svc\msg
+ * Service: apex\libc\msg
  *
  * Handles all the two-way RPC calls between Apex and RabbitMQ.  Messages sent 
  * here will not be returned until a response has been received from all 
@@ -34,7 +34,7 @@ use apex\app\exceptions\ApexException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\msg;
+ * use apex\libc\msg;
  * use apex\app\msg\objects\event_message;
  *
  * // Set some message vars

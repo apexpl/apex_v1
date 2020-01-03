@@ -13,6 +13,7 @@ explains all available commands.
 2. <a href="#package">Package / Upgrade Development</a>
 3. <a href="#component">Component Development</a>
 4. <a href="#system">System Maintenance</a>
+5. <a href="#github_integration">git / Github Integration</a>
 
 
 <a name="general"></a>
@@ -157,6 +158,15 @@ creates the necessary directory structure within the /views/themes/ and /public/
 which you can begin creating the theme.
 
 **Example:** `./apex create_theme mydesign`
+
+
+#### `init_theme THEME_ALIAS`
+
+**Description:**  After initially creating the theme, and once you have the base header.tpl, footer.tpl and /tpl/index.tpl files in place, run this command to help 
+initialize the theme and speed up integration.  This command will go through the .tpl files of the theme, and update the internal links to javascript / CSS / images 
+as necessary with the ~theme_uri~ tag, helping speed up the integration process.
+
+**Example:** `./apex init_theme mydesign`
 
 
 #### `publish_theme THEME_ALIAS`
@@ -335,5 +345,38 @@ Places the Github repo of Apex within the system /tmp/ directory.
 **Example:** `./apex compile_core`
 
 
+<a name="github_integration">
+## git / Github Integration
+
+Apex also offers full integration with Hithub or any hosted git service.  This allows you to take advantage of the collaboration and 
+project management functionality of git while retraining the structual integrity of Apex packages.  Below explains all git commands supported.
+
+**NOTE:** For full details, please visit the [Github Integration](github.md) page of the documentation.
+
+
+#### `git_init PACKAGE`
+
+**Description:**  Used to initialize a package and ready it for publishing to Github.  This will create a sub-directory at */src/package_alias/git/* if one doesn't already 
+exist, then copy over all package files into it, plus create a git.sh file, readying it for a push to github.
+
+**Example:** `./apex git_init mypackage`
+
+
+#### `git_compare PACKAGE`
+
+**Description:**  Used to compare the current filesystem to the Github repository, and create the necessary git.sh file ensuring the Github repo is 
+running the latest version of the code base.  This command assumes the local filesystem is more up to date than the Github repository.
+
+**Example:** `./apex git_compare PACKAGE`
+
+
+#### `git_sync PACKAGE`
+
+**Description:** Used to sync the contents of the Github repository with the local filesystem.  This assumes the Github repo is 
+more up to date than the local filesystem, will download the repository tabball, and replace any updated files with those on the local filesystem.
+
+**Example:** `./apex git_sync PACKAGE`
+
+ 
 
 

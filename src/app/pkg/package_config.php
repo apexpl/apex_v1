@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
-use apex\svc\components;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
+use apex\libc\components;
 use apex\app\exceptions\ComponentException;
 use apex\app\exceptions\PackageException;
 use apex\app\pkg\pkg_component;

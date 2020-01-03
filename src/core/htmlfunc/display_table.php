@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\htmlfunc;
 
 use apex\app;
-use apex\svc\view;
+use apex\libc\view;
 use apex\app\sys\components;
 use apex\app\utils\tables;
 

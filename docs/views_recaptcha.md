@@ -21,8 +21,8 @@ it will look something like:
 namespace apex;
 
 use apex\app;
-use apex\svc\auth;
-use apex\svc\view;
+use apex\libc\auth;
+use apex\libc\view;
 
 if (!auth::recaptcha()) {
     view::add_callout("Unable to verify that you are a human.  Please try again", 'error');

@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\views;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\view;
-use apex\svc\redis;
-use apex\svc\forms;
+use apex\libc\db;
+use apex\libc\view;
+use apex\libc\redis;
+use apex\libc\forms;
 use apex\app\pkg\package_config;
 
 /**
@@ -60,6 +60,8 @@ if (app::get_action() == 'update_general') {
         'site_linkedin', 
         'site_youtube', 
         'site_reddit', 
+        'site_github', 
+        'site_dribble', 
         'site_instagram' 
     );
 

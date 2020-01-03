@@ -78,9 +78,9 @@ declare(strict_types = 1);
 namespace apex\my_package;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\redis;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\redis;
+use apex\libc\debug;
 
 
 class dashboard

@@ -92,7 +92,7 @@ method, and will copy the contents between the tags for every array within the a
 namespace apex;
 
 use apex\app;
-use apex\svc\view;
+use apex\libc\view;
 
 $posts = array(
     array(

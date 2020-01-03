@@ -24,12 +24,12 @@ public function dispatch(EmailMessageInterface $msg);
  * and additional variables.  Checks each notification against the condition, 
  * and sends any that match. 
  *
- * @param string $controller The notification controller / type alias of which to check.
+ * @param string $adapter The notification adapter / type alias of which to check.
  * @param int $userid The user ID# for which notifications are being processed against.
  * @param array $condition Associative array containing details on the current request, and is checked against the condition notifications were created with.
- * @param array $data Associatve array that is passed to the notification controller, and contains any additional information to retrieve merge variables (eg. transaction ID#, support ticket ID#, etc.)
+ * @param array $data Associatve array that is passed to the notification adapter, and contains any additional information to retrieve merge variables (eg. transaction ID#, support ticket ID#, etc.)
  */
-public function process_emails(string $controller, int $userid = 0, array $condition = array(), array $data = array());
+public function process_emails(string $adapter, int $userid = 0, array $condition = array(), array $data = array());
 
 
 /**

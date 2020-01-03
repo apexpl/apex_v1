@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\web;
 
 use apex\app;
-use apex\svc\debug;
-use apex\svc\components;
+use apex\libc\debug;
+use apex\libc\components;
 use apex\app\utils\tables;
 use apex\app\exceptions\ComponentException;
 

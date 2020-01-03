@@ -59,10 +59,12 @@
             <a:ft_seperator label="Social Media Profiles">
             <a:ft_textbox name="site_facebook" value="~config.core:site_facebook~" label="Facebook">
             <a:ft_textbox name="site_twitter" value="~config.core:site_twitter~" label="Twitter">
-            <a:ft_textbox name="site_linkedin" value="~config.core:site_linkedin~" label="LinkedIn">
             <a:ft_textbox name="site_youtube" value="~config.core:site_youtube~" label="YouTube">
-            <a:ft_textbox name="site_reddit" value="~config.core:site_reddit~" label="Reddit">
+            <a:ft_textbox name="site_linkedin" value="~config.core:site_linkedin~" label="LinkedIn">
             <a:ft_textbox name="site_instagram" value="~config.core:site_instagram~" label="Instagram">
+            <a:ft_textbox name="site_reddit" value="~config.core:site_reddit~" label="Reddit">
+            <a:ft_textbox name="site_github" value="~config.core:site_github~" label="Github">
+            <a:ft_textbox name="site_dribble" value="~config.core:site_dribble~" label="Dribble">
             <a:ft_submit value="site_info" label="Update Site Info">
         </a:form_table>
 

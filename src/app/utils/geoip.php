@@ -4,12 +4,12 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\svc\debug;
+use apex\libc\debug;
 
 /**
  * GeoIP library
  *
- * Service: apex\svc\geoip
+ * Service: apex\libc\geoip
  *
  * Small one method class that allows efficient geo lookups of IP addresses.
  *
@@ -24,7 +24,7 @@ use apex\svc\debug;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\geoip;
+ * use apex\libc\geoip;
  *
  * // Lookup user's IP address
  * $ip = geoip::lookup();

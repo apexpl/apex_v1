@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\worker;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 use apex\app\interfaces\msg\EventMessageInterface;
 
 

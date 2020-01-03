@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace apex\core\table;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 use apex\app\sys\network;
 
 

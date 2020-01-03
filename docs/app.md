@@ -31,7 +31,7 @@ use apex\app;
 <a name="input_arrays"></a>
 ## Input Arrays
 
-#### _post(), _get(), _cookie(), _server() Methods
+#### _post(), _get(), _cookie(), _server(), _files() Methods
 
 For security purposes, never use the super globals such as `$_POST` and `$_GET`, and instead only use these
 methods to retrieve input data, as these variables are properly sanitized.  For example:
@@ -82,7 +82,6 @@ and action completed successfully, you may want to clear the POST array so the f
 again is not pre-filled in with the previously submitted data.
 
 
-
 <a name="config"></a>
 ## Configuration Variables
 
@@ -112,7 +111,7 @@ get_uri() / set_uri($uri) | Gets or sets the URI that is being accessed, and is 
 get_userid() / set_userid($userid) | Gets or sets the ID# of the authenticated user.  Generally, you should never have to set the userid as the authentication engine does that automatically, but useful to obtain the ID# of the user.
 get_area() / set_area($area) | Gets or sets the current active area.  Generally, this will always be either "admin", "members" or "public", is automatically determined based on URI, and should never have to be set.
 get_theme() / set_theme($theme) | Gets or sets the theme being displayed.  Generally, you will never need either of these, as they are used by the template engine only.
-get_http_controller() | Gets the HTTP controller that will be handling the request, resides in the */src/core/controller/http_requests/* directory.
+get_http_controller() | Gets the HTTP controller that will be handling the request, resides in the */src/core/service/http_requests/* directory.
 
 
 **Examples**

@@ -11,7 +11,7 @@ This service provides full access to the php-redis class, for example:
 namespace apex;
 
 use apex\app;
-use apex\svc\redis;
+use apex\libc\redis;
 
 redis::hset('some_hash', 'var_name', 'value');
 $value = redis::hget('some_hash', 'var_name');

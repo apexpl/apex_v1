@@ -4,10 +4,10 @@ declare(strict_types = 1);
 namespace apex\core\worker;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\date;
-use apex\svc\view;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\date;
+use apex\libc\view;
 use apex\app\interfaces\msg\EventMessageInterface as event;
 use apex\app\tests\test;
 use apex\app\exceptions\ApexException;

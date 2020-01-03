@@ -4,18 +4,16 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\sys\network;
-use apex\svc\io;
-use apex\svc\components;
+use apex\libc\io;
+use apex\libc\components;
 use apex\app\pkg\package_config;
 use apex\app\pkg\github;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\PackageException;
 use apex\app\exceptions\RepoException;
-use CurlFile;
-
 
 /**
  * Handles all package functions -- create, compile, download, install, 
@@ -24,13 +22,9 @@ use CurlFile;
 class package
 {
 
-
-
     // Properties
-    private $tmp_dir;
-    private $toc = array();
-    private $file_num = 1;
     private $pkg_alias;
+
 
 /**
  * Insert a new package into the database 
@@ -132,6 +126,7 @@ public function validate_alias(string $pkg_alias):bool
     // Ensure valid alias
     if ($pkg_alias == '') { return false; }
     elseif (preg_match("/[\W\s]/", $pkg_alias)) { return false; }
+    elseif (in_array($pkg_alias, array('app','core','libc'))) { return false; }
 
     // Check if package already exists
     if ($row = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", strtolower($pkg_alias))) { 
@@ -151,7 +146,7 @@ public function validate_alias(string $pkg_alias):bool
  *
  * @param string $pkg_alias The alias of the package to compile.
  *
- * @return string The filename or the created archive file,
+ * @return string The location of the temporary directory that holds the compiled package.
  */
 public function compile(string $pkg_alias):string
 { 
@@ -160,92 +155,72 @@ public function compile(string $pkg_alias):string
     debug::add(3, tr("Start compiling pacakge for publication to repository, {1}", $pkg_alias));
 
     // Load package
-    $client = new package_config($pkg_alias);
+    $client = app::make(package_config::class, ['pkg_alias' => $pkg_alias]);
     $pkg = $client->load();
 
     // Create tmp directory
     $tmp_dir = sys_get_temp_dir() . '/apex_' . $pkg_alias;
-    io::remove_dir($tmp_dir);
-    io::create_dir($tmp_dir);
-    io::create_dir("$tmp_dir/files");
-    $this->tmp_dir = $tmp_dir;
+    io::create_blank_dir($tmp_dir);
+    io::create_dir("$tmp_dir/etc");
 
     // Debug
     debug::add(4, tr("Compiling, loaded package configuration and created tmp directory for package, {1}", $pkg_alias));
 
+    // Copy package files
+    $etc_dir = SITE_PATH . '/etc/' . $pkg_alias;
+    foreach (PACKAGE_CONFIG_FILES as $file) { 
+        if (!file_exists("$etc_dir/$file")) { continue; }
+        copy("$etc_dir/$file", "$tmp_dir/etc/$file");
+    }
+
     // Go through components
-    $components = array();
     $rows = db::query("SELECT * FROM internal_components WHERE owner = %s ORDER BY id", $pkg_alias);
     foreach ($rows as $row) { 
 
         // Go through files
-        $has_php = false;
         $files = components::get_all_files($row['type'], $row['alias'], $row['package'], $row['parent']);
-    foreach ($files as $file) { 
-            if (preg_match("/\.php$/", $file)) { $has_php = true; }
-            if (!file_exists(SITE_PATH . '/' . $file)) { continue; }
-            $this->add_file($file);
+        foreach ($files as $file) { 
+            $this->add_file($file, $pkg_alias);
         }
-        if ($has_php === false) { continue; }
-
-        // Add to components array
-        $components[] = pkg_component::get_vars($row['type'], $row['alias'], $row['package'], $row['parent'], $row['value'], (int) $row['order_num']);
     }
-    file_put_contents(SITE_PATH . '/etc/' . $pkg_alias . '/components.json', json_encode($components));
 
     // Debug
     debug::add(4, tr("Compiling package, successfully compiled aall components and created componentss.sjon file for package, {1}", $pkg_alias));
 
-    // Copy over basic package files
-    $pkg_dir = SITE_PATH . '/etc/' . $pkg_alias;
-    $files = array('components.json', 'package.php', 'install.sql', 'install_after.sql', 'reset.sql', 'remove.sql');
-    foreach ($files as $file) { 
-        if (!file_exists("$pkg_dir/$file")) { continue; }
-        copy("$pkg_dir/$file", "$tmp_dir/$file");
-    }
-
     // External files
     foreach ($pkg->ext_files as $file) { 
 
-        // Check for * mark
-        if (preg_match("/^(.+?)\*$/", $file, $match)) { 
-            $files = io::parse_dir(SITE_PATH . '/' . $match[1]);
-            foreach ($files as $tmp_file) { $this->add_file($match[1] . $tmp_file); }
-        } else { 
-            $this->add_file($file);
+        // Single file
+        if (!preg_match("/^(.*?)\/\*$/", $file, $match)) { 
+            $this->add_file($file, $pkg_alias, 'ext/' . $file);
+            continue;
+        }
+
+        // Get all files from directory
+        $files = io::parse_dir(SITE_PATH . '/' . $match[1]);
+        foreach ($files as $tmp_file) { 
+            $this->add_file($match[1] . '/' . $tmp_file, $pkg_alias, 'ext/' . $match[1] . '/' . $tmp_file);
         }
     }
 
     // docs and /src/tpl/ dirclearectories
     $addl_dirs = array(
-        'docs/' . $pkg_alias,
-        'src/' . $pkg_alias . '/tpl'
+        'docs/' . $pkg_alias => 'docs', 
+        'src/' . $pkg_alias . '/tpl' => 'src/tpl'
     );
-    foreach ($addl_dirs as $dir) { 
+    foreach ($addl_dirs as $dir => $dest_dir) { 
         if (!is_dir(SITE_PATH . '/' . $dir)) { continue; }
         $addl_files = io::parse_dir(SITE_PATH . '/' . $dir);
-        foreach ($addl_files as $file) { 
-            $this->add_file($dir . '/' . $file);
+        foreach ($addl_files as $file) {
+            $this->add_file($dir . '/' . $file, $pkg_alias, $dest_dir . '/' . $file);
         }
     }
-
-    // Save JSON file
-    file_put_contents("$tmp_dir/toc.json", json_encode($this->toc));
-
-    // Debug
-    debug::add(4, tr("Compiling, gatheered all files and saved toc.json for package, {1}", $pkg_alias));
-
-    // Create archive
-    $version = db::get_field("SELECT version FROM internal_packages WHERE alias = %s", $pkg_alias);
-    $zip_file = 'apex_package_' . $pkg_alias . '-' . str_replace(".", "_", $version) . '.zip';
-    $archive_file = sys_get_temp_dir() . '/' . $zip_file;
-    io::create_zip_archive($tmp_dir, $archive_file);
 
     // Debug
     debug::add(3, tr("Successfully compiled package for publication, {1}", $pkg_alias));
 
     // Return
-    return $zip_file;
+    return $tmp_dir;
 
 }
 
@@ -267,7 +242,11 @@ public function publish(string $pkg_alias, string $version = ''):bool
     if ($version == '') { $version = $row['version']; }
 
     // Compile
-    $zip_file = $this->compile($pkg_alias);
+    $tmp_dir = $this->compile($pkg_alias);
+
+    // Create zip file
+    $zip_file = 'apex_package_' . $pkg_alias . '-' . str_replace(".", "_", $version) . '.zip';
+    io::create_zip_archive($tmp_dir, sys_get_temp_dir() . '/' . $zip_file);
 
     // Load package
     $client = new package_config($pkg_alias);
@@ -292,7 +271,7 @@ public function publish(string $pkg_alias, string $version = ''):bool
         'name' => $pkg->name,
         'description' => $pkg->description,
         'readme' => $readme, 
-        'version' => $version 
+        'version' => ($version == '' ? $row['version'] : $version)
     );
 
     // Send HTTP request
@@ -327,7 +306,7 @@ public function install(string $pkg_alias, int $repo_id = 0)
     $package_id = $this->insert($repo_id, $pkg_alias, $vars['name'], 'public', $vars['version']);
 
     // Install
-    $this->install_from_dir($pkg_alias, $tmp_dir, (int) $vars['is_git']);
+    $this->install_from_dir($pkg_alias, $tmp_dir);
 
     // Clean up
     io::remove_dir($tmp_dir);
@@ -368,6 +347,7 @@ public function download(string $pkg_alias, int $repo_id = 0)
 
     // Send request
     $vars = $network->send_repo_request((int) $repo_id, $pkg_alias, 'download');
+
     // Download zip file
     $zip_file = sys_get_temp_dir() . '/apex_' . $pkg_alias . '.zip';
     if (file_exists($zip_file)) { @unlink($zip_file); }
@@ -377,6 +357,11 @@ public function download(string $pkg_alias, int $repo_id = 0)
     $tmp_dir = sys_get_temp_dir() . '/apex_' . $pkg_alias;
     io::unpack_zip_archive($zip_file, $tmp_dir);
     @unlink($zip_file);
+
+    // Rename directory, if from git repo
+    if (is_dir($tmp_dir . '/' . $pkg_alias . '-master')) { 
+        $tmp_dir .= '/' . $pkg_alias . '-master';
+    }
 
     // Debug
     debug::add(3, tr("Successfully downloaded package {1} and unpacked it at {2}", $pkg_alias, $tmp_dir));
@@ -394,9 +379,8 @@ public function download(string $pkg_alias, int $repo_id = 0)
  *
  * @param string $pkg_alias The alias of the package being installed
  * @param string $tmp_dir The directory where the package is currently unpacked
- * @param int $is_git A 1/0 whether or not it's from a git repo.
  */
-public function install_from_dir(string $pkg_alias, string $tmp_dir, int $is_git = 0)
+public function install_from_dir(string $pkg_alias, string $tmp_dir)
 { 
 
     // Create /pkg/ directory
@@ -407,15 +391,7 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir, int $is_git
     debug::add(4, tr("Starting package install from unpacked directory of package, {1}", $pkg_alias));
 
     // Copy over files
-    if ($is_git == 1) { 
-        $tmp_dir .= '/' . $pkg_alias . '-master';
-        $git = app::make(github::class);
-        $git->sync_from_dir($pkg_alias, $tmp_dir);
-        $components = $git->compile_components($pkg_alias, $tmp_dir);
-    } else { 
-        $this->install_copy_files($pkg_alias, $tmp_dir);
-        $components = json_decode(file_get_contents("$pkg_dir/components.json"), true);
-    }
+    pkg_component::sync_from_dir($pkg_alias, $tmp_dir);
 
     // Debug
     debug::add(4, tr("Installing package, copied over all files to correct location, package {1}", $pkg_alias));
@@ -449,20 +425,6 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir, int $is_git
     // Debug
     debug::add(4, tr("Installing package, successfully installed configuration for package, {1}", $pkg_alias));
 
-    // Go through components
-    foreach ($components as $row) { 
-
-        // Get comp alias
-        if ($row['type'] == 'view') { 
-            $comp_alias = $row['alias']; 
-        } else { 
-            $comp_alias = $row['parent'] == '' ? $row['package'] . ':' . $row['alias'] : $row['package'] . ':' . $row['parent'] . ':' . $row['alias']; 
-        }
-
-        // Add component
-        pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num'], $pkg_alias);
-    }
-
     // Run install_after SQL, if needed
     io::execute_sqlfile("$pkg_dir/install_after.sql");
     debug::add(4, tr("Installing package, successfully installed all components for package, {1}", $pkg_alias));
@@ -495,36 +457,6 @@ public function install_from_dir(string $pkg_alias, string $tmp_dir, int $is_git
 
     // Return
     return true;
-
-}
-
-/**
- * Copy over files
- *
- * @param string $pkg_alias The alias of the package we're installing.
- * @param string $tmp_dir The temp directyory holding the package files.
- */
-protected function install_copy_files(string $pkg_alias, string $tmp_dir)
-{
-
-    // Copy over /pkg/ files
-    $pkg_dir = SITE_PATH . '/etc/' . $pkg_alias;
-    foreach (PACKAGE_CONFIG_FILES as $file) { 
-        if (!file_exists("$tmp_dir/$file")) { continue; }
-        copy("$tmp_dir/$file", "$pkg_dir/$file");
-    }
-
-    // Copy over all files
-    $toc = json_decode(file_get_contents("$tmp_dir/toc.json"), true);
-    foreach ($toc as $file => $file_num) { 
-        io::create_dir(dirname(SITE_PATH . '/' . $file));
-
-        if (!file_exists("$tmp_dir/files/$file_num")) { 
-            file_put_contents(SITE_PATH .'/' . $file, '');
-        } else { 
-            copy("$tmp_dir/files/$file_num", SITE_PATH .'/' . $file);
-        }
-    }
 
 }
 
@@ -621,20 +553,27 @@ public function remove(string $pkg_alias)
  * Adds a file to an archive,, and is used while compiling a package. 
  *
  * @param string $filename The filename to add, relative to the / installation directory.
+ * @param string $pkg_alias The alias of the package we're adding to.
+ * @param string $tmp_file Optional filename to force file into.
  */
-private function add_file(string $filename)
+private function add_file(string $filename, string $pkg_alias, string $tmp_file = '')
 { 
 
-    // Copy file
-    copy(SITE_PATH . '/' . $filename, $this->tmp_dir . '/files/' . $this->file_num);
+    // Initialize
+    $tmp_dir = sys_get_temp_dir() . '/apex_' . $pkg_alias;
+    if (!file_exists(SITE_PATH . '/' . $filename)) { return; }
 
-    // Add to TOC
-    $this->toc[$filename] = $this->file_num;
-    $this->file_num++;
+    // Get tmp file
+    if ($tmp_file == '') { 
+        $tmp_file = components::get_compile_file($filename, $pkg_alias);
+    }
+
+    // Copy file
+    io::create_dir(dirname("$tmp_dir/$tmp_file"));
+    copy(SITE_PATH . '/' . $filename, "$tmp_dir/$tmp_file");
 
     // Debug
     debug::add(5, tr("Added file to TOC during package compile, {1}", $filename));
-
 
 }
 
@@ -780,7 +719,9 @@ private function update_github_repo()
         // Check file hash
     if ($chk_hash == '' || $hash != $chk_hash) { 
         if (file_exists("$git_dir/$file")) { @unlink("$git_dir/$file"); }
-        io::create_dir(dirname("$git_dir/$file"));
+        if (!is_dir(dirname("$git_dir/$file"))) { 
+            mkdir(dirname("$git_dir/$file"));
+        }
         copy("$rootdir/$file", "$git_dir/$file");
         $git_cmds[] = "git add $file";
     }

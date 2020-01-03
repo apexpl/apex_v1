@@ -18,7 +18,7 @@ declare(strict_types = 1);
 namespace apex\core\controller\notifications;
 
 use apex\app;
-use apex\svc\db;
+use apex\libc\db;
 use apex\users\user;
 
 /**

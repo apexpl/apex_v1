@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\auth;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\auth;
 use apex\app\exceptions\ApexException;
 use apex\app\exceptions\EncryptException;
 
@@ -14,7 +14,7 @@ use apex\app\exceptions\EncryptException;
 /**
  * Encryption Library
  *
- * Service: apex\svc\encrypt
+ * Service: apex\libc\encrypt
  *
  * Handles all encryption within Apex including user based two-way AES256 
  * encryption to multiple recipients, basic insecure encryption, RSA key-pair 
@@ -31,7 +31,7 @@ use apex\app\exceptions\EncryptException;
  * namespace apex;
  *
  * use apex\app;
- * use apex\svc\encrypt;
+ * use apex\libc\encrypt;
  *
  * // Basic encrypt
  * $encrypted = encrypt::encrypt_basic('some plain text', 'mypassword');

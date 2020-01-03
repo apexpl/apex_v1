@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\core\form;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
+use apex\libc\db;
+use apex\libc\debug;
 use apex\app\exceptions\ApexException;
 
 

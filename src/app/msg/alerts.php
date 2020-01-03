@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace apex\app\msg;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\redis;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\redis;
 use apex\app\web\ajax;
 use apex\app\web\html_tags;
 use apex\app\msg\websocket;

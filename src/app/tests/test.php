@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\tests;
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\view;
+use apex\libc\db;
+use apex\libc\view;
 use apex\app\sys\apex_cli;
 use apex\users\user;
 use apex\core\admin;
@@ -69,7 +69,7 @@ public function http_request(string $uri, string $method = 'GET', array $post = 
     $app->setup_test($uri, $method, $post, $get, $cookie);
 
     // Handle request
-    app::call(["apex\\core\\controller\\http_requests\\" . app::get_http_controller(), 'process']);
+    app::call(["apex\\core\\service\\http_requests\\" . app::get_http_controller(), 'process']);
 
     // Return response
     return app::get_res_body();
@@ -173,10 +173,11 @@ public function get_demo_user(string $type = 'user'):int
     // Update config, if needed
     if ($type == 'user') { 
         app::update_config_var('users:username_column', 'username');
-    app::update_config_var('username:phone_verification', 2);
-    app::update_config_var('users:email_verification', 2);
+        app::update_config_var('username:phone_verification', 2);
+        app::update_config_var('users:email_verification', 2);
+        db::query("DELETE FROM users_groups WHERE id > 1");
     }
-    ////app::clear_cookie();
+    //app::clear_cookie();
 
     // Create user
     $uri = $type == 'admin' ? 'admin/index' : '/register2';

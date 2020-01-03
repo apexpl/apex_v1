@@ -2,10 +2,10 @@
 declare(strict_types = 1);
 
 use apex\app;
-use apex\svc\db;
-use apex\svc\debug;
-use apex\svc\log;
-use apex\svc\view;
+use apex\libc\db;
+use apex\libc\debug;
+use apex\libc\log;
+use apex\libc\view;
 use apex\app\exceptions\ApexException;
 
 

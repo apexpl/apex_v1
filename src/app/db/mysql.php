@@ -5,7 +5,7 @@ namespace apex\app\db;
 
 use apex\app;
 use apex\app\db\db_connections;
-use apex\svc\debug;
+use apex\libc\debug;
 use apex\app\interfaces\DBInterface;
 use apex\app\exceptions\DBException;
 
