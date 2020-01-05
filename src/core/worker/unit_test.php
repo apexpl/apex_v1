@@ -18,6 +18,9 @@ use apex\app\exceptions\ApexException;
 class unit_test extends test
 {
 
+    // Routing key
+    public $routing_key = 'core.unit_test';
+
 /**
  * Disptach RPC call
  *

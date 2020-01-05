@@ -92,6 +92,9 @@ public function test_init_repo()
 public function test_upgrade()
 {
 
+    // Get user
+    $userid = $this->get_demo_user();
+
     // Delete component, if needed
     if (file_exists(SITE_PATH . '/src/' . $this->pkg_alias . '/upgrade.php')) { 
         $this->send_cli('delete', array('lib', $this->pkg_alias . ':upgrade'));

@@ -451,9 +451,17 @@ public function test_email_message_invalid_conent_type()
 public function test_rabbitmq_connection_invalid()
 {
 
+    // Set vars
+    $vars = array(
+        'host' => 'localhost', 
+        'user' => 'some_user', 
+        'pass' => 'some_junk_invalid_pass', 
+        'port' => 1234
+    );
+
     // Set wrong connection info
-    redis::hset('config:rabbitmq', 'pass', 'some_junk_invalid_pass');
-    $this->waitException('Unable to connect to RabbitMQ');
+    redis::hmset('config:rabbitmq', $vars);
+    $this->expectException(\PhpAmqpLib\Exception\AMQPIOException::class);
     
     // Throw exception
     $utils = app::make(msg_utils::class);

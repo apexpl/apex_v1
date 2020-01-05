@@ -11,8 +11,8 @@ use apex\app\interfaces\msg\EventMessageInterface;
 class logs
 {
 
-
-
+    // Routing key
+    public $routing_key = 'core.logs';
 
 /**
  * Add login history 

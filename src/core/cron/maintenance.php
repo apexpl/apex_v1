@@ -100,7 +100,7 @@ private function delete_expired_session_logs()
     // Delete from users, if needed
     if (app::_config('users:session_retain_logs')) { 
         $start_date = date::subtract_interval(app::_config('users:session_retain_logs'));
-        db::query("DELETE FROM auth_history WHERE type = 'user' AND date_added < $dt", $start_date);
+        db::query("DELETE FROM auth_history WHERE type = 'user' AND date_added < %dt", $start_date);
     }
 
     // Debug

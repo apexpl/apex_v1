@@ -15,6 +15,10 @@ use apex\app\interfaces\msg\EventMessageInterface as event;
 class unit_test_uploads
 {
 
+    // Routing key
+    public $routing_key = 'core.files';
+
+
 
 /**
  * Check for newly uploaded file.

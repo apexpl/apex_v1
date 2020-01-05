@@ -18,7 +18,8 @@ use apex\app\interfaces\msg\EventMessageInterface as event;
 class notify
 {
 
-
+    // Routing key
+    public $routing_key = 'core.notify';
 
 /**
  * Send an e-mail message 

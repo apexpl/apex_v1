@@ -95,6 +95,11 @@ private function backup_local(string $type)
     system($tar_cmd);
     system("gzip $archive_file");
 
+    // Delete dump.sql, if exists
+    if (file_exists(SITE_PATH . '/dump.sql')) {
+        @unlink(SITE_PATH . '/dump.sql');
+    }
+
     // Debug
     debug::add(1, tr("Completed backup of type {1}, located at {2}", $type, $archive_file), 'info');
 

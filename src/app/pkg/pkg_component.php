@@ -566,10 +566,15 @@ protected static function parse_filename(string $pkg_alias, string $file)
     // Component
     } else { 
         $package = $subdir == 'child' ? array_shift($parts) : $pkg_alias;
-        $type = count($parts) == 1 ? 'lib' : array_shift($parts);
-        $parent = count($parts) > 1 ? array_shift($parts) : '';
-        $alias = $parts[0];
-
+        if (count($parts) > 1 && !isset(COMPONENT_TYPES[$parts[0]])) { 
+            $type = 'lib';
+            $alias = implode('/', $parts);
+            $parent = '';
+        } else { 
+            $type = count($parts) == 1 ? 'lib' : array_shift($parts);
+            $parent = count($parts) > 1 ? array_shift($parts) : '';
+            $alias = $parts[0];
+        }
         // Get comp alias
         if ($parent != '') { 
             $flipped = array_flip(COMPONENT_PARENT_TYPES);

@@ -53,7 +53,7 @@ function handle_exception($e)
  */
 function error(int $errno, string $message, string $file, int $line) 
 {
-    if (preg_match("/fsockopen/", $message) && preg_match("/8194/", $message)) { return; }
+    if (preg_match("/fsockopen/", $message) && preg_match("/Name or service not known/", $message)) { return; }
     $file = trim(str_replace(SITE_PATH, '', $file), '/');
 
     // Get level of log message

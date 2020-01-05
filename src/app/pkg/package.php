@@ -567,6 +567,13 @@ private function add_file(string $filename, string $pkg_alias, string $tmp_file 
         $tmp_file = components::get_compile_file($filename, $pkg_alias);
     }
 
+    // Check tabpage ownership, if needed
+    if (preg_match("/^src\/tabcontrol\/(.+?)\/(.+?)\.php$/", $tmp_file, $match)) { 
+        if ($chk_owner = db::get_field("SELECT owner FROM internal_components WHERE type = 'tabpage' AND package = %s AND parent = %s AND alias = %s", $pkg_alias, $match[1], $match[2])) { 
+            if ($chk_owner != $pkg_alias) { return; }
+        }
+    }
+
     // Copy file
     io::create_dir(dirname("$tmp_dir/$tmp_file"));
     copy(SITE_PATH . '/' . $filename, "$tmp_dir/$tmp_file");
