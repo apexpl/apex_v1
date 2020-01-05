@@ -1,19 +1,50 @@
 <?php
+declare(strict_types = 1);
 
 namespace apex;
 
 use apex\app;
+use apex\libc\db;
 use apex\libc\redis;
 use apex\app\pkg\package;
 
+/**
+ * Configuration file for the main 'core' package of 
+ * Apex.  This file contains all configuration fino such as external files, 
+ * hashes, menus, and so on.
+ */
 class pkg_core
 {
 
-// Set package variables
-public $version = '1.4.0';
-public $access = 'public';
-public $name = 'Core Framework';
-public $description = 'The core package of the framework, and is required for all installations of the software.';
+    /**
+     * Basic package variables.  The $area can be either 'private', 
+     * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
+     * if set to 'commercial', you may define a price to charge within the $price variable below.
+     */
+    public $version = '1.4.1';
+    public $access = 'public';
+    public $price = 0;
+    public $name = 'Core Framework';
+    public $description = 'The core package of the framework, and is required for all installations of the software.';
+
+    /**
+     * Github / git Service Repository variables
+     *
+     * Only required if you wish to use the built-in Git integration within Apex.  These 
+     * variables allow you to define the URL of the git repository, branch name, and if 
+     * this is a forked repository, also the upstream repo URL.
+     *
+     * Once development of the package is complete, you may initialize the git 
+     * repository of the package and commit it with:
+     *     php apex.php git_init mtest
+     * 
+     * For full information on git integration, please refer to the documentation at:
+     *     https://apex-platform.org/docs/github
+     */
+    public $git_repo_url = '';
+    public $git_upstream_url = '';
+    public $git_branch_name = 'master';
+
 
 /**
  * Define the base configuration of the package, 
@@ -87,7 +118,6 @@ $this->ext_files = array(
     'public/plugins/sounds/notify.wav', 
     'public/themes/koupon/*',  
     'public/themes/limitless/*', 
-    'public/themes/atlant_members/*', 
     'public/.htaccess', 
     'public/index.php', 
     'public/robots.txt', 
@@ -97,7 +127,6 @@ $this->ext_files = array(
     'tests/core/*', 
     'views/themes/koupon/*', 
     'views/themes/limitless/*', 
-    'views/themes/atlant_members/*' 
 );
 
 

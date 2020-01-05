@@ -8,6 +8,7 @@ use apex\libc\db;
 use apex\libc\debug;
 use apex\libc\io;
 use apex\app\pkg\github;
+use apex\app\pkg\package;
 use apex\app\tests\test;
 
 
@@ -132,6 +133,21 @@ public function test_sync()
     $response = $this->send_cli('git_sync', array($this->pkg_alias));
     $this->assertStringContains($response, 'Successfully synced');
     $this->assertFileExists(SITE_PATH . '/src/' . $this->pkg_alias . '/somelib.php');
+
+}
+
+/**
+ * Clean up
+ */
+public function test_cleanup()
+{
+
+    // Delete package, if needed
+    if ($row = db::get_row("SELECT * FROM internal_packages WHERE alias = 'git_test'")) { 
+        $pkg = app::make(package::class);
+        $pkg->remove('git_test');
+    }
+    $this->assertTrue(true);
 
 }
 

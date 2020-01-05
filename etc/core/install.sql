@@ -92,7 +92,6 @@ CREATE TABLE internal_themes (
 ) engine=InnoDB;
 
 INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'limitless', 'Limitless');
-INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'atlant_members', 'SuprAdmin - Member Area');
 INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'public', 'koupon', 'Koupon');
 
 CREATE TABLE internal_boxlists (
