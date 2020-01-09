@@ -221,6 +221,7 @@ public function compile($upgrade_id)
 
     // Update version in package.php, if core package
     if ($upgrade['package'] == 'core') { 
+        io::create_dir("$upgrade_dir/etc");
         $text = str_replace("~version~", $upgrade['version'], file_get_contents(SITE_PATH . '/etc/core/package.php'));
         file_put_contents("$upgrade_dir/etc/package.php", $text);
     }

@@ -266,7 +266,8 @@ private function get_files()
 
         // Single file
         } else {
-            $files[$key] = new UploadedFile($vars['tmp_name'], $vars['size'], $vars['error'], $vars['name'], $vars['type']);
+            if ($vars['tmp_name'] == '') { continue; }
+            self::$files[$key] = new UploadedFile($vars['tmp_name'], $vars['size'], $vars['error'], $vars['name'], $vars['type']);
         }
     }
 
@@ -1019,6 +1020,16 @@ public static function has_get(string $var) { return isset(self::$get[$var]) ? t
  * @return bool Whether or not the variable exists.
  */
 public static function has_cookie(string $var) { return isset(self::$cookie[$var]) ? true : false; }
+
+/**
+ * Check whether or not a $_FILES variable exists.
+ *
+ * @param string $var The key of the variable to check whether or not it exists.
+ *
+ * @return bool Whether or not the variable exists.
+ */
+public static function has_files(string $var) { return isset(self::$files[$var]) ? true : false; }
+
 
 /**
  * Check whether or not a $_SERVER variable exists

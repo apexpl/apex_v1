@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.4.2';
+    public $version = '1.4.3';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';

@@ -199,6 +199,11 @@ public   function install($vars, package $package)
     $response = '';
     foreach ($vars as $alias) { 
 
+        // Check if package exists
+        if ($row = db::get_row("SELECT * FROM internal_packages WHERE alias = %s", $alias)) { 
+            throw new PackageException('exists', $alias);
+        }
+
         // Debug
         debug::add(4, tr("CLI: Starting install of package: {1}", $alias), 'info');
 
@@ -300,8 +305,9 @@ public function create_package($vars, package $package, network $client)
     if (count($repos) > 0) { 
         echo "The package '$pkg_alias' already exists in the following repositories:\n";
         foreach ($repos as $repo) { echo "\t$repo\n"; }
-    echo "\nAre you sure you want to create the package '$pkg_alias' (yes / no) [no]: "; $ok = strtolower(trim(readline()));
-    if ($ok != 'y' || $ok != 'yes') { echo "\nOk.  Exiting.\n"; exit(0); }
+        echo "\nAre you sure you want to create the package '$pkg_alias' (yes / no) [no]: "; 
+        $ok = strtolower(trim(readline()));
+    if ($ok != 'y' && $ok != 'yes') { echo "\nOk.  Exiting.\n"; exit(0); }
     }
 
     // Get repo ID#, if needed

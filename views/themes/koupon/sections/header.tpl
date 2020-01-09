@@ -15,6 +15,7 @@
 <link rel="stylesheet" type="text/css" href="~theme_uri~/css/style.css">
 <link rel="stylesheet" type="text/css" href="~theme_uri~/css/boxed.css" id="layout">
 <link rel="stylesheet" type="text/css" href="~theme_uri~/css/colors/green.css" id="colors">
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 
     <script src="https://code.jquery.com/jquery-3.4.0.min.js" type="text/javascript"></script>
 </head>
@@ -47,11 +48,7 @@
 			
 			<!-- Social Icons -->
 			<ul class="social-icons">
-				<li class="facebook"><a href="http://facebook.com/">Facebook</a></li>
-				<li class="twitter"><a href="http://twitter.com/">Twitter</a></li>
-				<li class="dribbble"><a href="http://dribble.com/">Dribbble</a></li>
-				<li class="linkedin"><a href="http://linkedin.com/">LinkedIn</a></li>
-				<li class="pintrest"><a href="http://pinterest.com/">Pintrest</a></li>
+                <a:social_links>
 			</ul>
 			
 			<div class="clear"></div>
