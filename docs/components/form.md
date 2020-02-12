@@ -54,7 +54,7 @@ Within the ~$form_fields` array, the key is always the name of the form field, a
 
 Key | Required | Value
 ------------- |------------- |-------------
-field | Yes | The type of form field.  The following types are supported:<br /><ul><li>seperator *(bold text with an indent to help seperate portions of forms)*</li><li>textbox</li><li>textarea</li><li>select</li><li>radio</li><li>checkbox</li><li>boolean</li><li>date</li><li>date_interval</li><li>phone</li><li>custom</li><li>submit</li>		</ul>
+field | Yes | The type of form field.  The following types are supported: *seperator, textbox, textarea, select, radio, checkbox, boolean, date, date_interval, amount, phone, custom, submit, button*
 value | No | The default value of the form field.  Only used if another value does not take precedent, such as a record from the database or previously submitted POST data.
 label | No | >The optional label of the form field.  This is used within the left-hand side of the form table, and is what the user sees.  If omitted, the uppercase version of the field name is used (eg. first_name = First name).
 data_source | No | Only required for "select", "radio" and "checkbox" fields.  Defines the data source for the options.  See below for details on this value.

@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.4.3';
+    public $version = '1.5.0';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';
@@ -69,35 +69,13 @@ $this->menus[] = array(
     'name' => 'Home'
 );
 
-// Admin menu -- Setup header
-$this->menus[] = array(
-    'area' => 'admin', 
-    'position' => 'top', 
-    'type' => 'header', 
-    'alias' => 'hdr_setup', 
-    'name' => 'Setup'
-);
-
-// Admin menus -- Setup
-$this->menus[] = array(
-    'area' => 'admin', 
-    'position' => 'after hdr_setup', 
-    'type' => 'parent', 
-    'icon' => 'fa fa-fw fa-cog', 
-    'alias' => 'settings', 
-    'name' => 'Settings', 
-    'menus' => array(
-        'general' => 'General' 
-    )
-);
-
-
-
     // External files
 $this->ext_files = array(		
     'apex', 
     'composer.json',  
+    'contribute.md', 
     'docker-compose.yml', 
+    'install_example.yml', 
     'License.txt', 
     'phpunit.xml', 
     'Readme.md',
@@ -111,22 +89,17 @@ $this->ext_files = array(
     'docs/guides/*', 
     'docs/training/*', 
     'etc/constants.php',
+    'etc/preload.php', 
     'etc/core/stdlists',  
     'public/plugins/apex.js', 
-    'public/plugins/flags/*', 
-    'public/plugins/parsley.js/*', 
-    'public/plugins/sounds/notify.wav', 
     'public/themes/koupon/*',  
-    'public/themes/limitless/*', 
     'public/.htaccess', 
     'public/index.php', 
     'public/robots.txt', 
     'src/app.php', 
     'src/app/*', 
-    'src/libc/*',  
-    'tests/core/*', 
-    'views/themes/koupon/*', 
-    'views/themes/limitless/*', 
+    'src/libc/*',   
+    'views/themes/koupon/*' 
 );
 
 
@@ -223,7 +196,7 @@ private function define_config()
         'site_name' => 'My Company Name', 
         'site_address' => '', 
         'site_address2' => '', 
-        'site_email' => 'support@envrin.com', 
+        'site_email' => 'hello@apexpl.io', 
         'site_phone' => '',
         'site_tagline' => '', 
         'site_facebook' => '', 

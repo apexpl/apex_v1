@@ -47,7 +47,7 @@ public function create()
     debug::add(3, tr("Starting to create new administrator and validate form fields"), 'info');
 
     // Validate form
-    forms::validate_form('core:admin');
+    forms::validate_form('webapp:admin');
 
     // Check validation errors
     if (view::has_errors() === true) { return false; }

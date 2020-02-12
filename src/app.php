@@ -4,10 +4,7 @@ declare(strict_types = 1);
 namespace apex;
 
 use apex\app;
-use apex\libc\debug;
-use apex\libc\db;
-use apex\libc\redis;
-use apex\libc\view;
+use apex\libc\{db, redis, debug, view};
 use apex\app\sys\container;
 use apex\app\msg\emailer;
 use apex\app\exceptions\ApexException;
@@ -329,6 +326,7 @@ public function setup_test(string $uri, string $method = 'GET', array $post = []
     // Set URI
     self::$uri_locked = false;
     self::set_uri($uri);
+    self::$uri_original = $uri;
     self::$reqtype = 'test';
 
     // Set other input variables
@@ -338,6 +336,16 @@ public function setup_test(string $uri, string $method = 'GET', array $post = []
     //self::$cookie = $cookie;
     self::$action = self::$post['submit'] ?? '';
     self::$verified_2fa = false;
+
+    // Ensure all POST / GET variables are strings
+    foreach (self::$post as $key => $value) { 
+        if (is_array($value)) { continue; }
+        self::$post[$key] = (string) $value; 
+    }
+    foreach (self::$get as $key => $value) { 
+        if (is_array($value)) { continue; }
+        self::$get[$key] = (string) $value; 
+    }
 
     // Reset needed objects
     view::reset();
@@ -624,9 +632,9 @@ public static function set_uri(string $uri, bool $prepend_area = false, bool $lo
 
     // Validate
     $uri = trim(str_replace(" ", "+", strtolower($uri)), '/');
-    if (!filter_var('http://domain.com/' . trim($uri, '/'), FILTER_VALIDATE_URL)) {
-        throw new ApexException('error', "Invalid URI specified, {1}", $uri);
-    }
+    //if (!filter_var('http://domain.com/' . trim($uri, '/'), FILTER_VALIDATE_URL)) {
+        //throw new ApexException('error', "Invalid URI specified, {1}", $uri);
+    //}
     self::$uri_segments = explode('/', $uri);
 
     // Check for http controller

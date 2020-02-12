@@ -12,15 +12,13 @@
     "license": "MIT",
     "require": {
         "php": ">=7.4.0",
-        "cboden/ratchet": "*",
+        "cboden/ratchet": ">=0.4.1",
         "michelf/php-markdown": ">=1.8.0",
-        "php-mime-mail-parser/php-mime-mail-parser": "*",
-        "league/flysystem": "*",
-        "league/flysystem-sftp": "*",
-        "league/flysystem-aws-s3-v3": "*",
-        "spatie/flysystem-dropbox": "*",
-        "guzzlehttp/guzzle": ">=6.0.0",
-        "php-amqplib/php-amqplib": "*"
+        "league/flysystem": ">=1.0.6",
+        "php-amqplib/php-amqplib": ">=2.11",
+        "symfony/inflector": ">=5.0.2",
+        "symfony/Notifier": ">=5.0.2",
+        "symfony/yaml": ">=5.0.2"
     },
     "require-dev": {
         "phpunit/phpunit": ">=8.2.0",

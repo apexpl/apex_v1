@@ -22,35 +22,6 @@ class Network
 {
 
 
-
-/**
- * Check whether or not a repository is valid. 
- *
- * @param string $host The hostname to check
- * @param int $is_ssl A 1/0, whether or not to check via SSL
- *
- * @return bool WHether or not ti's a valid repo.
- */
-public function check_valid_repo(string $host, int $is_ssl = 1)
-{ 
-
-    // Get URL
-    $url = $is_ssl == 1 ? 'https://' : 'http://';
-    $url .= $host . '/repo_api/get_info';
-
-    // Send request
-    if (!$response = io::send_http_request($url)) { 
-        return false;
-    } elseif (!$vars = json_decode($response, true)) { 
-        return false;
-    }
-
-    // Check for valid repo
-    $is_repo = $vars['is_apex_repo'] ?? 0;
-    return ($is_repo == 1 ? $vars : false);
-
-}
-
 /**
  * List all available packages on a repo 
  *

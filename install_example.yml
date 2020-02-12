@@ -1,0 +1,35 @@
+
+#
+# Example install.yml file used for auto-installation of Apex, bypassing 
+# the interactive CLI installation wizard.  For full details on this file, 
+# please visit the documentation at:
+#     https://apex-platform.org/docs/install_auto
+#
+# To use this file, simply rename it to install.yml and install Apex by 
+# running "./apex" within terminal.
+#
+
+domain_name: 127.0.0.1
+
+db:
+  driver: mysql
+  dbname: apex
+  user: apex
+  password: password
+  host: mysql
+
+redis:
+  host: redis
+  dbindex: 0
+
+packages:
+  - webapp
+  - maintenance
+  - cms
+  - multi_admins
+  - users
+  - transaction
+  - support
+  - devkit
+
+

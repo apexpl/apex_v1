@@ -510,9 +510,17 @@ protected function install_boxlists($pkg)
         } else { 
 
             // Get order num
-            $order_num = db::get_field("SELECT max(order_num) FROM internal_boxlists WHERE package = %s AND alias = %s", $package, $alias);
-            if ($order_num == '') { $order_num = 0; }
-            $order_num++;
+            if (isset($vars['position']) && preg_match("/^(before|after)\s(.+)$/i", $vars['position'], $match) && $order_num = db::get_field("SELECT order_num FROM internal_boxlists WHERE package = %s AND alias = %s AND href = %s", $package, $alias, $match[2])) { 
+                $opr = strtolower($match[1]) == 'before' ? '>=' : '>';
+                db::query("UPDATE internal_boxlists SET order_num = order_num + 1 WHERE package = %s AND alias = %s AND order_num $opr %i", $package, $alias, $order_num);
+                if ($match[1] == 'after') { $order_num++; }
+
+            } elseif ($order_num = db::get_field("SELECT max(order_num) FROM internal_boxlists WHERE package = %s AND alias = %s", $package, $alias)) { 
+                $order_num++;
+
+            } else { 
+                $order_num = 1;
+            }
 
             // Add to db
             db::insert('internal_boxlists', array(

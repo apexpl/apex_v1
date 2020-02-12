@@ -1,5 +1,5 @@
 
-# Packages and Components
+# Packages and Upgrades
 
 Apex has a very modular design, and each system is comprised of a series of packages allowing you to customize
 and finely tune each system to its specific needs without having a bulky system that contains functionality
@@ -13,6 +13,6 @@ control, click on the below links.
 2. [Package Configuration](packages_config.md)
 3. [Upgrades and Version Control](upgrades.md)
 4. [Github Integration](github.md)
-
+5. [Import / Export Data Between Packages](packages_import_export.md)
 
 

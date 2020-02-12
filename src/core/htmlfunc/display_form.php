@@ -4,13 +4,16 @@ declare(strict_types = 1);
 namespace apex\core\htmlfunc;
 
 use apex\app;
-use apex\app\sys\components;
+use apex\libc\{components, msg};
+use apex\app\msg\objects\event_message;
 
 
+/**
+ * Class that handles the displaying of all HTML 
+ * form components.
+ */
 class display_form
 {
-
-
 
 
 /**
@@ -26,11 +29,11 @@ class display_form
  *
  * @return string The resulting HTML code, which the <e:function> tag within the template is replaced with.
  */
-public function process(app $app, components $components, string $html, array $data = array()):string
+public function process(string $html, array $data = array()):string
 { 
 
     // Get package / alias
-    if (!list($package, $parent, $alias) = $components->check('form', $data['form'])) { 
+    if (!list($package, $parent, $alias) = components::check('form', $data['form'])) { 
         return "<b>ERROR:</b> The form with the alias '$data[form]' either does not exist, or no package was specified and belongs to more than one package.";
     }
 
@@ -38,7 +41,7 @@ public function process(app $app, components $components, string $html, array $d
     $width = $data['width'] ?? '';
 
     // Load component
-    $form = $components->load('form', $alias, $package, '', $data);
+    $form = components::load('form', $alias, $package, '', $data);
 
     // Get allow post values
     if (isset($data['allow_post_values'])) { $allow_post_values = $data['allow_post_values']; }
@@ -46,7 +49,7 @@ public function process(app $app, components $components, string $html, array $d
     else { $allow_post_values = 1; }
 
     // Get form fields
-    $form_fields = $form->get_fields($data);
+    $form_fields = $this->get_form_fields($form, $data['form'], $data);
 
     // Get values, if needed
     $values = array();
@@ -89,6 +92,77 @@ public function process(app $app, components $components, string $html, array $d
 
 }
 
+/**
+ * Get form fields.
+ *
+ * Retrives the form fields from the individual component, plus 
+ * sends an event message to collect any modifications to the 
+ * fields based on additional packages instlaled on the system.
+ *
+ * @param object $form The individual form component loaded.
+ * @param string $form_alias The alias of the form.
+ * @param array $data Optional $data array that was passed to the process() method within this class.
+ *
+ * @return array The array of form fields.
+ */
+private function get_form_fields(object $form, string $form_alias, array $data = []):array
+{
+
+    // Get fields
+    $fields = $form->get_fields($data);
+    $field_names = array_keys($fields);
+
+    // Send RPC message
+    $msg = new event_message('core.forms.get_fields', $form, $form_alias,  $data);
+    $response = msg::dispatch($msg)->get_response();
+
+    // Go through response
+    foreach ($response as $pkg_alias => $vars) { 
+        if (!is_array($vars)) { continue; }
+        if (!isset($vars['add'])) { continue; }
+        if (!isset($vars['remove'])) { continue; }
+
+        // Remove needed fields
+        foreach ($vars['remove'] as $alias) { 
+            if (!isset($fields[$alias])) { continue; }
+            unset($fields[$alias]);
+        }
+
+        // Add fields
+        $current_position = 'bottom';
+        foreach ($vars['add'] as $add) { 
+            if (!isset($add['name'])) { continue; }
+            if (!isset($add['vars'])) { continue; }
+
+            // Add field
+            $position = $vars['position'] ?? $current_position;
+            $fields[$add['name']] = $add['vars'];
+            if ($position != 'bottom' && ($i = array_search($position, $field_names)) !== false) { 
+                array_splice($field_names, ($i + 1), 0, $add['name']);
+            } else {
+                $field_names[] = $add['name'];
+            }
+            $current_position = $add['name'];
+        }
+    }
+
+    // Move submit button to bottom, if needed
+    if (($x = array_search('submit', $field_names)) !== false) { 
+        array_splice($field_names, $x, 1);
+        $field_names[] = 'submit';
+    }
+
+    // Finish new fields
+    $new_fields = [];
+    foreach ($field_names as $alias) { 
+        $new_fields[$alias] = $fields[$alias];
+    }
+
+    // Return
+    return $new_fields;
 
 }
+
+}
+
 

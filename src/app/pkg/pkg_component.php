@@ -483,6 +483,28 @@ public static function sync_from_dir(string $pkg_alias, string $tmp_dir, string 
         }
     }
 
+    // Copy over /data/ directory, if needed
+    if ($rollback_dir == '' && is_dir("$tmp_dir/data")) {
+
+        $import_data = []; 
+        $files = io::parse_dir("$tmp_dir/data");
+        foreach ($files as $file) { 
+            list($data_package, $file) = explode("/", $file, 2);
+            if (!isset($import_data[$data_package])) { $import_data[$data_package] = []; }
+            $import_data[$data_package][$file] = "$tmp_dir/data/$data_package/$file";
+        }
+
+        // Import all data
+        foreach ($import_data as $package => $files) { 
+            $client = app::make(package_config::class, ['pkg_alias' => $package]);
+            $pkg = $client->load();
+
+            if (method_exists($pkg, 'import_data')) { 
+                $pkg->import_data($package, $files);
+            }
+        }
+    }
+
     // Return
     return $new_files;
 

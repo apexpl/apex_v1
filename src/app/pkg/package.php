@@ -4,16 +4,12 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
+use apex\libc\{db, debug, io, components, msg};
 use apex\app\sys\network;
-use apex\libc\io;
-use apex\libc\components;
-use apex\app\pkg\package_config;
-use apex\app\pkg\github;
-use apex\app\exceptions\ApexException;
-use apex\app\exceptions\PackageException;
-use apex\app\exceptions\RepoException;
+use apex\app\pkg\{package_config, github};
+use apex\app\msg\objects\event_message;
+use apex\app\exceptions\{ApexException, PackageException, RepoException};
+
 
 /**
  * Handles all package functions -- create, compile, download, install, 
@@ -212,6 +208,18 @@ public function compile(string $pkg_alias):string
         $addl_files = io::parse_dir(SITE_PATH . '/' . $dir);
         foreach ($addl_files as $file) {
             $this->add_file($dir . '/' . $file, $pkg_alias, $dest_dir . '/' . $file);
+        }
+    }
+
+    // Send RPC and export any needed data
+    $msg = new event_message('core.packages.compile', $pkg_alias);
+    $response = msg::dispatch($msg)->get_response();
+    foreach ($response as $export_package => $data) { 
+        if (!is_array($data)) { continue; }
+        foreach ($data as $filename => $filepath) { 
+            if (!file_exists($filepath)) { continue; }
+            $this->add_file($filepath, $pkg_alias, 'data/' . $export_package . '/' . $filename);
+            @unlink($filepath);
         }
     }
 
@@ -560,7 +568,8 @@ private function add_file(string $filename, string $pkg_alias, string $tmp_file 
 
     // Initialize
     $tmp_dir = sys_get_temp_dir() . '/apex_' . $pkg_alias;
-    if (!file_exists(SITE_PATH . '/' . $filename)) { return; }
+    if (!file_exists($filename)) { $filename = SITE_PATH . '/' . $filename; }
+    if (!file_exists($filename)) { return; }
 
     // Get tmp file
     if ($tmp_file == '') { 
@@ -576,7 +585,7 @@ private function add_file(string $filename, string $pkg_alias, string $tmp_file 
 
     // Copy file
     io::create_dir(dirname("$tmp_dir/$tmp_file"));
-    copy(SITE_PATH . '/' . $filename, "$tmp_dir/$tmp_file");
+    copy($filename, "$tmp_dir/$tmp_file");
 
     // Debug
     debug::add(5, tr("Added file to TOC during package compile, {1}", $filename));

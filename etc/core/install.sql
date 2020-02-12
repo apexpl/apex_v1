@@ -52,7 +52,7 @@ CREATE TABLE internal_repos (
     description TEXT
 ) engine=InnoDB;	
 
-INSERT INTO internal_repos (is_ssl,host,name,description) VALUES (1, 'apex-platform.org', 'Apex Public Repository', 'The main, public repository for the Apex Software Platform.');
+INSERT INTO internal_repos (is_ssl,host,name,description) VALUES (1, 'apexpl.io', 'Apex Public Repository', 'The main, public repository for the Apex Software Platform.');
 
 CREATE TABLE internal_packages (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -91,7 +91,6 @@ CREATE TABLE internal_themes (
     name VARCHAR(255) NOT NULL
 ) engine=InnoDB;
 
-INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'members', 'limitless', 'Limitless');
 INSERT INTO internal_themes (repo_id,area,alias,name) VALUES (1, 'public', 'koupon', 'Koupon');
 
 CREATE TABLE internal_boxlists (
@@ -164,7 +163,7 @@ CREATE TABLE internal_tasks (
 -- CMS 
 --------------------------------------------------
 
-CREATE TABLE cms_pages (
+CREATE TABLE cms_layouts (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     area VARCHAR(100) NOT NULL DEFAULT 'public', 
     layout VARCHAR(255) NOT NULL DEFAULT 'default', 

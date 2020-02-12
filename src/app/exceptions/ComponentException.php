@@ -29,7 +29,8 @@ class ComponentException   extends ApexException
         'no_load' => "Unable to load component of type: {type}, package: {package}, parent: {parent}, alias: {alias}",
         'no_php_file' => "Unable to determine the location of the PHP file for component, type: {type}, package: {package}, parent: {parent}, alias: {alias}",
         'php_file_exists' => "PHP file already exists for the component, type: {type}, package: {package}, parent: {parent}, alias: {alias}",
-        'invalid_template_uri' => "Invalid template URI specified, {alias}"
+        'invalid_template_uri' => "Invalid template URI specified, {alias}", 
+        'already_exists' => "The component already exists with type {type} and alias {comp_alias}" 
     );
 
 /**

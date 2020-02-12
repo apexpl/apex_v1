@@ -39,7 +39,7 @@ available with:  `./apex list_packages`
 
 You can install a package with, for example for the "users" package:  `./apex install users`
 
-You can also install multiple packages at one time with for example:  `./apex install webapp users
+You can also install multiple packages at one time with for example:  `./apex install webapp cms maintenance multi_admins users
 transaction support`
 
 

@@ -4,20 +4,16 @@ declare(strict_types = 1);
 namespace apex\app\db;
 
 use apex\app;
-use apex\app\db\db_connections;
 use apex\libc\debug;
+use apex\app\db\db_connections;
 use apex\app\interfaces\DBInterface;
 use apex\app\exceptions\DBException;
 
-
 /**
- * Handles all database communication between the software and the mySQL 
- * database.  Please refer to the developer documentation for more details on 
- * methods within this class. 
+ * Handles the PostrgeSQL database integration.
  */
-class mysql   extends db_connections implements DBInterface
+class postgresql extends db_connections implements DBInterface
 {
-
 
     // Properties
     private $tables = [];
@@ -341,21 +337,6 @@ public function get_field(...$args)
     // Return result
     if (!$row = $this->fetch_array($result)) { return false; }
     return $row[0];
-
-}
-
-/**
- * Eval
- *
- * @param string $sql The SQL statement to evaluate
- *
- * @return string The results of the evaluation
- */
-public function eval(string $sql)
-{
-
-    // Return
-    return $this->get_field("SELECT $sql");
 
 }
 

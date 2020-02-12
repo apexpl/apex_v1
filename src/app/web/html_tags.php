@@ -707,6 +707,51 @@ public function textarea(array $attr, string $text = ''):string
 }
 
 /**
+ * editor (ckeditor)
+ *
+ * @param array $attr All attributes passed within the HTML tag.
+ * @param string $text The text between the opening and closing tags, if applicable.
+ *
+ * @return string The resulting HTML code. 
+ */
+public function editor(array $attr, string $text = ''):string
+{ 
+
+    // Perform checks
+    if (!isset($attr['name'])) { return "<v>ERROR:</b>:  No 'name' attribute within the ft_editor field."; }
+
+    // Set variables
+    $merge_vars = array(
+        'name' => $attr['name'], 
+        'placeholder' => $attr['placeholder'] ?? '', 
+        'value' => $attr['value'] ?? $text, 
+        'id' => $attr['id'] ?? 'input_' . $attr['name'],
+        'placeholder' => $attr['placeholder'] ?? '',  
+        'width' => $attr['width'] ?? '400px', 
+        'height' => $data['height'] ?? '100px'
+    );
+    if ($merge_vars['placeholder'] != '') { 
+        $merge_vars['placeholder'] = "placeholder=\"" . tr($merge_vars['placeholder']) . "\""; 
+    }
+
+    // Get size
+    if (isset($attr['size']) && preg_match("/^(.+?),(.+)/", $attr['size'], $match)) { 
+        $merge_vars['width'] = $match[1];
+        $merge_vars['height'] = $match[2];
+    }
+
+    // Get HTML
+    $html = $this->tags['form.editor'];
+    foreach ($merge_vars as $key => $value) { 
+        $html = str_replace("~$key~", $value, $html);
+    }
+
+    // Return
+    return $html;
+
+}
+
+/**
  * button 
  *
  * @param array $attr All attributes passed within the HTML tag.

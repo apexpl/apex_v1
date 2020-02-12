@@ -4,14 +4,13 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\redis;
-use apex\libc\debug;
-use apex\libc\io;
-use apex\app\pkg\package_config;
-use apex\app\pkg\pkg_component;
+use apex\libc\{db, redis, io, debug};
+use apex\app\pkg\{package_config, pkg_component, package, theme};
+use apex\app\sys\repo;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Yaml\Exception\ParseException;
 use redis as redisdb;
 
 
@@ -63,11 +62,6 @@ public function run_wizard()
         exit(0);
     }
 
-    // Echo header
-    echo "------------------------------\n";
-    echo "-- Apex Installation Wizard\n";
-    echo "------------------------------\n\n";
-
     // Install checks
     $errors = $this->install_checks();
     if (count($errors) > 0) { 
@@ -75,6 +69,16 @@ public function run_wizard()
         foreach ($errors as $err) { echo "- $err\n"; }
         exit(0);
     }
+
+    // Check for install.yml file
+    if (file_exists(SITE_PATH . '/install.yml') || file_exists(SITE_PATH . '/install.yaml')) { 
+        $this->process_yaml_file();
+    }
+
+    // Echo header
+    echo "------------------------------\n";
+    echo "-- Apex Installation Wizard\n";
+    echo "------------------------------\n\n";
 
     // Get server type
     echo "Choose a server type:\n\n";
@@ -117,7 +121,139 @@ public function run_wizard()
     // Complete install
     $this->complete_install();
 
-} 
+    // Give welcome message
+    $this->welcome_message();
+    exit(0);
+
+}
+
+/**
+ * Process YAML file
+ */
+public function process_yaml_file()
+{
+
+    // Initialize
+    $file = file_exists(SITE_PATH . '/install.yml') ? 'install.yml' : 'install.yaml';
+
+    // Parse file
+    try {
+        $vars = Yaml::parseFile(SITE_PATH . '/' . $file);
+    } catch (ParseException $e) { 
+        die("Unable to parse $file file -- " . $e->getMessage());
+    }
+
+    // Get server type
+    $this->server_type = $vars['server_type'] ?? 'all';
+    if (!in_array($this->server_type, array('all', 'web', 'app', 'dbs', 'dbm'))) {
+        die("Invalid server type defined within install.yml file, $this->server_type");
+    }
+
+    // Get domain name
+    $this->domain_name = $vars['domain_name'] ?? '';
+    if ($this->domain_name == '') { 
+        die("No domain specified within install.yml file");
+    }
+
+    // Get other basic variables
+    $this->enable_admin = isset($vars['enable_admin']) && $vars['enable_admin'] == 0 ? 0 : 1;
+    $this->enable_javascript = isset($vars['enable_javascript']) && $vars['enable_javascript'] == 0 ? 0 : 1;
+    $this->websocket_port = $vars['websocket_port'] ?? 8194;
+
+    // Get redis info
+    $redis = $vars['redis'] ?? [];
+    $this->redis_host = $redis['host'] ?? 'localhost';
+    $this->redis_port = $redis['port'] ?? 6379;
+    $this->redis_pass = $redis['password'] ?? '';
+    $this->redis_dbindex = $redis['dbindex'] ?? '0';
+
+    // Connect to redis
+    $this->connect_redis();
+
+    // Get RabbitMQ info, if needed
+    if ($this->server_type != 'all' && !redis::exists('config:rabbitmq')) { 
+
+        $rabbit = $vars['rabbitmq'] ?? [];
+        $this->rabbitmq_host = $rabbit['host'] ?? 'localhost';
+        $this->rabbitmq_port = $rabbit['port'] ?? '5672';
+        $this->rabbitmq_user = $rabbit['ser'] ?? 'guest';
+        $this->rabbitmq_pass = $rabbit['password'] ?? 'guest';
+
+        // Connect to RabbitMQ
+        $this->connect_rabbitmq();
+    }
+
+    // Get mySQL database info, if needed
+    if (!redis::exists('config:db_master')) { 
+
+        // Get database driver
+        $db = $vars['db'] ?? [];
+        $this->db_driver = $db['driver'] ?? 'mysql';
+        if (!file_exists(SITE_PATH . '/src/app/db/' . $this->db_driver . '.php')) { 
+            die("Invalid database driver, $this->db_driver");
+        }
+
+        // Set database variables
+        $this->has_mysql = true;
+        $this->type = isset($db['autogen']) && $db['autogen'] == 1 ? 'quick' : 'standard';
+        $this->dbname = $db['dbname'] ?? '';
+        $this->dbuser = $db['user'] ?? '';
+        $this->dbpass = $db['password'] ?? '';
+        $this->dbhost = $db['host'] ?? 'localhost';
+        $this->dbport = $db['port'] ?? 3306;
+        $this->dbroot_password = $db['root_password'] ?? '';
+        $this->dbuser_readonly = $db['readonly_user'] ?? '';
+        $this->dbpass_readonly = $db['readonly_password'] ?? '';
+
+        // Generate random passwords, as needed
+        if ($this->type == 'quick') { 
+            $this->dbpass = io::generate_random_string(24);
+            $this->dbpass_readonly = io::generate_random_string(24);
+        }
+
+        // Complete mySQL setup
+        $this->complete_mysql();
+    }
+
+    // Complete installation
+    $this->complete_install();
+
+    // Add repos
+    $repos = $vars['repos'] ?? [];
+    foreach ($repos as $host => $repo_vars) { 
+        $username = $repo_vars['user'] ?? '';
+        $password = $repo_vars['password'] ?? '';
+
+        // Add repo
+        $client = app::make(repo::class);
+        $client->add($host, $username, $password);
+    }
+
+    // Install packages
+    $packages = $vars['packages'] ?? [];
+    foreach ($packages as $alias) { 
+        $client = app::make(package::class);
+        $client->install($alias);
+    }
+
+    // Install themes
+    $themes = $vars['themes'] ?? [];
+    foreach ($themes as $alias) { 
+        $client = app::make(theme::class);
+        $client->install($alias);
+    }
+
+    // Configuration vars
+    $config = $vars['config'] ?? [];
+    foreach ($config as $key => $value) { 
+        app::update_config_var($key, $value);
+    }
+
+    // Welcome message, and exit
+    $this->welcome_message();
+    exit(0);
+
+}
 
 /**
  * Get redis connection info
@@ -137,8 +273,19 @@ private function get_redis_info()
     $this->redis_dbindex = (int) $this->getvar('Redis DB Index [0]:', '0');
 
     // Connect to redis
+    $this->connect_redis();
+
+}
+
+/**
+ * Connect to redis
+ */
+private function connect_redis()
+{
+
+    // Connect to redis
     $redis = new redisdb();
-    if (!$redis->connect($this->redis_host, $this->redis_port, 2)) { 
+    if (!$redis->connect($this->redis_host, (int) $this->redis_port, 2)) { 
         echo "Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.\n\n";
         exit(0);
     }
@@ -150,7 +297,7 @@ private function get_redis_info()
     }
 
     // Select redis db, if needed
-    if ($this->redis_dbindex > 0) { $redis->select($this->redis_dbindex); }
+    if ($this->redis_dbindex > 0) { $redis->select((int) $this->redis_dbindex); }
 
     // Define constants
     define('REDIS_HOST', $this->redis_host);
@@ -186,6 +333,17 @@ private function get_rabbitmq_info()
     $this->rabbitmq_user = $this->getvar("RabbitMQ Username [guest]:", 'guest');
     $this->rabbitmq_pass = $this->getvar("RabbitMQ Password [guest]:", 'guest');
 
+    // Conenct to RabbitMQ server
+    $this->connect_rabbitmq();
+
+}
+
+/**
+ * Connect to RabbitMQ server
+ */
+private function connect_rabbitmq()
+{
+
     // Test RabbitMQ connection
     if (!$connection = new AMQPStreamConnection($this->rabbitmq_host, $this->rabbitmq_port, $this->rabbitmq_user, $this->rabbitmq_pass)) { 
         echo "Unable to connect to the RabbitMQ server with the supplied information.  Please double check the information, and try the installer again.\n\n";
@@ -213,8 +371,23 @@ private function get_mysql_info()
 
     // Echo header
     echo "\n------------------------------\n";
-    echo "-- mySQL Database Information\n";
+    echo "-- SQL Database Information\n";
     echo "------------------------------\n\n";
+
+    // Display database driver options
+    echo "Database Driver:\n";
+    echo "    [1] mySQL\n";
+    echo "    [2] PostgreSQL\n\n";
+
+    // Get database driver
+    $ok=false;
+    do { 
+        $this->db_driver = $this->getvar("Select One [1]: ", '1');
+        if (in_array($this->db_driver, array('1', '2'))) {
+            $ok = true;
+        } 
+    } while ($ok = false);
+    $this->db_driver = $this->db_driver == 2 ? 'postgresql' : 'mysql';
 
     // Get install type
     echo "Would you like to auto-generate the necessary mySQL database, users, and privileges?  This requires the root mySQL password, but it is only used once and not saved.  Thiss ";
@@ -274,6 +447,18 @@ private function get_mysql_info()
         }
     }
 
+    // Compelte mySQL
+    $this->complete_mysql();
+
+
+}
+
+/**
+ * Complete mySQL setup
+ */
+private function complete_mysql()
+{
+
     // Set vars
     $vars = array(
         'dbname' => $this->dbname, 
@@ -292,6 +477,7 @@ private function get_mysql_info()
     } else { 
         $this->handle_standard_install();
     }
+
 }
 
 /**
@@ -308,7 +494,7 @@ private function install_checks()
     $errors = array();
 
     // Check PHP version
-    if (version_compare(phpversion(), '7.2.0', '<') === true) { 
+    if (version_compare(phpversion(), '7.4.0', '<') === true) { 
         $errors[] = "This software requires PHP v7.2+.  Please upgrade your PHP installation before continuing.";
     }
 
@@ -350,7 +536,8 @@ private function install_checks()
         'mbstring', 
         'redis', 
         'tokenizer', 
-        'gd'
+        'gd', 
+        'zip'
     );
 
     // Check PHP extensions
@@ -533,6 +720,14 @@ private function complete_install()
     chmod(SITE_PATH . '/bootstrap/apex', 0755);
     chmod(SITE_PATH . '/apex', 0755);
 
+}
+
+/**
+ * Give welcome message
+ */
+private function welcome_message()
+{
+
     // Give success message
     $admin_url = 'http://' . $this->domain_name . '/admin/';
     echo "Thank you!  The Apex Platform has now been successfully installed on your server.\n\n";
@@ -546,8 +741,8 @@ private function complete_install()
     echo "You may continue to your administration panel and create your first administrator by visiting:\n\n\t$admin_url\n\n";
     echo "You may also view all Apex documentation at: " . str_replace("/admin/", "/docs/", $admin_url) . "\n\n";
 
-    // Exit
-    exit(0);
+    // Return
+    return true;
 
 }
 

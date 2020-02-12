@@ -375,6 +375,8 @@ protected function get_page_title()
     $title = '';
     if ($value = redis::hget('cms:titles', $this->template_path)) { 
         $title = $value;
+    } elseif ($value = redis::hget('cms:titles', app::get_area() . '/' . app::get_uri_original())) { 
+        $title = $value;
     } elseif (preg_match("/<h1>(.+?)<\/h1>/i", $this->tpl_code, $match)) { 
         $title = $match[1];
         $this->tpl_code = str_replace($match[0], '', $this->tpl_code);

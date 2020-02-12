@@ -4,25 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\sys;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
-use apex\libc\redis;
-use apex\libc\encrypt;
-use apex\app\sys\network;
-use apex\libc\components;
-use apex\libc\io;
-use apex\app\pkg\package_config;
-use apex\app\pkg\package;
-use apex\app\pkg\theme;
-use apex\app\pkg\upgrade;
-use apex\app\pkg\pkg_component;
-use apex\app\pkg\github;
-use apex\app\exceptions\ApexException;
-use apex\app\exceptions\PackageException;
-use apex\app\exceptions\ComponentException;
-use apex\app\exceptions\RepoException;
-use apex\app\exception\UpgradeException;
-use apex\app\exceptions\ThemeException;
+use apex\libc\{db, redis, encrypt, io, components, debug};
+use apex\app\pkg\{package_config, package, upgrade, theme, pkg_component, github, crud};
+use apex\app\sys\{network, repo};
+use apex\app\exceptions\{ApexException, PackageException, ComponentException, UpgradeException, ThemeException, RepoException};
 
 
 /**
@@ -1027,7 +1012,36 @@ public function delete($vars)
 }
 
 /**
- * Update session deubbing. 
+ * Create CRUD scaffolding
+ *
+ * @param array $vars The arguments passed via CLI.
+ */
+public function crud($vars)
+{
+
+    // Check for crud.yml file
+    $file = $vars[0] ?? 'crud.yml';
+    if (!file_exists(SITE_PATH . '/' . $file)) { 
+        throw new ApexException('error', "No file exists within the installation directory at, $file");
+    }
+
+    // Create CRUD scaffolding
+    $client = app::make(crud::class);
+    list($alias, $package, $files) = $client->create($file);
+
+    // Set response
+    $response = "Successfully created new CRUD components with alias '$alias' under the package '$package'.  The following files have been created, and may be modified as necessary:\n\n";
+    foreach ($files as $file) { 
+        $response .= "    $file\n";
+    }
+
+    // Return
+    return "$response\n";
+
+}
+
+/**
+ * Update session debugging
  *
  * Update the debug variable, telling them system whether or not to save debug 
  * information. 0 - Debugging off 1 - Debugging on, but only for next request 
@@ -1121,39 +1135,21 @@ debug::add(2, tr("CLI: Updated server type to {1}", $type));
  * @param iterable $vars The command line arguments specified by the user.
  * @param network $client The /app/sys/network.php class.  Injected.
  */
-public function add_repo($vars, network $client)
+public function add_repo($vars, repo $client)
 { 
 
     // Set variables
     $host = $vars[0] ?? '';
     $username = $vars[1] ?? '';
     $password = $vars[2] ?? '';
-    $is_ssl = 1;
 
     // Initial checks
     if ($host == '') { 
         throw new RepoException('not_exists', 0, $host);
     }
 
-    // Check for valid repo
-    if (!$vars = $client->check_valid_repo($host, 1)) { 
-
-        // Check non-SSL
-        if (!$vars = $client->check_valid_repo($host, 0)) { 
-            throw new RepoException('invalid_repo', 0, $host);
-        }
-        $is_ssl = 0;
-    }
-
-    // Add to database
-    db::insert('internal_repos', array(
-        'is_ssl' => $is_ssl,
-        'host' => $host,
-        'username' => encrypt::encrypt_basic($username),
-        'password' => encrypt::encrypt_basic($password),
-        'name' => $vars['repo_name'],
-        'description' => $vars['repo_description'])
-    );
+    // Add repo
+    $client->add($host, $username, $password);
 
     // Debug
     debug::add(4, tr("CLI: Added new repository, {1}", $host), 'info');
@@ -1168,7 +1164,7 @@ public function add_repo($vars, network $client)
  *
  * @param iterable $vars The command line arguments specified by the user.
  */
-public function update_repo($vars)
+public function update_repo($vars, repo $client)
 { 
 
     // Check repo
@@ -1188,11 +1184,8 @@ public function update_repo($vars)
         echo "Password: "; $password = trim(readline());
     }
 
-    // Update database
-    db::update('internal_repos', array(
-        'username' => encrypt::encrypt_basic($username),
-        'password' => encrypt::encrypt_basic($password)),
-    "id = %i", $row['id']);
+    // Update repo
+    $client->update((int) $row['id'], $username, $password);
 
     // Debug
     debug::add(4, tr("CLI: Updated repository login information, host: {1}", $vars[0]), 'info');

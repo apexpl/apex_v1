@@ -25,6 +25,15 @@ straight forward, and below are some examples.
 ~~~
 
 
+## CRUD Scaffolding
+
+Apex offers functionality for automated code generation of CRUD scaffolding via a YAML configuration file.  This will 
+automatically generate the necessary data table, form, and views necessary for all CRUD functionality.  For full information, please click on 
+the below link.
+
+    [ [CRUD Scaffolding](crud.md)  ]
+
+
 ## Components Available
 
 All supported components are listed in the below table, with links
