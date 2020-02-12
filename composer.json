@@ -8,7 +8,7 @@
         "infrastructure"
     ],
     "type": "project",
-    "homepage": "https://apex-platform.org",
+    "homepage": "https://apexpl.io",
     "license": "MIT",
     "require": {
         "php": ">=7.4.0",
