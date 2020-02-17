@@ -1096,7 +1096,7 @@ public static function getall_headers()
 {
 
     $headers = array();
-    foreach ($self::$http_headers_keys as $key => $orig) {
+    foreach (self::$http_headers_keys as $key => $orig) {
         $headers[$orig] = self::$http_headers[$key];
     }
     return $headers;

@@ -166,9 +166,13 @@ protected function render_json()
     $vars = array(
         'status' => 'error',
         'errmsg' => $this->message,
-        'errfile' => $this->file,
-        'errline' => $this->line
     );
+
+    // Add file and line# if in devel mode
+    if (app::_config('core:mode') == 'devel') { 
+        $vars['file'] = $this->file;
+        $vars['line'] = $this->line;
+    }
 
     // Echo
 echo json_encode($vars);

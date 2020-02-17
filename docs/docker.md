@@ -1,10 +1,10 @@
 
 # Docker Installation
 
-# Quick Setup via Auto Install
+## Quick Setup via Auto Install
 
 For a quick setup you may use the auto installation features of Apex to get up 
-and running with an ainstallation including various base packages.  To do so, within terminal run the following commands:
+and running with an installation including various base packages within a few minutes.  To do so, within terminal run the following commands:
 
 ~~~
 composer create-project apex/apex apex
@@ -19,7 +19,7 @@ That's it, and your new system will be online with various base packages, and yo
 can access your admin panel at http://127.0.0.1/admin/
 
 
-# Standard Docker Setup 
+## Standard Docker Setup 
 
 Apex comes with a docker-compose.yml file, making installation via a docker container easy.  To start, download Apex with:
 

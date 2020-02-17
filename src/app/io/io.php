@@ -223,10 +223,11 @@ public function remove_dir(string $dirname)
  * @param array $request The request contents to send in array format.
  * @param string $content_type THe content type of the request.  Generally not needed, as the default works.
  * @param int $return_headers A 1 or 0 definine whether or not to return the HTTP readers of the response.
+ * @param array $headers Optional array of HTTP headesrs to pass.
  *
  * @return string Returns the response from the server.
  */
-public function send_http_request(string $url, string $method = 'GET', $request = array(), string $content_type = 'application/x-www-form-urlencoded', int $return_headers = 0)
+public function send_http_request(string $url, string $method = 'GET', $request = array(), string $content_type = 'multipart/form-data', int $return_headers = 0, array $headers = [])
 { 
 
     // Debug
@@ -235,7 +236,7 @@ public function send_http_request(string $url, string $method = 'GET', $request 
     // Send via cURL
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+    curl_setopt($ch, CURLOPT_FAILONERROR, 0);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     //curl_setopt($ch, CURLOPT_VERBOSE, 0);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -245,7 +246,8 @@ public function send_http_request(string $url, string $method = 'GET', $request 
     if (preg_match("/^https/", $url)) { curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); }
 
     // Set headers
-    $headers = array('Content-type' => $content_type);
+    //$headers[] = 'Content-type: ' . $content_type;
+    $headers[] = 'Content-type: ' . $content_type;
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
     // Set POST fields, if needed

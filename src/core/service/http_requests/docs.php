@@ -166,12 +166,15 @@ public function process()
     $html = file_get_contents("$theme_dir/layouts/default.tpl");
 
     // Go through theme sections
-    preg_match_all("/<a:theme section=\"(.+?)\">/i", $html, $theme_match, PREG_SET_ORDER);
-    foreach ($theme_match as $match) { 
-        $temp_html = file_get_contents("$theme_dir/sections/$match[1]");
-        $html = str_replace($match[0], $temp_html, $html);
+    while (preg_match("/<a:theme(.*?)>/si", $html)) { 
+
+        preg_match_all("/<a:theme section=\"(.+?)\">/i", $html, $theme_match, PREG_SET_ORDER);
+        foreach ($theme_match as $match) { 
+            $temp_html = file_get_contents("$theme_dir/sections/$match[1]");
+            $html = str_replace($match[0], $temp_html, $html);
+        }
+        $html = str_replace("<a:page_contents>", "<<<page_contents>>>", $html);
     }
-    $html = str_replace("<a:page_contents>", "<<<page_contents>>>", $html);
 
     // Parse HTML
     view::load_base_variables();
