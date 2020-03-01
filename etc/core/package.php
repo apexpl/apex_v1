@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.5.1';
+    public $version = '1.5.3';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';
@@ -98,7 +98,8 @@ $this->ext_files = array(
     'public/robots.txt', 
     'src/app.php', 
     'src/app/*', 
-    'src/libc/*',   
+    'src/libc/*',
+    'tests/Readme.md',    
     'views/themes/koupon/*' 
 );
 

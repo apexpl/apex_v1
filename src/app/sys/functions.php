@@ -281,6 +281,11 @@ function exchange_money(float $amount, string $from_currency, string $to_currenc
         $amount *= $rate;
     }
 
+    // Check for base currency
+    if ($to_currency == app::_config('transaction:base_currency')) { 
+        return $amount;
+    }
+
     // Convert to currency
     $rate = db::get_field("SELECT current_rate FROM transaction_currencies WHERE abbr = %s", $to_currency);
     if ($rate == 0.00) { return 0; }
