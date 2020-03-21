@@ -461,6 +461,48 @@ public function insert_id()
 }
 
 /**
+ * Add time
+ *
+ * @param string $period The period to add (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to add.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after addition.
+ */
+public function add_time(string $period, int $length, string $from_date, bool $return_datestamp = true)
+{
+
+    $func_name = "date_add('$from_date', interval $length $period)";
+    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
+
+    // Get and return date
+    return $this->get_field("SELECT $func_name");
+
+}
+
+/**
+ * Subtract time
+ *
+ * @param string $period The period to subtract (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to subtract.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after subtraction.
+ */
+public function subtract_time(string $period, int $length, string $from_date, bool $return_datestamp = true)
+{
+
+    $func_name = "date_sub('$from_date', interval $length $period)";
+    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
+
+    // Get and return date
+    return $this->get_field("SELECT $func_name");
+
+}
+
+/**
  * Format SQL statement 
  *
  * Formats the SQL by sanitizing the values passed as additional parameters, 
@@ -515,7 +557,7 @@ private function format_sql($args)
         // Add bind_param
         if ($match[1] == 'i' || $match[1] == 'b') { $bind_params .= 'i'; }
         elseif ($match[1] == 'd') { $bind_params .= 'd'; }
-        elseif ($match[1] == 'blobl') { $bind_params .= 'b'; }
+        elseif ($match[1] == 'blob') { $bind_params .= 'b'; }
         else { $bind_params .= 's'; }
 
         // Format value

@@ -636,7 +636,6 @@ public function compile_core()
     file_put_contents("$destdir/storage/logs/access.log", '');
 
     // Go through components
-    $components = array();
     $rows = db::query("SELECT * FROm internal_components WHERE owner = 'core' ORDER BY id");
     foreach ($rows as $row) { 
 
@@ -650,25 +649,10 @@ public function compile_core()
             io::create_dir(dirname("$destdir/$file"));
             copy(SITE_PATH . '/' . $file, "$destdir/$file");
         }
-
-        // Add to $components array
-        if ($has_php === true) { 
-            $vars = array(
-                'order_num' => $row['order_num'],
-                'type' => $row['type'],
-                'package' => $row['package'],
-                'parent' => $row['parent'],
-                'alias' => $row['alias'],
-                'value' => $row['value']
-            );
-            array_push($components, $vars);
-        }
     }
-    file_put_contents(SITE_PATH .'/etc/core/components.json', json_encode($components));
 
     // Copy over package files
-    $pkg_files = array('components.json', 'install.sql', 'reset.sql', 'remove.sql', 'package.php');
-    foreach ($pkg_files as $file) { 
+    foreach (PACKAGE_CONFIG_FILES as $file) { 
         if (!file_exists(SITE_PATH . '/etc/core/' . $file)) { continue; }
 
         // Copy, if not package.php
@@ -683,8 +667,8 @@ public function compile_core()
         file_put_contents($destdir . '/etc/core/package.php', $text);
     }
 
-    // Save blank /etc/config.php file
-    file_put_contents("$destdir/etc/config.php", "<?php\n\n");
+    // Save blank .env file
+    file_put_contents("$destdir/.env", base64_decode('CiMgCiMgVGhpcyBpcyBhIGJsYW5rIC5lbnYgZmlsZSwgbWVhbmluZyBpbnN0YWxsYXRpb24gaGFzIG5vdCB5ZXQgYmVlIGNvbXBsZXRlZC4KIyAKIyBQbGVhc2UgY29tcGxldGUgaW5zdGFsbGF0aW9uIGZpcnN0LiAgV2l0aGluIHRlcm1pbmFsLCB0eXBlOgojCiMgICAgIC4vYXBleAojCiMgT25jZSBpbnN0YWxsYXRpb24gaGFzIGJlZW4gY29tcGxldGVkLCB0aGlzIGZpbGUgd2lsbCBiZSBwb3B1bGF0ZWQgd2l0aCB2YXJpYWJsZXMgdGhhdCB5b3UgCiMgbWF5IGVkaXQgYXMgbmVjZXNzYXJ5LgojCgo='));
 
     // Create /docs directory
     $files = io::parse_dir(SITE_PATH . '/docs', false);

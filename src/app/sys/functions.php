@@ -2,10 +2,7 @@
 declare(strict_types = 1);
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
-use apex\libc\log;
-use apex\libc\view;
+use apex\libc\{db, debug, date, redis, log, view};
 use apex\app\exceptions\ApexException;
 
 
@@ -53,7 +50,7 @@ function handle_exception($e)
  */
 function error(int $errno, string $message, string $file, int $line) 
 {
-    if (preg_match("/fsockopen/", $message) && preg_match("/Name or service not known/", $message)) { return; }
+    if (preg_match("/fsockopen/", $message)) { return; }
     $file = trim(str_replace(SITE_PATH, '', $file), '/');
 
     // Get level of log message
@@ -176,8 +173,11 @@ function fdate(string $date, bool $add_time = false):string
     list($offset, $dst) = app::get_tzdata();
 
     // Convert date to correct timezone
-    $date_func = $offset < 0 ? 'date_sub' : 'date_add';
-    $date = db::get_field("SELECT " . $date_func . "('$date', interval " . abs($offset) . " minute)");
+    if ($offset < 0) {
+        $date = date::subtract_interval('I' . abs($offset), $date); 
+        } else { 
+        $date = date::add_interval('I' . $offset, $date);
+    }
 
     // Split date, if needed
     if (preg_match("/^(.+?)\s(.+)/", trim($date), $match)) { $date = $match[1]; }

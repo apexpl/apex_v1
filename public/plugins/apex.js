@@ -129,7 +129,9 @@ function open_modal(modal_alias, data) {
 
         document.getElementById('apex_modal-title').innerHTML = response.title;
         document.getElementById('apex_modal-body').innerHTML = response.body;
-        $('#apex_modal').show();
+        document.getElementById('apex_modal').style.zindex = 9999;
+        document.getElementById('apex_modal').style.display = 'block';
+        //$('#apex_modal').show();
     });
 
 }

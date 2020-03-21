@@ -28,24 +28,28 @@ class redis
         }
 
         // Check if connection info defined
-        if (!defined('REDIS_HOST')) { 
+        if (!getEnv('redis_host')) { 
             return false;
         }
 
         // Connect to redis
         self::$instance = new redisdb();
-        if (!self::$instance->connect(REDIS_HOST, REDIS_PORT, 2)) { 
-            throw new ApexException('emergency', "Unable to connect to redis database.  We're down!");
+        if (!self::$instance->connect(getEnv('redis_host'), (int) getEnv('redis_port'), 2)) { 
+            echo "Unable to connect to redis.  We're down!";
+            exit(0);
         }
 
         // Authenticate redis, if needed
-        if (REDIS_PASS != '' && !self::$instance->auth(REDIS_PASS)) { 
-            throw new ApexException('emergency', "Unable to authenticate redis connection.  We're down!");
+    $password = getEnv('redis_password') ?? '';
+        if ($password != '' && !self::$instance->auth($password)) { 
+            echo "Unable to authenticate into redis.  We're down!";
+            exit(0);
         }
 
         // Select redis db, if needed
-        if (REDIS_DBINDEX > 0) { 
-            self::$instance->select(REDIS_DBINDEX);
+    $dbindex = getEnv('redis_dbindex') ?? 0;
+        if ((int) $dbindex > 0) { 
+            self::$instance->select((int) $dbindex);
         }
 
         // Return

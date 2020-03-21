@@ -3,7 +3,7 @@
 
 Welcome to Apex, a powerful PHP software platform to efficiently develop, deploy, and maintain professional
 online operations.  You  will be amazed at the simplicity for the quality.  Please take a few moments to
-browse the documentation below.
+browse the documentation below.  You may also visit the homepage of Apex at [[https://apexpl.io/]](https://apexpl.io/).
 
 
 #### Other Documentation
@@ -27,6 +27,9 @@ browse the documentation below.
     5. [Global Functions](global_functions.md)
 5. [Packages and Upgrades](packages.md)
 6. [Components and Development](components.md)
+    1. [Components Available](components.md#components_available)
+    2. [CRUD Scaffolding](crud.md)
+    3. [Remote Access Client](remote_access.md)
 7. [Repositories](repos.md)
 8. [`apex` CLI Commands](cli.md)
 9. [Views](views.md)

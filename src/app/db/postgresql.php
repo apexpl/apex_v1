@@ -5,7 +5,7 @@ namespace apex\app\db;
 
 use apex\app;
 use apex\libc\debug;
-use apex\app\db\db_connections;
+use apex\app\db\{db_connections, pg_result};
 use apex\app\interfaces\DBInterface;
 use apex\app\exceptions\DBException;
 
@@ -35,14 +35,24 @@ class postgresql extends db_connections implements DBInterface
  *
  * @return object The resulting database connection
  */
-public function connect(string $dbname, string $dbuser, string $dbpass = '', string $dbhost = 'localhost', int $dbport = 3306)
+public function connect(string $dbname, string $dbuser, string $dbpass = '', string $dbhost = 'localhost', int $dbport = 5432)
 { 
 
+    // Create connection string
+    $conn_string = 'dbname=' . $dbname . ' user=' . $dbuser;
+    if ($dbpass != '') { $conn_string .= ' password=' . $dbpass; }
+    if ($dbhost != 'localhost') { $conn_string .= ' host=' . $dbhost; }
+    if ($dbport != 5432) { $conn_string .= ' port=' . $dbport; }
+
     // Connect
-    $conn = @mysqli_connect($dbhost, $dbuser, $dbpass, $dbname, $dbport);
+    if (!$conn = @pg_connect($conn_string)) { 
+        echo "Unable to connect to PostgreSQL database.  Please check database credentials, and try again.  You may update the connection details within terminal by typing: ./apex update_masterdb\n";
+        exit(0);
+    }
 
     // Set timezone to UTC
-    mysqli_query($conn, "SET TIME_ZONE = '+0:00'");
+    pg_query($conn, "SET TIMEZONE TO 'UTC'");
+    pg_query($conn, "SET client_min_messages = 'error'");
 
     // Debug
     debug::add(4, tr("Connected to database, name: {1} user: {2}", $dbname, $dbuser));
@@ -68,7 +78,7 @@ if (count($this->tables) > 0) {
     }
 
     // Get tables
-    $result = $this->query("SHOW TABLES");
+    $result = $this->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
     while ($row = $this->fetch_array($result)) { 
         $this->tables[] = $row[0];
     }
@@ -89,7 +99,7 @@ if (count($this->tables) > 0) {
 public function show_columns(string $table_name, bool $include_types = false):array
 { 
 
-    // cHECK IF COLUMNS ALREADY GOTTEN
+    // Check IF COLUMNS ALREADY GOTTEN
     if (isset($this->columns[$table_name]) && is_array($this->columns[$table_name]) && count($this->columns[$table_name]) > 0) { 
         if ($include_types == true) { 
             return $this->columns[$table_name];
@@ -100,7 +110,7 @@ public function show_columns(string $table_name, bool $include_types = false):ar
 
     // Get column names
     $this->columns[$table_name] = array();
-    $result = $this->query("DESCRIBE $table_name");
+    $result = $this->query("SELECT column_name, data_type, character_maximum_length FROM information_schema.columns WHERE table_name = '$table_name'");
     while ($row = $this->fetch_array($result)) { 
         $this->columns[$table_name][$row[0]] = $row[1];
     }
@@ -351,40 +361,34 @@ public function query(...$args)
 { 
 
     //Format SQL
-    list($hash, $bind_params, $values) = $this->format_sql($args);
+    list($hash, $values) = $this->format_sql($args);
 
     // Debug
     debug::add(3, tr("Executed SQL: {1}", $this->raw_sql));
     debug::add_sql($this->raw_sql);
 
-    // Bind params
-    if (count($values) > 0) { 
-        mysqli_stmt_bind_param($this->prepared[$hash], $bind_params, ...$values);
-    }
-
     // Execute SQL
-    if (!mysqli_stmt_execute($this->prepared[$hash])) { 
-        throw new DBException('query', $this->raw_sql, mysqli_error($this->conn));
+    try {
+        $result = @pg_execute($this->conn, $hash, $values);
+    } catch (DBException $e) {
+        throw new DBException('query', $this->raw_sql, pg_last_error($this->conn));
     }
-
-    // Get result
-    $result = mysqli_stmt_get_result($this->prepared[$hash]);
 
     // Return
-    return $result;
+    return new pg_result($result);
 
 }
 
 /**
- * The standard mysqli_fetch_array() function, except with error checking. 
+ * The standard pg_fetch_array() function, except with error checking. 
  *
- * @param mixed $result the mysqli_result() object.
+ * @param mixed $result the PostgreSQL_result() object.
  */
 public function fetch_array($result)
 { 
 
     // Get row
-    if (!$row = mysqli_fetch_array($result)) { 
+    if (!$row = pg_fetch_array($result->get_result(), null, PGSQL_NUM)) { 
         return false;
     }
 
@@ -394,15 +398,15 @@ public function fetch_array($result)
 }
 
 /**
- * The standard mysqli_fetch_assoc() function except with error checking. 
+ * The standard pg_fetch_assoc() function except with error checking. 
  *
- * @param mixed $result The mysqli_result object.
+ * @param mixed $result The pg_result object.
  */
 public function fetch_assoc($result)
 { 
 
     // Get row
-    if (!$row = mysqli_fetch_assoc($result)) { 
+    if (!$row = pg_fetch_array($result->get_result(), null, PGSQL_ASSOC)) { 
         return false;
     }
 
@@ -414,13 +418,13 @@ public function fetch_assoc($result)
 /**
  * Returns the number of rows affected by the previous SQL statement. 
  *
- * @param mixed $result The mysqli result.
+ * @param mixed $result The postgresql result.
  */
 public function num_rows($result)
 { 
 
     // Get num rows
-    if (!$num = mysqli_num_rows($result)) { 
+    if (!$num = pg_num_rows($result->get_result())) { 
         $num = 0;
     }
     if ($num == '') { $num = 0; }
@@ -437,7 +441,52 @@ public function insert_id()
 { 
 
     // Get insert ID
-    return mysqli_insert_id($this->conn);
+    return $this->get_field("SELECT LASTVAL()");
+
+}
+
+
+/**
+ * Add time
+ *
+ * @param string $period The period to add (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to add.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after addition.
+ */
+public function add_time(string $period, int $length, string $from_date, bool $return_datestamp = true)
+{
+
+    // Get function name
+    $func_name = "DATE('$from_date') + JUSTIFY_INTERVAL('$length $period')";
+    if ($return_datestamp === false) { $func_name = 'EXTRACT(EPOCH FROM ' . $func_name . ')'; }
+
+    // Get and return date
+    return $this->get_field("SELECT $func_name");
+
+}
+
+/**
+ * Subtract time
+ *
+ * @param string $period The period to subtract (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to subtract.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after subtraction.
+ */
+public function subtract_time(string $period, int $length, string $from_date, bool $return_datestamp = true)
+{
+
+    // Get function name
+    $func_name = "DATE('$from_date') - JUSTIFY_INTERVAL('$length $period')";
+    if ($return_datestamp === false) { $func_name = 'EXTRACT(EPOCH FROM ' . $func_name . ')'; }
+
+    // Get and return date
+    return $this->get_field("SELECT $func_name");
 
 }
 
@@ -457,11 +506,17 @@ private function format_sql($args)
     $conn = $this->get_connection($type);
     $this->conn = $conn;
 
+    // Check for LIMIT clause
+    if (preg_match("/ LIMIT (\d+?)\,(\d+)/i", $args[0], $match)) { 
+        $args[0] = str_replace($match[0], " OFFSET $match[1] LIMIT $match[2] ", $args[0]);
+    }
+
+    // Other mySQL to PostgreSQL formatting
+    $args[0] = str_ireplace('RAND()', 'RANDOM()', $args[0]);
 
     // Set variables
     $x=1;
     $values = array();
-    $bind_params = '';
     $raw_sql = $args[0];
 
     // Go through args
@@ -493,33 +548,32 @@ private function format_sql($args)
             throw new DBException('invalid_variable', $args[0], '', '', '', '', $match[1], $value);
         }
 
-        // Add bind_param
-        if ($match[1] == 'i' || $match[1] == 'b') { $bind_params .= 'i'; }
-        elseif ($match[1] == 'd') { $bind_params .= 'd'; }
-        elseif ($match[1] == 'blobl') { $bind_params .= 'b'; }
-        else { $bind_params .= 's'; }
-
         // Format value
         if ($match[1] == 'ls') { $value = '%' . $value . '%'; }
+        if (preg_match("/blob/i", $match[1])) { $value = pg_escape_bytea($conn, $value); }
         $values[] = $value;
 
         // Replace placeholder in SQL
-        $args[0] = preg_replace("/$match[0]/", '?', $args[0], 1);
-        $raw_sql = preg_replace("/$match[0]/", "'" . mysqli_real_escape_string($conn, (string) $value) . "'", $raw_sql, 1);
+        $args[0] = preg_replace("/$match[0]/", "\\\$" . $x, $args[0], 1);
+        $raw_sql = preg_replace("/$match[0]/", "'" . pg_escape_string((string) $value) . "'", $raw_sql, 1);
 
     $x++; }
 
     // Check for prepared statement
     $hash = 's' . crc32($args[0]);
     if (!isset($this->prepared[$hash])) { 
-        if (!$this->prepared[$hash] = mysqli_prepare($conn, $args[0])) { 
-            throw new DBException('query', $raw_sql, mysqli_error($conn));
+
+        try {
+            $this->prepared[$hash] = @pg_prepare($this->conn, $hash, $args[0]);
+        } catch (DBException $e) { 
+            throw new DBException('query', $raw_sql, pg_last_error($conn));
         }
     }
+
     $this->raw_sql = $raw_sql;
 
     // Return
-    return array($hash, $bind_params, $values);
+    return array($hash, $values);
 
 }
 
@@ -555,7 +609,7 @@ public function begin_transaction()
     $conn = $this->get_connection('write');
 
     // Begin transaction
-    if (!mysqli_begin_transaction($conn)) { 
+    if (!$this->query('BEGIN')) { 
         throw new DBException('begin_transaction');
     }
 
@@ -577,7 +631,7 @@ public function commit()
     $conn = $this->get_connection('write');
 
     // Commit transaction
-    if (!mysqli_commit($conn)) { 
+    if (!$this->query('COMMIT')) { 
         throw new DBException('commit');
     }
 
@@ -600,7 +654,7 @@ public function rollback()
     $conn = $this->get_connection('write');
 
     // Rollback transaction
-    if (!mysqli_rollback($conn)) { 
+    if (!$this->query('ROLLBACK')) { 
         throw new DBException('rollback');
     }
 
@@ -621,13 +675,14 @@ private function get_placeholder(string $col_type)
     if (strtolower($col_type) == 'tinyint(1)') { $type = '%b'; }
     elseif (preg_match("/int\(/i", $col_type)) { $type = '%i'; }
     elseif (preg_match("/decimal/i", $col_type)) { $type = '%d'; }
-    elseif (strtolower($col_type) == 'blob') { $type = '%blob'; }
+    elseif (strtolower($col_type) == 'bytea') { $type = '%blob'; }
     else { $type = '%s'; }
 
     // Return
     return $type;
 
 }
+
 
 
 }

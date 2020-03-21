@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.5.3';
+    public $version = '1.5.4';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';
@@ -174,7 +174,7 @@ private function define_config()
         'mode' => 'devel', 
         'debug' => 0, 
         'cache' => 0,
-        'log_level' => 'notice,error,critical,alert,emergency', 
+        'log_level' => 'most', 
         'debug_level' => 0, 
         'max_logfile_size' => 4
     );
@@ -182,15 +182,26 @@ private function define_config()
 
     // Server vars
     $server_vars = array(
+        'db_driver' => 'mysql', 
         'websocket_port' => 8194,  
         'enable_javascript' => 1, 
-        'server_type' => '',
-        'server_name' => 'apex',  
+        'server_type' => 'all',
+        'instance_name' => 'master', 
         'domain_name' => '', 
         'default_timezone' => 'PST', 
-        'default_language' => 'en'
+        'default_language' => 'en' 
     );
     $vars = array_merge($vars, $server_vars);
+
+    // API update vars
+    $update_vars = [
+        'auto_upgrade' => 0, 
+        'remote_api_key' => '', 
+        'remote_api_host' => '', 
+        'update_api_key' => '', 
+        'update_api_enabled' => 0
+    ];
+    $vars = array_merge($vars, $update_vars);
 
     // Site info vars
     $site_vars = array(
@@ -430,9 +441,9 @@ private function define_hashes_system()
 
     // Log levels
     $vars['log_levels'] = array(
-        'info,warning,notice,error,critical,alert,emergency' => 'All Levels', 
-        'notice,error,critical,alert,emergency' => 'All Levels, except INFO and NOTICE',
-        'error,critical,alert,emergency' => 'Only Errors', 
+        'all' => 'All Levels', 
+        'most' => 'All Levels, except INFO and NOTICE',
+        'error_only' => 'Only Errors', 
         'none' => 'No Logging'
     );
 
@@ -451,15 +462,8 @@ private function define_hashes_system()
         'all' => 'All-in-One', 
         'web' => 'Front-End Web Server', 
         'app' => 'Back-end Application Server', 
-        'db-s' => 'Database Slave Server', 
-        'db-m' => 'Database Master Server', 
-        'email' => 'E-Mail Server', 
-        'msg' => 'Messaging Server', 
-        'lb' => 'Load Balancer'
+        'misc' => 'Other'
     );
-
-
-
 
     // return
     return $vars;

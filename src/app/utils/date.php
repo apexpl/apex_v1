@@ -58,7 +58,8 @@ public function get_logdate():string
 { 
 
     // Get timezone data
-    list($offset, $dst) = app::get_tzdata(app::_config('core:default_timezone'));
+    $timezone = app::_config('core:default_timezone') ?? 'PST';
+    list($offset, $dst) = app::get_tzdata($timezone);
     $offset *= 60;
 
     // Get log date
@@ -93,12 +94,8 @@ public function add_interval(string $interval, $from_date = '', $return_datestam
         $from_date = date('Y-m-d H:i:s', $secs);
     }
 
-    // Get function name
-    $func_name = "date_add('$from_date', interval $match[2] " . $this->names[$match[1]] . ")";
-    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
-
     // Get date
-    return db::get_field("SELECT $func_name"); 
+    return db::add_time($this->names[$match[1]], (int) $match[2], $from_date, $return_datestamp);
 
 }
 
@@ -125,12 +122,8 @@ public function subtract_interval(string $interval, $from_date = '', $return_dat
         $from_date = date('Y-m-d H:i:s', $secs);
     }
 
-    // Get function name
-    $func_name = "date_sub('$from_date', interval $match[2] " . $this->names[$match[1]] . ")";
-    if ($return_datestamp === false) { $func_name = 'unix_timestamp(' . $func_name . ')'; }
-
-    // Get date
-    return db::get_field("SELECT $func_name"); 
+    // Get and return new date
+    return db::subtract_time($this->names[$match[1]], (int) $match[2], $from_date, $return_datestamp);
 
 }
 

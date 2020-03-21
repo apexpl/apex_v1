@@ -19,10 +19,8 @@ server_type | no | all | The type of server.  Can be: **all, web, app, dbs, dbm*
 domain_name | Yes | - | The domain name being installed on.
 enable_admin | No | 1 | A 10 or 0, defining whether or not to enable the administration panel.
 enable_javascript | No | 1 | A 1 or 0 defining whether or not to enable Javascript.
-websocket_port | No | 8194 | Port to run the internal Web Socket server on.
 db | Yes | - | Array of SQL database information.  See the below table for details.
 redis | No | localhost:6379 | Array containing the redis information, any / all variables are optional.  Defaults to localhost:6379 with no password and db index of 0.  Available variables within this array are: **host, port, password, dbindex**
-rabbitmq | No | - | Optional associatve array containing the RabbitMQ connection information.  Available keys within array are:  **host, port, user, password**.
 repos | No | - | List of arrays of any additional repositories to add.  The key is the hostname of the repo, with optional **ser** and **password** variables underneath it.  See below for an example.
 packages | No | - | Simple array of package aliases to install.
 themes | No | - | Simple array of theme aliases to install.

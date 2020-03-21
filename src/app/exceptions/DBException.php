@@ -15,8 +15,6 @@ class DBException   extends ApexException
 {
 
 
-
-
     // Set error codes
     private $error_codes = array(
         'no_connect' => "Unable to connect to the mySQL database using the supplied information.  Please ensure the mySQL server is running, and the right connection information is within settings.  If needed, you can update connection information by running 'php apex.php update_master' at the terminal",

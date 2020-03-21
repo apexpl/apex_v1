@@ -97,7 +97,7 @@ public function run(string $adapter, string $alias, string $data = '', int $task
 {
 
     // load task
-    if (!$task = components::load('adapter', $row['adapter'], 'core', 'tasks')) {  
+    if (!$task = components::load('adapter', $adapter, 'core', 'tasks')) {  
         return false;
     }
 

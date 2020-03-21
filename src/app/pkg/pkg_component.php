@@ -4,14 +4,10 @@ declare(strict_types = 1);
 namespace apex\app\pkg;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
-use apex\libc\redis;
-use apex\libc\components;
-use apex\app\exceptions\ComponentException;
+use apex\libc\{db, redis, debug, components, io, date};
 use apex\app\pkg\package_config;
-use apex\libc\date;
-use apex\libc\io;
+use apex\app\exceptions\{ApexException, ComponentException};
+
 
 
 /**

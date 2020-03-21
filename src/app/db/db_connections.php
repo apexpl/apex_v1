@@ -18,8 +18,6 @@ class db_connections
 {
 
 
-
-
     // Injected properties
     private $app;
     private $db;

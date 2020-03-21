@@ -34,6 +34,14 @@ the below link.
     [ [CRUD Scaffolding](crud.md)  ]
 
 
+## Remote Access
+
+Apex contains built-in support for remote access, allowing designers / developers to easily update files on a remote server from an Apex installation on their 
+local server.  This helps save time, and doesn't require server access.  To full information on how to setup and use remote access, click on the below link.
+
+    [Remote Access Client(remote_access.md)
+
+<a name="components_available"></a>
 ## Components Available
 
 All supported components are listed in the below table, with links

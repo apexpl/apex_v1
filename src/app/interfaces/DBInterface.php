@@ -178,6 +178,32 @@ public function commit();
 public function rollback();
 
 
+/**
+ * Add time
+ *
+ * @param string $period The period to add (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to add.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after addition.
+ */
+public function add_time(string $period, int $length, string $from_date, bool $return_datestamp = true);
+
+
+/**
+ * Subtract time
+ *
+ * @param string $period The period to subtract (ie. hours, days, weeks, etc.).
+ * @param int $length The length of the period to subtract.
+ * @param string $from_date The starting date, formatted in YYYY-MM-DD HH:II:SS
+ * @param bool $return_datestamp Whether or not to return the full datetime stamp, or the number is seconds from UNIX epoch.
+ * 
+ * @return string The resulting date after subtraction.
+ */
+public function subtract_time(string $period, int $length, string $from_date, bool $return_datestamp = true);
+
+
 }
 
 

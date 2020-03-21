@@ -7,6 +7,7 @@ use apex\app;
 use apex\libc\{db, redis, debug, view};
 use apex\app\sys\container;
 use apex\app\msg\emailer;
+use apex\app\interfaces\DBInterface;
 use apex\app\exceptions\ApexException;
 use GuzzleHttp\Psr7\UploadedFile;
 
@@ -102,7 +103,7 @@ public function __construct(string $reqtype = 'http')
 {
 
     // Return instance if already created
-    if (self::$instance !== null) {
+    if (self::$instance !== null && self::get_reqtype() == $reqtype) {
         return self::$instance;
     }
     self::$instance = $this;
@@ -113,8 +114,8 @@ public function __construct(string $reqtype = 'http')
     // Build container
     $this->build_container($reqtype);
 
-    // Load config
-    self::$config = redis::hgetall('config');
+    // Load config vars
+    $this->load_config_vars();
 
     // Unpack request
     if (self::$reqtype != 'cli') {
@@ -151,8 +152,16 @@ private function initialize()
         define('SITE_PATH', realpath(__DIR__ . '/../'));
     }
 
-    // Load config, constants and global functions
-    require_once(SITE_PATH . '/etc/config.php');
+    // Load environment variables
+    $env_lines = file_exists(SITE_PATH . '/.env') ? file(SITE_PATH . '/.env') : [];
+    foreach ($env_lines as $line) { 
+        if ($line == '' || !preg_match("/^(\w+)(\s*?)\=(.+)$/", $line, $match)) { continue; }
+        if (!putEnv($match[1] . '=' . trim($match[3]))) { 
+            throw new ApexException('warning', tr("Unable to add the following environment variable line from the .env file, {1}", $line));
+        }
+    }
+
+    // Load constants and global functions
     require_once(SITE_PATH . '/etc/constants.php');
     require_once(SITE_PATH . '/src/app/sys/functions.php');
 
@@ -169,7 +178,7 @@ private function initialize()
     ini_set('zlib.output_compression_level', '2');
 
     // Check if installed
-    if (!defined('REDIS_HOST')) {
+    if (!getEnv('redis_host')) { 
 
         // Build container
         self::$instance = null;
@@ -180,6 +189,50 @@ private function initialize()
     }
 
 }
+
+/**
+ * Load configuration vars
+ *
+ * Connects to redis, and obtains all key-value pairs of the 
+ * 'config' hash within redis, and places it within $config varry.  Also checks 
+ * if any environment variables override config vars.
+ */
+private function load_config_vars()
+{
+
+    // Connect to redis, and grab 'config' hash
+self::$config = redis::hgetall('config');
+
+    // Update database driver, as necessary
+    self::set_db_driver();
+
+    // Environment variables to check
+    $chk_vars = [
+        'instance_name', 
+        'server_type', 
+        'mode', 
+        'log_level', 
+        'debug_level'
+    ];
+
+    // Check various environment variables
+    foreach ($chk_vars as $var) { 
+        if (!$value = getEnv($var)) { continue; }
+        self::$config['core;' . $var] = $value;
+    }
+
+    // Update log level, as needed
+    $chk = self::$config['core:log_level'] ?? 'most';
+    if ($chk == 'all') { 
+        self::$config['core:log_level'] = 'info,warning,notice,error,critical,alert,emergency';
+    } elseif ($chk == 'most') { 
+        self::$config['core:log_level'] = 'notice,error,critical,alert,emergency';
+    } elseif ($chk == 'error_only') { 
+        self::$config['core:log_level'] = 'error,critical,alert,emergency';
+    }
+
+}
+
 
 /**
  * Private.  Unpack the HTTP request.
@@ -364,7 +417,7 @@ public static function get_tzdata(string $timezone = '')
 {
 
     // Check for no redis
-    if (!defined('REDIS_HOST')) { return array(0, 0); }
+    if (!GetEnv('redis_host')) { return array(0, 0); }
     if ($timezone == '') { $timezone = self::$timezone; }
 
     // Get timezone from db
@@ -489,6 +542,27 @@ public static function is_verified():bool { return self::$verified_2fa; }
 public static function get_counter(string $counter, int $increment = 1):int
 {
     return redis::HINCRBy('counters', $counter, $increment);
+}
+
+/**
+ * Set the database driver to to be used.
+ *
+ * @param string $db_driver The database driver, generally either 'mysql' or 'postgresql'.
+ */
+public static function set_db_driver(string $db_driver = '')
+{
+
+    if ($db_driver == '') { 
+        $db_driver = self::$config['core:db_driver'] ?? 'mysql';
+    }
+
+    // Update config
+    self::$config['core:db_driver'] = $db_driver;
+
+    // Set in container
+    $db = app::make("\\apex\\app\\db\\" . $db_driver);
+    self::set(DBInterface::class, $db);
+
 }
 
 /**

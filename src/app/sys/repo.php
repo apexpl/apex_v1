@@ -25,8 +25,14 @@ class repo
  * 
  * @return mixed The unique id# of the added repo, or false on failure.
  */
-public function add(string $host, string $username = '', string $password = '')
+public function add(string $host, string $username = '', string $password = ''):int
 {
+
+    // Check if repo already exists, and update if yes
+    if ($row = db::get_row("SELECT * FROM internal_repos WHERE host = %s", $host)) { 
+        $this->update((int) $row['id'], $username, $password);
+        return (int) $row['id'];
+    }
 
     // Validate via SSL
     $is_ssl=1;
@@ -49,7 +55,7 @@ public function add(string $host, string $username = '', string $password = '')
     $repo_id = db::insert_id();
 
     // Return
-    return $repo_id;
+    return (int) $repo_id;
 
 }
 

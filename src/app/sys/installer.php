@@ -80,38 +80,15 @@ public function run_wizard()
     echo "-- Apex Installation Wizard\n";
     echo "------------------------------\n\n";
 
-    // Get server type
-    echo "Choose a server type:\n\n";
-    echo "      [all] All-in-One\n";
-    echo "      [web] Front-End Web Server\n";
-    echo "      [app] Back-End Application Server\n";
-    echo "      [dbs] Database Slave Server\n";
-    echo "      [dbm] Database Master Server\n";
-
-    // Get server type
-    $ok=false;
-    do { 
-        $this->server_type = $this->getvar("Server Type [all]: ", 'all');
-        if (in_array($this->server_type, array('all', 'web', 'app', 'dbs', 'dbm'))) {
-            $ok = true;
-        } 
-    } while ($ok = false);
-
-    // Get other info
-    $this->domain_name = $this->getvar("Domain Name []:", '');
+    // Get basic info
+    $this->domain_name = $this->getvar("Domain Name [] [localhost]: ", 'localhost');
     $has_admin = $this->getvar('Enable Admin Panel (y/n) [y]: ', 'y');
     $has_javascript = $this->getvar('Enable Javascript (y/n) [y]: ', 'y');
-    $this->websocket_port = $this->getvar('WebSocket Server Port [8194]: ', '8194');
     $this->enable_admin = strtolower($has_admin) == 'y' ? 1 : 0;
     $this->enable_javascript = strtolower($has_javascript) == 'y' ? 1 : 0;
 
     // Get redis info
     $this->get_redis_info();
-
-    // Get RabbitMQ info, if needed
-    if ($this->server_type != 'all' && !redis::exists('config:rabbitmq')) { 
-        $this->get_rabbitmq_info();
-    }
 
     // Get mySQL info, if needed
     if (!redis::exists('config:db_master')) { 
@@ -158,7 +135,6 @@ public function process_yaml_file()
     // Get other basic variables
     $this->enable_admin = isset($vars['enable_admin']) && $vars['enable_admin'] == 0 ? 0 : 1;
     $this->enable_javascript = isset($vars['enable_javascript']) && $vars['enable_javascript'] == 0 ? 0 : 1;
-    $this->websocket_port = $vars['websocket_port'] ?? 8194;
 
     // Get redis info
     $redis = $vars['redis'] ?? [];
@@ -169,19 +145,6 @@ public function process_yaml_file()
 
     // Connect to redis
     $this->connect_redis();
-
-    // Get RabbitMQ info, if needed
-    if ($this->server_type != 'all' && !redis::exists('config:rabbitmq')) { 
-
-        $rabbit = $vars['rabbitmq'] ?? [];
-        $this->rabbitmq_host = $rabbit['host'] ?? 'localhost';
-        $this->rabbitmq_port = $rabbit['port'] ?? '5672';
-        $this->rabbitmq_user = $rabbit['ser'] ?? 'guest';
-        $this->rabbitmq_pass = $rabbit['password'] ?? 'guest';
-
-        // Connect to RabbitMQ
-        $this->connect_rabbitmq();
-    }
 
     // Get mySQL database info, if needed
     if (!redis::exists('config:db_master')) { 
@@ -299,11 +262,11 @@ private function connect_redis()
     // Select redis db, if needed
     if ($this->redis_dbindex > 0) { $redis->select((int) $this->redis_dbindex); }
 
-    // Define constants
-    define('REDIS_HOST', $this->redis_host);
-    define('REDIS_PORT', (int) $this->redis_port);
-    define('REDIS_PASS', $this->redis_pass);
-    define('REDIS_DBINDEX', $this->redis_dbindex);
+    // Set environment variables
+    putEnv('redis_host=' . $this->redis_host);
+    putEnv('redis_port=' . $this->redis_port);
+    putEnv('redis_password=' . $this->redis_pass);
+    putEnv('redis_dbindex=' . $this->redis_dbindex);
 
     // Empty redis database
     $keys = $redis->keys('*');
@@ -374,34 +337,33 @@ private function get_mysql_info()
     echo "-- SQL Database Information\n";
     echo "------------------------------\n\n";
 
-    // Display database driver options
-    echo "Database Driver:\n";
-    echo "    [1] mySQL\n";
-    echo "    [2] PostgreSQL\n\n";
-
     // Get database driver
-    $ok=false;
-    do { 
-        $this->db_driver = $this->getvar("Select One [1]: ", '1');
-        if (in_array($this->db_driver, array('1', '2'))) {
-            $ok = true;
-        } 
-    } while ($ok = false);
-    $this->db_driver = $this->db_driver == 2 ? 'postgresql' : 'mysql';
+    $this->db_driver = $this->getvar('Database Driver [mysql]: ', 'mysql');
+    if (!file_exists("./src/app/db/" . $this->db_driver . ".php")) { 
+        echo "Invalid database driver, $this->db_driver.\n";
+        exit(0);
+    }
+
+    // Set db driver
+    app::set_db_driver($this->db_driver);
+    $default_port = $this->db_driver == 'postgresql' ? 5432 : 3306;
 
     // Get install type
-    echo "Would you like to auto-generate the necessary mySQL database, users, and privileges?  This requires the root mySQL password, but it is only used once and not saved.  Thiss ";
-    echo "option is recommended if possible, and it helps ensure all privileges are properly and securely set.\n\n";
+    if ($this->db_driver == 'mysql') { 
+        echo "Would you like to auto-generate the necessary mySQL database, users, and privileges?  This requires the root mySQL password, but it is only used once and not saved.  Thiss ";
+        echo "option is recommended if possible, and it helps ensure all privileges are properly and securely set.\n\n";
 
-    // Check install type
-    $ok = false;
-    do { 
-        echo "Auto-generate mySQL database / users? (y/n): ";
-        $type = strtolower(trim(readline()));
-        if ($type != 'y' && $type != 'n') {
-            echo "\nYou did not specify 'y' or 'n'.\n\n";
-        } else { $ok = true; }
-    } while ($ok === false);
+        // Check install type
+        $ok = false;
+        do { 
+            echo "Auto-generate mySQL database / users? (y/n): ";
+            $type = strtolower(trim(readline()));
+            if ($type != 'y' && $type != 'n') {
+                echo "\nYou did not specify 'y' or 'n'.\n\n";
+            } else { $ok = true; }
+        } while ($ok === false);
+
+    } else { $type = 'n'; }
 
     // Set variables
     $this->has_mysql = true;
@@ -415,7 +377,7 @@ private function get_mysql_info()
         $this->dbuser_readonly = $this->getvar("Desired Read-Only DB Username (optional):");
         $this->dbroot_password = $this->getvar("mySQL root Password:");
         $this->dbhost = $this->getvar("Database Host [localhost]:", 'localhost');
-        $this->dbport = $this->getvar("Database Port [3306]:", '3306');
+        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", $default_port);
 
         // Set default values
         $this->dbpass = io::generate_random_string(24);
@@ -429,7 +391,7 @@ private function get_mysql_info()
         $this->dbuser = $this->getvar("Database Username:");
         $this->dbpass = $this->getvar("Database Password:");
         $this->dbhost = $this->getvar("Database Host [localhost]:", 'localhost');
-        $this->dbport = (int) $this->getvar("Database Port [3306]:", '3306');
+        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", (string) $default_port);
 
         // Read only mySQL user -- Header 
         echo "\n\nOptional, read only mySQL user.  Used for greater security as all connections to \n";
@@ -518,7 +480,7 @@ private function install_checks()
 
     // Check writable files / dirs
     $write_chk = array(
-        'etc/config.php',    
+        '.env',    
         'storage/',
         'storage/logs', 
         'storage/logs/services'
@@ -674,38 +636,32 @@ private function complete_install()
     // Load configuration
     $client->install_configuration();
     $client->install_notifications($pkg);
+    $client->scan_workers();
 
     // CHMOD directories
     chmod('./storage/logs', 0777);
 
     // Install components
-    $components = json_decode(file_get_contents(SITE_PATH . '/etc/core/components.json'), true);
-    foreach ($components as $row) {
-        if ($row['type'] == 'view') { $comp_alias = $row['alias']; }
-        else { $comp_alias = $row['parent'] == '' ? 'core:' . $row['alias'] : 'core:' . $row['parent'] . ':' . $row['alias']; }
-
-        pkg_component::add($row['type'], $comp_alias, $row['value'], (int) $row['order_num'], 'core');
-    }
+    $this->install_components();
 
     // Execute PHP code, if needed
     if (method_exists($pkg, 'install_after')) { 
         $pkg->install_after();
     }
 
-    // Get config.php file
-    $config = base64_decode('PD9waHAKCi8vIFJlZGlzIGNvbm5lY3Rpb24KZGVmaW5lKCdSRURJU19IT1NUJywgJ35yZWRpc19ob3N0ficpOwpkZWZpbmUoJ1JFRElTX1BPUlQnLCB+cmVkaXNfcG9ydH4pOwpkZWZpbmUoJ1JFRElTX1BBU1MnLCAnfnJlZGlzX3Bhc3N+Jyk7CmRlZmluZSgnUkVESVNfREJJTkRFWCcsIH5yZWRpc19kYmluZGV4fik7CgpkZWZpbmUoJ0VOQUJMRV9BRE1JTicsIH5lbmFibGVfYWRtaW5+KTsKCgo=');
+    // Get .env file
+    $config = base64_decode('CiMKIyBBcGV4IC5lbnYgZmlsZS4KIwojIEluIG1vc3QgY2FzZXMsIHlvdSBzaG91bGQgbmV2ZXIgbmVlZCB0byBtb2RpZnkgdGhpcyBmaWxlIGFzaWRlIGZyb20gdGhlIAojIHJlZGlzIGNvbm5lY3Rpb24gaW5mb3JtYXRpb24uICBUaGUgZXhjZXB0aW9uIGlzIGlmIHlvdSdyZSBydW5uaW5nIEFwZXggb24gIAojIGEgY2x1c3RlciBvZiBzZXJ2ZXJzLiAgVGhpcyBmaWxlIGFsbG93cyB5b3UgdG8gb3ZlcnJpZGUgdmFyaW91cyAKIyBzeXN0ZW0gY29uZmlndXJhdGlvbiB2YXJpYWJsZXMgZm9yIHRoaXMgc3BlY2lmaWMgc2VydmVyIGluc3RhbmNlLCBzdWNoIGFzIGxvZ2dpbmcgYW5kIGRlYnVnZ2luZyBsZXZlbHMuCiMKCiMgUmVkaXMgY29ubmVjdGlvbiBpbmZvcm1hdGlvbgpyZWRpc19ob3N0ID0gfnJlZGlzX2hvc3R+CnJlZGlzX3BvcnQgPSB+cmVkaXNfcG9ydH4KcmVkaXNfcGFzc3dvcmQgPSB+cmVkaXNfcGFzc34KcmVkaXNfZGJpbmRleCA9IH5yZWRpc19kYmluZGV4fgoKIyBFbmFibGUgYWRtaW4gcGFuZWw/ICgxPW9uLCAwPW9mZikKZW5hYmxlX2FkbWluID0gfmVuYWJsZV9hZG1pbn4KCiMgVGhlIG5hbWUgb2YgdGhpcyBpbnN0YW5jZS4gIENhbiBiZSBhbnl0aGluZyB5b3Ugd2lzaCwgCiMgYnV0IG5lZWRzIHRvIGJlIHVuaXF1ZSB0byB0aGUgY2x1c3Rlci4KO2luc3RhbmNlX25hbWUgPSBtYXN0ZXIKCiMgVGhlIHR5cGUgb2YgaW5zdGFuY2UsIHdoaWNoIGRldGVybWluZXMgaG93IHRoaXMgaW5zdGFuY2UgCiMgb3BlcmF0ZXMgKGllLiB3aGV0aGVyIGl0IHNlbmRzIG9yIHJlY2VpdmVzIHJlcXVlc3RzIHZpYSBSYWJiaXRNUSkuCiMKIyBTdXBwb3J0ZWQgdmFsdWVzIGFyZToKIyAgICAgYWxsICA9IEFsbC1pbi1PbmUgKGRlZmF1bHQpCiMgICAgIHdlYiAgPSBGcm9udC1lbmQgSFRUUCBzZXJ2ZXIKIyAgICAgYXBwICA9IEJhY2stZW5kIGFwcGxpY2F0aW9uIHNlcnZlcgojICAgICBtaXNjID0gT3RoZXIKIwo7c2VydmVyX3R5cGUgPSBhbGwKCiMgU2VydmVyIG1vZGUsIGNhbiBiZSAncHJvZCcgb3IgJ2RldmVsJwo7bW9kZSA9IGRldmVsCgojIExvZyBsZXZlbC4gIFN1cHBvcnRlZCB2YWx1ZXMgYXJlOgojICAgICBhbGwgPSBBbGwgbG9nIGxldmVscwojICAgICBtb3N0ID0gQWxsIGxldmVscywgZXhjZXB0ICdpbmZvJyBhbmQgJ25vdGljZScuCiMgICAgIGVycm9yX29ubHkgPSBPbmx5IGVycm9yIG1lc3NhZ2VzCiMgICAgIG5vbmUgPSBObyBsb2dnaW5nCjtsb2dfbGV2ZWwgPSBtb3N0CgojIERlYnVnIGxldmVsLiAgU3VwcG9ydGVkIHZhbHVlcyBhcmU6CiMgICAgIDAgPSBPZmYKIyAgICAgMSA9IFZlcnkgbGltaXRlZAojICAgICAyID0gTGltaXRlZAojICAgICAzID0gTW9kZXJhdGUKIyAgICAgNCA9IEV4dGVuc2l2ZQojICAgICA1ID0gVmVyeSBFeHRlbnNpdmUKO2RlYnVnX2xldmVsID0gMAoKCg==');
     $config = str_replace("~redis_host~", $this->redis_host, $config);
     $config = str_replace("~redis_port~", $this->redis_port, $config);
     $config = str_replace("~redis_pass~", $this->redis_pass, $config);
     $config = str_replace("~redis_dbindex~", $this->redis_dbindex, $config);
     $config = str_replace('~enable_admin~', $this->enable_admin, $config);
-    file_put_contents(SITE_PATH . '/etc/config.php', $config);
+    file_put_contents(SITE_PATH . '/.env', $config);
 
     // Update redis config
+    app::update_config_var('core:db_driver', $this->db_driver);
     app::update_config_var('core:cookie_name', io::generate_random_string(12));
-    app::update_config_var('core:server_type', $this->server_type);
     app::update_config_var('core:domain_name', $this->domain_name);
-    app::update_config_var('core:websocket_port', $this->websocket_port);
     app::update_config_var('core:enable_javascript', $this->enable_javascript);
 
     // Set encryption info
@@ -723,6 +679,26 @@ private function complete_install()
 }
 
 /**
+ * Install components
+ */
+private function install_components()
+{
+
+    // Install components
+    $files = io::parse_dir(SITE_PATH . '/src/core');
+    foreach ($files as $file) { 
+        pkg_component::add_from_filename('core', "src/$file");
+    }
+
+    // Add views
+    $views = io::parse_dir(SITE_PATH . '/views/tpl');
+    foreach ($views as $view) { 
+        pkg_component::add_from_filename('core', "views/$file");
+    }
+
+}
+
+/**
  * Give welcome message
  */
 private function welcome_message()
@@ -733,7 +709,7 @@ private function welcome_message()
     echo "Thank you!  The Apex Platform has now been successfully installed on your server.\n\n";
     if ($this->server_type == 'all' || $this->server_type == 'app') { 
         echo "To complete installation, please ensure the following crontab job is added.\n\n";
-        echo "\t*/5 * * * * /cd " . SITE_PATH . "; /usr/bin/php -q apex.php core.cron > /dev/null 2>&1\n\n";
+        echo "\t*/2 * * * * cd " . SITE_PATH . "; /usr/bin/php -q apex core.cron > /dev/null 2>&1\n\n";
         echo "You also need to place the Apex init script in its proper location by executing the following commands at the SSH prompt:\n\n";
         echo "\tsudo cp bootstrap/apex /etc/init.d/apex\n";
         echo "\tsudo ln -s /etc/init.d/apex /etc/rc3.d/S30apex\n\n";

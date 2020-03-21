@@ -166,6 +166,9 @@ public function get(string $type, $record_id = '', string $size = 'full', bool $
         'contents' => db::get_field("SELECT contents FROM images_contents WHERE id = %i", $row['id'])
     );
 
+    // Unescape, if PostgreSql
+    if (app::_config('core:db_driver') == 'postgresql') { $vars['contents'] = pg_unescape_bytea($vars['contents']); }
+
     // Add to cache, if needed
     if (app::_config('core:cache') == 1) { 
         cache::set($cache_item, $vars);

@@ -1,42 +1,42 @@
 
 
-DROP TABLE IF EXISTS admin;
-DROP TABLE IF EXISTS images_contents;
-DROP TABLE IF EXISTS images;
-DROP TABLE IF EXISTS notifications_login_notices;
-DROP TABLE IF EXISTS notifications_queue;
-DROP TABLE IF EXISTS notifications_mass_queue;
-DROP TABLE IF EXISTS notifications_attachments;
-DROP TABLE IF EXISTS notifications;
-DROP TABLE IF EXISTS encrypt_data_keys;
-DROP TABLE IF EXISTS encrypt_keys;
-DROP TABLE IF EXISTS encrypt_data;
-DROP TABLE IF EXISTS encrypt_pgp_keys;
+DROP TABLE IF EXISTS auth_allowips;
 DROP TABLE IF EXISTS auth_history_pages;
 DROP TABLE IF EXISTS auth_history;
-DROP TABLE IF EXISTS auth_allowips;
-DROP TABLE IF EXISTS cms_pages;
+DROP TABLE IF EXISTS admin;
+DROP TABLE IF EXISTS cms_layouts;
 DROP TABLE IF EXISTS cms_menus;
 DROP TABLE IF EXISTS cms_placeholders;
-DROP TABLE IF EXISTS internal_upgrades;
-DROP TABLE IF EXISTS internal_boxlists;
-DROP TABLE IF EXISTS internal_crontab;
-DROP TABLE IF EXISTS internal_components;
-DROP TABLE IF EXISTS internal_packages;
-DROP TABLE IF EXISTS internal_repos;
-DROP TABLE IF EXISTS internal_themes;
-DROP TABLE IF EXISTS internal_languages;
-DROP TABLE IF EXISTS internal_transactions;
-DROP TABLE IF EXISTS internal_file_hashes;
 DROP TABLE IF EXISTS dashboard_profiles_items;
 DROP TABLE IF EXISTS dashboard_profiles;
 DROP TABLE IF EXISTS dashboard_items;
+DROP TABLE IF EXISTS encrypt_data_keys;
+DROP TABLE IF EXISTS encrypt_data;
+DROP TABLE IF EXISTS encrypt_keys;
+DROP TABLE IF EXISTS encrypt_pgp_keys;
+DROP TABLE IF EXISTS images_contents;
+DROP TABLE IF EXISTS images;
+DROP TABLE IF EXISTS notifications_attachments;
+DROP TABLE IF EXISTS notifications_mass_queue;
+DROP TABLE IF EXISTS notifications_queue;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS internal_backups;
+DROP TABLE IF EXISTS internal_boxlists;
+DROP TABLE IF EXISTS internal_file_hashes;
+DROP TABLE IF EXISTS internal_components;
+DROP TABLE IF EXISTS internal_translations;
+DROP TABLE IF EXISTS internal_languages;
+DROP TABLE IF EXISTS internal_tasks;
+DROP TABLE IF EXISTS internal_upgrades;
+DROP TABLE IF EXISTS internal_packages;
+DROP TABLE IF EXISTS internal_repos;
+DROP TABLE IF EXISTS internal_themes;
 
 
---------------------------------------------------
--- Internal tables
---------------------------------------------------
 
+/**
+ * Internal tables
+ */
 
 CREATE TABLE internal_repos (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -119,11 +119,10 @@ INSERT INTO internal_languages (abbr,name,version) VALUES ('en', 'English', '1.0
 CREATE TABLE internal_translations (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     language VARCHAR(5) NOT NULL, 
-    type ENUM('admin','members','public','system') NOT NULL DEFAULT 'system', 
+    type ENUM('admin','members','public','sys') NOT NULL DEFAULT 'sys', 
     md5hash VARCHAR(100) NOT NULL, 
     contents TEXT NOT NULL
 ) engine=InnoDB DEFAULT CHARACTER SET=utf8;
-
 
 CREATE TABLE internal_file_hashes (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -158,18 +157,9 @@ CREATE TABLE internal_tasks (
     data LONGTEXT 
 ) engine=InnoDB;
 
-
---------------------------------------------------
--- CMS 
---------------------------------------------------
-
-CREATE TABLE cms_layouts (
-    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
-    area VARCHAR(100) NOT NULL DEFAULT 'public', 
-    layout VARCHAR(255) NOT NULL DEFAULT 'default', 
-    title VARCHAR(255) NOT NULL DEFAULT '', 
-    filename VARCHAR(255) NOT NULL
-) engine=InnoDB;
+/**
+ * CMS 
+ */
 
 CREATE TABLE cms_menus ( 
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -188,6 +178,14 @@ CREATE TABLE cms_menus (
     url VARCHAR(255) NOT NULL DEFAULT '' 
 ) engine=InnoDB;
 
+CREATE TABLE cms_layouts (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+    area VARCHAR(100) NOT NULL DEFAULT 'public', 
+    layout VARCHAR(255) NOT NULL DEFAULT 'default', 
+    title VARCHAR(255) NOT NULL DEFAULT '', 
+    filename VARCHAR(255) NOT NULL
+) engine=InnoDB;
+
 CREATE TABLE cms_placeholders (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     package VARCHAR(100) NOT NULL, 
@@ -197,9 +195,10 @@ CREATE TABLE cms_placeholders (
     FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE
 ) engine=InnoDB;
 
---------------------------------------------------
--- Admin tables
---------------------------------------------------
+
+/**
+ * Admin tables
+ */
 
 CREATE TABLE admin (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -221,9 +220,9 @@ CREATE TABLE admin (
 ) engine=InnoDB;
 
 
---------------------------------------------------
--- Auth tables
---------------------------------------------------
+/**
+ * Auth tables
+ */
 
 CREATE TABLE auth_allowips ( 
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -254,9 +253,9 @@ CREATE TABLE auth_history_pages (
 ) engine=InnoDB;
 
 
---------------------------------------------------
--- Encrypt tables
---------------------------------------------------
+/**
+ * Encrypt tables
+ */
 
 CREATE TABLE encrypt_keys (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -292,9 +291,9 @@ CREATE TABLE encrypt_data_keys (
 ) engine=InnoDB;
 
 
---------------------------------------------------
--- Notifications
---------------------------------------------------
+/**
+ * Notifications
+ */
 
 CREATE TABLE notifications (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -351,22 +350,9 @@ CREATE TABLE notifications_mass_queue (
     condition_vars TEXT NOT NULL
 ) engine=InnoDB;
 
-CREATE TABLE notifications_login_notices (
-    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
-    require_agree TINYINT(1) NOT NULL DEFAULT 0, 
-    type ENUM('modal','full') NOT NULL DEFAULT 'modal', 
-    title VARCHAR(255) NOT NULL, 
-    condition_vars TEXT NOT NULL, 
-    message LONGTEXT NOT NULL
-) engine=InnoDB;
-
-
-
-
-
---------------------------------------------------
--- Miscellaneous
---------------------------------------------------
+/**
+ * Images
+ */
 
 CREATE TABLE images (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -387,9 +373,9 @@ CREATE TABLE images_contents (
 ) engine=InnoDB;
 
 
---------------------------------------------------
--- Dashboards
---------------------------------------------------
+/**
+ * Dashboards
+ */
 
 CREATE TABLE dashboard_items (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
@@ -423,5 +409,6 @@ CREATE TABLE dashboard_profiles_items (
     FOREIGN KEY (profile_id) REFERENCES dashboard_profiles (id) ON DELETE CASCADE, 
     FOREIGN KEY (package) REFERENCES internal_packages (alias) ON DELETE CASCADE 
 ) engine=InnoDB;
+
 
 
