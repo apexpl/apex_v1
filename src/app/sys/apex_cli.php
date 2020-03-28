@@ -5,7 +5,8 @@ namespace apex\app\sys;
 
 use apex\app;
 use apex\libc\{db, redis, encrypt, io, components, debug};
-use apex\app\pkg\{package_config, package, upgrade, theme, pkg_component, github, crud, remote_access_client};
+use apex\app\pkg\{package_config, package, upgrade, theme, pkg_component, github, remote_access_client};
+use apex\app\codegen\{crud, model};
 use apex\app\sys\{network, repo};
 use apex\app\exceptions\{ApexException, PackageException, ComponentException, UpgradeException, ThemeException, RepoException};
 
@@ -1026,7 +1027,7 @@ public function delete($vars)
  *
  * @param array $vars The arguments passed via CLI.
  */
-public function crud($vars)
+public function gen_crud($vars)
 {
 
     // Check for crud.yml file
@@ -1041,6 +1042,35 @@ public function crud($vars)
 
     // Set response
     $response = "Successfully created new CRUD components with alias '$alias' under the package '$package'.  The following files have been created, and may be modified as necessary:\n\n";
+    foreach ($files as $file) { 
+        $response .= "    $file\n";
+    }
+
+    // Return
+    return "$response\n";
+
+}
+
+/**
+ * Generate model code libraries including interface
+ *
+ * @param array $vars The arguments passed via CLI.
+ */
+public function gen_model($vars)
+{
+
+    // Check for model.yml file
+    $file = $vars[0] ?? 'model.yml';
+    if (!file_exists(SITE_PATH . '/' . $file)) { 
+        throw new ApexException('error', "No file exists within the installation directory at, $file");
+    }
+
+    // Create CRUD scaffolding
+    $client = app::make(model::class);
+    list($alias, $package, $files) = $client->create($file);
+
+    // Set response
+    $response = "Successfully created new model libraries with alias '$alias' under the package '$package'.  The following files have been created, and may be modified as necessary:\n\n";
     foreach ($files as $file) { 
         $response .= "    $file\n";
     }

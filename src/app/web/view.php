@@ -147,11 +147,6 @@ public function parse():string
         return "We're sorry, but no TPL file exists for the location " . app::get_uri() . " within the panel " . app::get_area() . ", and no 404 template was found.";
     }
 
-    // Ensure TPL code has a form for Javascript dropdown menus
-    if (!preg_match("/<a:form>/", $this->tpl_code)) { 
-        $this->tpl_code = "<a:form>\n\n" . $this->tpl_code . "\n\n</form>\n\n";
-    }
-
     // debug
     debug::add(4, tr("Acquired TPL code for template, {1}", $this->template_path));
 
@@ -956,7 +951,7 @@ protected function add_system_javascript($html)
 { 
 
     // Add custom CSS, as needed
-    $html = str_replace("<body>", base64_decode('Cgo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoKICAgIC5mb3JtX3RhYmxlIHsgbWFyZ2luLWxlZnQ6IDI1cHg7IH0KICAgIC5mb3JtX3RhYmxlIHRkIHsKICAgICAgICB0ZXh0LWFsaWduOiBsZWZ0OwogICAgICAgIHZlcnRpY2FsLWFsaWduOiB0b3A7CiAgICAgICAgcGFkZGluZzogOHB4OwogICAgfQoKPC9zdHlsZT4KCgo8ZGl2IGlkPSJhcGV4X21vZGFsIiBjbGFzcz0ibW9kYWwiIHJvbGU9ImRpYWxvZyI+CiAgICA8ZGl2IGNsYXNzPSJtb2RhbC1jb250ZW50Ij4KCiAgICAgICAgPGRpdiBjbGFzcz0ibW9kYWwtaGVhZGVyIj4KICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzPSJjbG9zZSIgb25jbGljaz0iY2xvc2VfbW9kYWwoKTsiPiZ0aW1lczs8L2J1dHRvbj4KICAgICAgICAgICAgPGg0IGNsYXNzPSJtb2RhbC10aXRsZSIgaWQ9ImFwZXhfbW9kYWwtdGl0bGUiPjwvaDQ+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBDbGFzcz0ibW9kYWwtYm9keSIgaWQ9ImFwZXhfbW9kYWwtYm9keSI+PC9kaXY+CiAgICAgICAgPGRpdiBjbGFzcz0ibW9kYWwtZm9vdGVyIj4KICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzPSJidG4gYnRuLWRlZmF1bHQiIG9uY2xpY2s9ImNsb3NlX21vZGFsKCk7Ij5DbG9zZTwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgPC9kaXY+CjwvZGl2PgoKCgoK') . '<body>', $html);
+    $html = str_replace("<body>", base64_decode('Cgo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoKICAgIC5mb3JtX3RhYmxlIHsgbWFyZ2luLWxlZnQ6IDI1cHg7IH0KICAgIC5mb3JtX3RhYmxlIHRkIHsKICAgICAgICB0ZXh0LWFsaWduOiBsZWZ0OwogICAgICAgIHZlcnRpY2FsLWFsaWduOiB0b3A7CiAgICAgICAgcGFkZGluZzogOHB4OwogICAgfQoKPC9zdHlsZT4KCgoKCgo=') . '<body>', $html);
 
     // Check if Javascript disabled
     if (app::_config('core:enable_javascript') == 0) { 
@@ -996,6 +991,10 @@ protected function add_system_javascript($html)
 
     // Add to HTML
     $html = str_replace("</head>", $js, $html);
+
+    // Add modal HTML
+    $modal = $this->html_tags->get_tag('modal');
+    $html = str_replace("<body>", "<body>\n\n$modal\n", $html);
 
     // Return
     return $html;

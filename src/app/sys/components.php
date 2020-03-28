@@ -56,7 +56,7 @@ public function check(string $type, string $alias)
 { 
 
     // Initialize
-    $parts = explode(":", strtolower($alias));
+    $parts = explode(":", $alias);
     if (count($parts) == 3) { 
         list($package, $parent, $alias) = array($parts[0], $parts[1], $parts[2]);
     } elseif (count($parts) == 2) { 

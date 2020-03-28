@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace apex\app\pkg;
+namespace apex\app\codegen;
 
 use apex\app;
 use apex\libc\{db, redis, debug, components};

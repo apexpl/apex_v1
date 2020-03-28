@@ -28,7 +28,7 @@ browse the documentation below.  You may also visit the homepage of Apex at [[ht
 5. [Packages and Upgrades](packages.md)
 6. [Components and Development](components.md)
     1. [Components Available](components.md#components_available)
-    2. [CRUD Scaffolding](crud.md)
+    2. [Code Generation](codegen.md)
     3. [Remote Access Client](remote_access.md)
 7. [Repositories](repos.md)
 8. [`apex` CLI Commands](cli.md)
