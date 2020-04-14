@@ -410,7 +410,7 @@ public function encrypt_pgp(string $message, $recipients)
 
         // Get key
         list($type, $userid) = explode(":", $recipient, 2);
-        if (!$fingerprint = $this->get_pgp_key($type, $userid)) { 
+        if (!$fingerprint = $this->get_pgp_key($type, (int) $userid)) { 
             continue;
         }
 
@@ -439,7 +439,7 @@ public function get_pgp_key(string $type, int $userid, string $key_type = 'finge
 { 
 
     // Get from database
-    if (!$row = db::get_row("SELECT * FROM encrypt_pgp_keys WHERE type = %s AND userid = %i")) { 
+    if (!$row = db::get_row("SELECT * FROM encrypt_pgp_keys WHERE type = %s AND userid = %i", $type, $userid)) { 
         return false;
     }
     $key = $key_type == 'fingerprint' ? $row['fingerprint'] : $row['pgp_key'];

@@ -41,7 +41,9 @@ public function __construct(string $routing_key, ...$params)
         'request_method' => app::get_method(),
         'userid' => app::get_userid(),
         'ip_address' => app::get_ip(),
-        'user_agent' => app::get_user_agent()
+        'user_agent' => app::get_user_agent(), 
+        'post' => app::getall_post(), 
+        'get' => app::getall_get()
     );
 
     // Get caller function / class
