@@ -273,6 +273,7 @@ CREATE TABLE encrypt_pgp_keys (
     userid INT NOT NULL, 
     date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     fingerprint VARCHAR(150) NOT NULL DEFAULT '', 
+    password VARCHAR(255) NOT NULL DEFAULT '', 
     pgp_key TEXT NOT NULL
 ) engine=InnoDB;
 

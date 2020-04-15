@@ -32,7 +32,7 @@ class encrypt
 
         // Ensure method exists
         if (!method_exists(self::$instance, $method)) { 
-            throw new ServiceException('no_method', __CLAS__, $method);
+            throw new ServiceException('no_method', __CLASS__, $method);
         }
 
         // Call method, and return 

@@ -345,11 +345,17 @@ public function decrypt_basic(string $data, string $password = '')
  * @param string $type The user type (user / admin).
  * @param ing $userid The ID# of the user.
  * @param string $public_key The public PGP key
+ * @param string $password Optional password of the PGP key, if a private key.
  *
  * @return mixed If unsuccessful, return false.  Otherwise, returns the fingerprint of the PGP key.
  */
-public function import_pgp_key(string $type, int $userid, string $public_key)
+public function import_pgp_key(string $type, int $userid, string $public_key, string $password = '')
 { 
+
+    // Encrypt pass, if needed
+    if ($password != '') { 
+        $password = $this->encrypt_basic($password);
+    }
 
     // Initialize
     if (!function_exists('gnupg_init')) { 
@@ -368,6 +374,7 @@ public function import_pgp_key(string $type, int $userid, string $public_key)
         // Update database, if user already exists
         db::update('encrypt_pgp_keys', array(
             'fingerprint' => $vars['fingerprint'],
+            'password' => $password, 
         'pgp_key' => $public_key),
         "id = %i", $key_id);
 
@@ -377,6 +384,7 @@ public function import_pgp_key(string $type, int $userid, string $public_key)
             'type' => $type,
             'userid' => $userid,
             'fingerprint' => $vars['fingerprint'],
+            'password' => $password, 
             'pgp_key' => $public_key)
         );
         $key_id = db::insert_id();
