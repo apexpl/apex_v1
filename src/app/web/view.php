@@ -443,7 +443,7 @@ protected function process_nav_menu(string $html):string
 
     // Go through menus
     $menu_html = '';
-    $rows = db::query("SELECT * FROM cms_menus WHERE area = %s AND parent = '' ORDER BY order_num", app::get_area());
+    $rows = db::query("SELECT * FROM cms_menus WHERE is_active = 1 AND area = %s AND parent = '' ORDER BY order_num", app::get_area());
     foreach ($rows as $row) { 
 
         // Skip, if needed
@@ -459,7 +459,7 @@ protected function process_nav_menu(string $html):string
 
         // Get child menus
         $submenus = '';
-        $crows = db::query("SELECT * FROM cms_menus WHERE area = %s AND parent = %s ORDER BY order_num", app::get_area(), $row['alias']);
+        $crows = db::query("SELECT * FROM cms_menus WHERE is_active = 1 AND area = %s AND parent = %s ORDER BY order_num", app::get_area(), $row['alias']);
         foreach ($crows as $crow) { 
 
             // Skip, if needed
