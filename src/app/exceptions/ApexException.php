@@ -174,7 +174,14 @@ protected function render_json()
         $vars['line'] = $this->line;
     }
 
-    // Echo
+    // Set content type
+    app::set_res_content_type('application/json');
+    app::set_res_http_status(500);
+
+    // Echo response
+    app::set_res_body(json_encode($vars));
+    app::echo_response();
+
 echo json_encode($vars);
     exit(0);
 

@@ -12,5 +12,7 @@ fdate($date, bool $add_time) | Formats a date into the proper, readable format f
 fmoney($amount, $currency, $include_abbr) | Formats a decimal into an amount using the proper currency symbol and decimals.  Always use this function when displaying an amount.
 exchange_money(float $amount, string $from_currency, string $to_currency) | Exchanges the amount specified from the one currency, to the specified currency using the latest exchange rates in the database.
 check_package($alias) | Checks whether or not a package alias is installed on the system, and returns a boolean. Useful when developing packages that act / display things differently depending on whether or not a certain package is installed.
+ftype($value, $type) | Formats the data type of a value as desired, as issues were found using PHP's built-in setType() function.
+
 
 

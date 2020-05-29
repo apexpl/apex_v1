@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.5.11';
+    public $version = '1.5.16';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';
@@ -258,7 +258,8 @@ private function define_config()
     // Flysystem storage vars
     $flysystem_vars = array(
         'flysystem_type' => 'local', 
-        'flysystem_credentials' => '[]'
+        'flysystem_credentials' => '[]', 
+        'image_storage_type' => 'database'
     );
     $vars = array_merge($vars, $flysystem_vars);
 
@@ -374,6 +375,12 @@ private function define_hashes_settings()
         'digitalocean' => 'DigitalOcean Spaces', 
         'dropbox' => 'DropBox'
     );
+
+    // Image storage types
+    $vars['image_storage_types'] = [
+        'database' => 'Database', 
+        'filesystem' => 'Filesystem'
+    ];
 
     // Base currencies
     $vars['base_currencies'] = array(

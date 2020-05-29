@@ -4,11 +4,8 @@ declare(strict_types = 1);
 namespace apex\app\utils;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
-use apex\libc\forms;
-use apex\libc\io;
-use apex\libc\cache;
+use apex\libc\{db, debug, forms, io, cache, storage}; 
+
 
 /**
  * Image Handling Library
@@ -71,6 +68,16 @@ public function add(string $filename, string $contents, string $type, $record_id
         return false;
     }
 
+    // Get filename
+    if ($size != 'full') { 
+
+        // Get image extension
+        if (preg_match("/^(.+)\.(\w+)$/", $filename, $match)) { 
+            $extension = $match[2];
+        } else { $extension = 'jpg'; }
+        $filename = $match[1] . '_' . $size . '.' . $extension;
+    }
+
     // Delete existing image, if exists
     db::query("DELETE FROM images WHERE type = %s AND record_id = %s AND size = %s", $type, $record_id, $size);
 
@@ -87,11 +94,20 @@ public function add(string $filename, string $contents, string $type, $record_id
     );
     $image_id = db::insert_id();
 
-    // Add to contents
-    db::insert('images_contents', array(
-        'id' => $image_id,
-        'contents' => $contents)
-    );
+    // Save file to server
+    if (app::_config('core:image_storage_type') == 'filesystem') { 
+        $prefix = substr($filename, 0, 2);
+        $filepath = 'images/' . $prefix . '/' . $filename;
+        storage::add_contents($filepath, $contents);
+
+    // Add to database
+    } else { 
+
+        db::insert('images_contents', array(
+            'id' => $image_id,
+            'contents' => $contents)
+        );
+    }
 
     // Debug
     debug::add(3, tr("Added new image to database, type: {1}, record_id: {2}", $type, $record_id));
@@ -157,13 +173,21 @@ public function get(string $type, $record_id = '', string $size = 'full', bool $
     }
     if (!$row) { return false; }
 
+    // Get contents
+    if (app::_config('core:image_storage_type') == 'filesystem') { 
+        $prefix = substr($row['filename'], 0, 2);
+        $contents = storage::get('images/' . $prefix . '/' . $row['filename']);
+    } else {
+        $contents = db::get_field("SELECT contents FROM images_contents WHERE id = %i", $row['id']);
+    }
+
     // Set vars
     $vars = array(
         'filename' => $row['filename'], 
         'mime_type' => $row['mime_type'], 
         'width' => $row['width'], 
         'height' => $row['height'], 
-        'contents' => db::get_field("SELECT contents FROM images_contents WHERE id = %i", $row['id'])
+        'contents' => $contents
     );
 
     // Unescape, if PostgreSql

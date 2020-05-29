@@ -714,7 +714,7 @@ public static function set_uri(string $uri, bool $prepend_area = false, bool $lo
     // Check for http controller
     if (file_exists(SITE_PATH . '/src/core/service/http_requests/' . self::$uri_segments[0] . '.php')) {
         self::$http_controller = array_shift(self::$uri_segments);
-        if (count(self::$uri_segments) == 0) {
+        if (count(self::$uri_segments) == 0 && !file_exists(SITE_PATH . '/views/tpl/public/' . self::$http_controller . '.tpl')) {
             self::$uri_segments[] = 'index';
             $uri .= '/index';
         }

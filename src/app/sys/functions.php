@@ -305,3 +305,26 @@ function check_package($alias) {
     return file_exists($pkg_file) ? true : false;
 }
 
+/**
+ * Format a data type
+ *
+ * @param mixed $value The value to format.
+ * @param string $type The type to format it to (bool, int, float, string).
+ *
+ * @return mixed The newly formatted value.
+ */
+function ftype($value, string $type)
+{
+
+    // Format
+    if ($type == 'bool') { $value = (bool) $value; }
+    elseif ($type == 'int') { $value = (int) $value; }
+    elseif ($type == 'float') { $value = (float) $value; }
+    else { $value = (string) $value; }
+
+    // Return
+    return $value;
+
+}
+
+
