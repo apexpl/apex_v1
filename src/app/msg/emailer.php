@@ -163,7 +163,7 @@ public function process_emails(string $adapter, int $userid = 0, array $conditio
 
         // Send notification
         $client = app::make(notification::class);
-        $client->send($userid, $row['id'], $data);
+        $client->send($userid, (int) $row['id'], $data);
     }
 
 }

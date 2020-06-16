@@ -1017,7 +1017,7 @@ public static function _files(string $key, bool $return_stream = false)
  *
  * @return array Info on the publoaded file.
  */
-protected static function get_single_file(UploadedFile $file, bool $return_stream = false):array
+public static function get_single_file(UploadedFile $file, bool $return_stream = false):array
 {
 
     // Set vars

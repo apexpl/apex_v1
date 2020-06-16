@@ -134,7 +134,7 @@ CREATE TABLE internal_file_hashes (
 
 CREATE TABLE internal_upgrades (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
-    status ENUM('open','published','installed') NOT NULL DEFAULT 'installed', 
+    status VARCHAR(20) NOT NULL DEFAULT 'installed', 
     package VARCHAR(100) NOT NULL, 
     version VARCHAR(15) NOT NULL,
     prev_version VARCHAR(15) NOT NULL DEFAULT '', 
@@ -404,7 +404,7 @@ INSERT INTO dashboard_profiles VALUES (2, 1, 'members', 0);
 CREATE TABLE dashboard_profiles_items (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
     profile_id INT NOT NULL, 
-    type ENUM('top','right','tab') NOT NULL, 
+    type VARCHAR(10) NOT NULL, 
     package VARCHAR(100) NOT NULL, 
     alias VARCHAR(255) NOT NULL, 
     FOREIGN KEY (profile_id) REFERENCES dashboard_profiles (id) ON DELETE CASCADE, 

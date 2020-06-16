@@ -317,6 +317,8 @@ public function install(string $pkg_alias, int $repo_id = 0)
 
     // Clean up
     io::remove_dir($tmp_dir);
+    db::clear_cache();
+
 
 }
 

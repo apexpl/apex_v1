@@ -1568,7 +1568,7 @@ public function remote_copy($vars)
     } elseif ($status == 'pending') { 
         $response = "The following files have been queued for updates, but are currently pending due to server permissions.  The files will be updated within the next couple minutes via crontab.\n\n";
     } else { 
-        $response = "An unknown status was received from the server, with the response being: $response for the following files:\n\n";
+        $response = "An unknown status was received from the server, with the response being: " . print_r($response) . "\n for the following files:\n\n";
     }
     foreach ($files as $file) { 
         $response .= "    $file\n";

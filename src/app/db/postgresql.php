@@ -5,7 +5,7 @@ namespace apex\app\db;
 
 use apex\app;
 use apex\libc\debug;
-use apex\app\db\{db_connections, pg_result};
+use apex\app\db\{db_connections, pg_result, pg_convert};
 use apex\app\interfaces\DBInterface;
 use apex\app\exceptions\DBException;
 
@@ -126,6 +126,18 @@ public function show_columns(string $table_name, bool $include_types = false):ar
 }
 
 /**
+ * Clear cache
+ *
+ * Clear the $tables and $columns properties within the class, used to 
+ * any changes to the schema show up during testing / checks during package installation / upgrades.
+ */
+public function clear_cache()
+{
+
+    $this->columns = [];
+}
+
+/**
  * Inserts a new record into the database. 
  *
  * @param mixed $args First element is the table name, second an associative array of values to insert.
@@ -161,6 +173,49 @@ public function insert(...$args)
 
     // Execute SQL
     $this->query($sql, ...$values);
+
+}
+
+/**
+ Insert or update on duplicate key
+ *
+ * @param mixed $args First element is the table name, second an associative array of values to insert.
+ */
+public function insert_or_update(...$args)
+{ 
+
+    // Check if table exists
+    $table_name = array_shift($args);
+    if (!$this->check_table($table_name)) { 
+        throw new DBException('no_table', '', '', 'insert', $table_name);
+    }
+
+    // Set variables
+    $values = array();
+    $placeholders = array();
+    $update_values = array();
+    $update_placeholders = array();
+    $columns = $this->show_columns($table_name, true);
+
+    // Generate SQL
+    $sql = "INSERT INTO $table_name (" . implode(', ', array_keys($args[0])) . ") VALUES (";
+    foreach ($args[0] as $column => $value) { 
+
+        // Check if column exists
+        if (!isset($columns[$column])) { 
+            throw new DBException('no_column', '', '', 'insert', $table_name, $column);
+        }
+
+        // Add variables to sql
+        $placeholders[] = $this->get_placeholder($columns[$column]);
+        $update_placeholders[] = $column . ' = ' . $this->get_placeholder($columns[$column]);
+        $values[] = $value;
+        $update_values[] = $value;
+    }
+    $sql .= implode(", ", $placeholders) . ') ON DUPLICATE KEY UPDATE ' . implode(', ', $update_placeholders);
+
+    // Execute SQL
+    $this->query($sql, ...$values, ...$update_values);
 
 }
 
@@ -360,6 +415,8 @@ public function get_field(...$args)
 public function query(...$args)
 { 
 
+
+
     //Format SQL
     list($hash, $values) = $this->format_sql($args);
 
@@ -390,6 +447,13 @@ public function fetch_array($result)
     // Get row
     if (!$row = pg_fetch_array($result->get_result(), null, PGSQL_NUM)) { 
         return false;
+    }
+
+    // Format row
+    foreach ($row as $key => $value) { 
+        if (preg_match("/^\d+$/", (string) $value)) { 
+            $row[$key] = (int) $value;
+        }
     }
 
     // Return
@@ -506,13 +570,8 @@ private function format_sql($args)
     $conn = $this->get_connection($type);
     $this->conn = $conn;
 
-    // Check for LIMIT clause
-    if (preg_match("/ LIMIT (\d+?)\,(\d+)/i", $args[0], $match)) { 
-        $args[0] = str_replace($match[0], " OFFSET $match[1] LIMIT $match[2] ", $args[0]);
-    }
-
-    // Other mySQL to PostgreSQL formatting
-    $args[0] = str_ireplace('RAND()', 'RANDOM()', $args[0]);
+    // FOrmat SQL
+    $args[0] = pg_convert::convert($args[0]);
 
     // Set variables
     $x=1;
@@ -523,6 +582,7 @@ private function format_sql($args)
     preg_match_all("/\%(\w+)/", $args[0], $args_match, PREG_SET_ORDER);
     foreach ($args_match as $match) { 
         $value = $args[$x] ?? '';
+        if ($match[1] == 'd' && is_float($value) && preg_match('/e/i', (string) $value)) { $value = sprintf("%f", floatval($value)); }
 
         // Check data type
         $is_valid = true;

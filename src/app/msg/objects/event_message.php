@@ -34,6 +34,14 @@ class event_message implements EventMessageInterface
 public function __construct(string $routing_key, ...$params)
 { 
 
+    // Get files
+    $files = [];
+    foreach (array_keys(app::getall_files()) as $alias) { 
+        $vars = app::_files($alias);
+        $vars['contents'] = base64_encode($vars['contents']);
+        $files[$alias] = $vars;
+    }
+
     // Set request array
     $this->request = array(
         'area' => app::get_area(),
@@ -43,7 +51,8 @@ public function __construct(string $routing_key, ...$params)
         'ip_address' => app::get_ip(),
         'user_agent' => app::get_user_agent(), 
         'post' => app::getall_post(), 
-        'get' => app::getall_get()
+        'get' => app::getall_get(), 
+        'files' => $files
     );
 
     // Get caller function / class

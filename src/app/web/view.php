@@ -954,7 +954,7 @@ protected function add_system_javascript($html)
     $html = str_replace("<body>", base64_decode('Cgo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoKICAgIC5mb3JtX3RhYmxlIHsgbWFyZ2luLWxlZnQ6IDI1cHg7IH0KICAgIC5mb3JtX3RhYmxlIHRkIHsKICAgICAgICB0ZXh0LWFsaWduOiBsZWZ0OwogICAgICAgIHZlcnRpY2FsLWFsaWduOiB0b3A7CiAgICAgICAgcGFkZGluZzogOHB4OwogICAgfQoKPC9zdHlsZT4KCgoKCgo=') . '<body>', $html);
 
     // Check if Javascript disabled
-    if (app::_config('core:enable_javascript') == 0) { 
+    if (app::_config('core:enable_javascript') == 0 && app::get_area() != 'admin') { 
         return $html;
     }
 

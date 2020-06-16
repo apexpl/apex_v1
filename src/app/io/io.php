@@ -4,12 +4,13 @@ declare(strict_types = 1);
 namespace apex\app\io;
 
 use apex\app;
-use apex\libc\db;
-use apex\libc\debug;
+use apex\libc\{db, debug}; 
+use apex\app\db\pg_convert;
 use apex\app\exceptions\IOException;
 use apex\app\io\SqlParser;
 use ZipArchive;
 use CurlFile;
+
 
 /**
  * I/O Library for File and Directory Handling.
@@ -414,64 +415,13 @@ public function execute_sqlfile(string $sqlfile)
 
         // Check for PostgreSQL
         if (app::_config('core:db_driver') == 'postgresql') { 
-            $pg_lines = $this->format_postgresql_line($sql);
-            array_map(function($line) { db::query($line); }, $pg_lines);
-        } else {
-            db::query($sql);
+            $sql = pg_convert::convert($sql);
         }
+        db::query($sql);
     }
 
     // Debug
     debug::add(2, tr("Successfully executed SQL file against database, {1}", $sqlfile), 'info');
-
-}
-
-/**
- * Format a SQL line for PostgreSQL
- *
- * @param string $sql The line of SQL code to format.
- *
- * @return array An array of SQL statements that need to be executed against PostgreSQL database.
- */
-private function format_postgresql_line(string $sql):array
-{
-
-    // Initial replacements
-    $sql = str_ireplace("INT NOT NULL PRIMARY KEY AUTO_INCREMENT", "SERIAL PRIMARY KEY", $sql);
-    $sql = preg_replace("/engine(\s*?)=(\s*?)InnoDB/i", "", $sql);
-    $sql = str_ireplace("TINYINT(1)", "SMALLINT", $sql); 
-    $sql = str_ireplace("TINYINT", "SMALLINT", $sql); 
-    $sql = str_ireplace('DATETIME', 'TIMESTAMP', $sql);
-    $sql = str_ireplace('LONGTEXT', 'TEXT', $sql);
-    $sql = str_ireplace('LONGBLOB', 'BYTEA', $sql);
-    $sql = str_ireplace('RAND()', 'RANDOM()', $sql);
-    $sql = str_ireplace('BLOB', 'BYTEA', $sql);
-    $sql = preg_replace("/ DEFAULT CHARACTER SET=utf8/i", "", $sql);
-
-    // Check for create table
-    if (!preg_match("/create table (.+?)\s/i", $sql, $match)) { 
-        return [$sql];
-    }
-    $table_name = trim($match[1]);
-
-    // Check for ENUMs
-    $results = [];
-    preg_match_all("/(\w+?)(\s+?)ENUM(\s*?)\((.*?)\)(.*?)\,/si", $sql, $enum_match, PREG_SET_ORDER);
-    foreach ($enum_match as $match) { 
-
-        // Set variables
-        $col_name = $match[1];
-        $type_name = 'enum_' . $table_name . '_' . $col_name;
-
-        // Add to SQL
-        $results[] = "DROP TYPE IF EXISTS $type_name";
-        $results[] = "CREATE TYPE $type_name AS ENUM (" . $match[4] . ")";
-        $sql = str_replace($match[0], "$col_name $type_name $match[5],", $sql);
-    }
-
-    // Return
-    $results[] = $sql;
-    return $results;
 
 }
 

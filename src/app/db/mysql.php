@@ -120,6 +120,18 @@ public function show_columns(string $table_name, bool $include_types = false):ar
 }
 
 /**
+ * Clear cache
+ *
+ * Clear the $tables and $columns properties within the class, used to 
+ * any changes to the schema show up during testing / checks during package installation / upgrades.
+ */
+public function clear_cache()
+{
+
+    $this->columns = [];
+}
+
+/**
  * Inserts a new record into the database. 
  *
  * @param mixed $args First element is the table name, second an associative array of values to insert.
@@ -155,6 +167,49 @@ public function insert(...$args)
 
     // Execute SQL
     $this->query($sql, ...$values);
+
+}
+
+/**
+ Insert or update on duplicate key
+ *
+ * @param mixed $args First element is the table name, second an associative array of values to insert.
+ */
+public function insert_or_update(...$args)
+{ 
+
+    // Check if table exists
+    $table_name = array_shift($args);
+    if (!$this->check_table($table_name)) { 
+        throw new DBException('no_table', '', '', 'insert', $table_name);
+    }
+
+    // Set variables
+    $values = array();
+    $placeholders = array();
+    $update_values = array();
+    $update_placeholders = array();
+    $columns = $this->show_columns($table_name, true);
+
+    // Generate SQL
+    $sql = "INSERT INTO $table_name (" . implode(', ', array_keys($args[0])) . ") VALUES (";
+    foreach ($args[0] as $column => $value) { 
+
+        // Check if column exists
+        if (!isset($columns[$column])) { 
+            throw new DBException('no_column', '', '', 'insert', $table_name, $column);
+        }
+
+        // Add variables to sql
+        $placeholders[] = $this->get_placeholder($columns[$column]);
+        $update_placeholders[] = $column . ' = ' . $this->get_placeholder($columns[$column]);
+        $values[] = $value;
+        $update_values[] = $value;
+    }
+    $sql .= implode(", ", $placeholders) . ') ON DUPLICATE KEY UPDATE ' . implode(', ', $update_placeholders);
+
+    // Execute SQL
+    $this->query($sql, ...$values, ...$update_values);
 
 }
 
@@ -529,11 +584,12 @@ private function format_sql($args)
     preg_match_all("/\%(\w+)/", $args[0], $args_match, PREG_SET_ORDER);
     foreach ($args_match as $match) { 
         $value = $args[$x] ?? '';
+        if ($match[1] == 'd' && is_float($value) && preg_match('/e/i', (string) $value)) { $value = sprintf("%f", floatval($value)); }
 
         // Check data type
         $is_valid = true;
         if ($match[1] == 'i' && $value != '0' && !filter_var($value, FILTER_VALIDATE_INT)) { $is_valid = false; }
-        elseif ($match[1] == 'd' && $value != '' && !preg_match("/^[0-9]+(\.[0-9]{1,})?$/", (string) abs($value))) { $is_valid = false; }
+        //elseif ($match[1] == 'd' && $value != '' && !preg_match("/^(-?)[0-9]+(\.[0-9]{1,})?$/", (string) abs($value))) { $is_valid = false; }
         elseif ($match[1] == 'b' && $value != '0' && !filter_var($value, FILTER_VALIDATE_INT)) { $is_valid = false; }
         elseif ($match[1] == 'e' && !filter_var($value, FILTER_VALIDATE_EMAIL)) { $is_valid = false; }
         elseif ($match[1] == 'url' && !filter_var($value, FILTER_VALIDATE_URL)) { $is_valid = false; }

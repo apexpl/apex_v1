@@ -90,6 +90,14 @@ private function fetch()
         return false;
     }
 
+    // Format row types
+    foreach ($row as $key => $value) { 
+
+        if (preg_match("/^\d+$/", $value)) { 
+            $row[$key] = (int) $value;
+        }
+    }
+
     // Return
     return $row;
 

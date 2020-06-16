@@ -45,11 +45,28 @@ public function show_columns(string $table_name, bool $include_types = false):ar
 
 
 /**
+ * Clear cache
+ *
+ * Clear the $tables and $columns properties within the class, used to 
+ * any changes to the schema show up during testing / checks during package installation / upgrades.
+ */
+public function clear_cache();
+
+
+/**
  * Inserts a new record into the database. 
  *
  * @param mixed $args First element is the table name, second an associative array of values to insert.
  */
 public function insert(...$args);
+
+
+/**
+ * Insert to update on duplicate key statement
+ *
+ * @param mixed $args First element is the table name, second an associative array of values to insert.
+ */
+public function insert_or_update(...$args);
 
 
 /**
