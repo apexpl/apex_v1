@@ -8,7 +8,7 @@ use apex\libc\{db, redis, debug, components};
 use apex\app\pkg\pkg_component;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Inflector\Inflector;
+use Symfony\Component\String\Inflector\EnglishInflector;
 use apex\app\exceptions\{ApexException, PackageException, ComponentException};
 
 
@@ -73,11 +73,12 @@ public function create(string $file):array
     $admin_uri = $views['admin'] ?? '';
 
     // Get singular alias
-    $single = Inflector::singularize($this->alias);
+    $inflector = new EnglishInflector();
+    $single = $inflector->singularize($this->alias);
     $this->alias = is_array($single) ? $single[0] : $single;
 
     // Get plural alias
-    $plural = Inflector::pluralize($this->alias);
+    $plural = $inflector->pluralize($this->alias);
     $this->alias_plural = is_array($plural) ? $plural[0] : $plural;
 
     // Perform checks
@@ -308,7 +309,7 @@ private function table_get_columns(int $manage_button = 0, string $manage_uri = 
         } elseif (preg_match("/^date/i", $type)) { 
             $format_lines[] = "    \$row['$alias'] = fdate(\$row['$alias']);";
         } elseif (preg_match("/^tinyint/i", $type)) { 
-            $format_lines[] = "    \$row['$alias'\ = \$row['$alias'] == 1 ? 'Yes' : 'No';";
+            $format_lines[] = "    \$row['$alias'] = \$row['$alias'] == 1 ? 'Yes' : 'No';";
         }
     }
 
@@ -356,9 +357,11 @@ public function create_view_admin(string $uri, array $exclude = [])
     $merge_vars = [
         'package' => $this->package, 
         'alias' => $this->alias, 
+        'alias_tc' => ucwords($this->alias),  
         'alias_plural' => $this->alias_plural, 
         'alias_plural_tc' => ucwords($this->alias_plural), 
-        'dbtable' => $this->dbtable, 
+        'dbtable' => $this->dbtable,
+        'uri' => $uri, 
         'php_code' => implode(", \n", $php_code)
     ];
 

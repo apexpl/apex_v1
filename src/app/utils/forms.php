@@ -276,12 +276,12 @@ public function get_date(string $name)
 {
 
     // Initial checks
-    if (!app::has_post($name . '_day')) { return ''; }
-    if (!app::has_post($name . '_month')) { return ''; }
-    if (!app::has_post($name . '_year')) { return ''; }
-    if (app::_post($name . '_day') == '') { return ''; }
-    if (app::_post($name . '_month') == '') { return ''; }
-    if (app::_post($name . '_year') == '') { return ''; }
+    if (!app::has_post($name . '_day')) { return '1900-01-01'; }
+    if (!app::has_post($name . '_month')) { return '1900-01-01'; }
+    if (!app::has_post($name . '_year')) { return '1900-01-01'; }
+    if (app::_post($name . '_day') == '') { return '1900-01-01'; }
+    if (app::_post($name . '_month') == '') { return '1900-01-01'; }
+    if (app::_post($name . '_year') == '') { return '1900-01-01'; }
 
     // Get date
     $date = implode('-', array(

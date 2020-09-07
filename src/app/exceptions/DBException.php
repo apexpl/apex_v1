@@ -26,7 +26,7 @@ class DBException   extends ApexException
         'commit' => "Unable to commit transaction",
         'rollback' => "Unable to rollback transaction",
         'query' => "Unable to execute SQL statement: {sql}",
-        'invalid_variable' => "Invalid variable passed, is not a {type} as expected: {value}"
+        'invalid_variable' => "Invalid variable passed, is not a {type} as expected: {value}.  SQL Query: {sql}"
     );
 
     // Placeholder types

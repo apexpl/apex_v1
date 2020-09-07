@@ -55,6 +55,11 @@ public function process(string $html, array $data = array()):string
     }
 $tab_dir = SITE_PATH . '/src/' . $package . '/tabcontrol/' . $alias;
 
+    // Check / confirm tab pages, if necessary.
+    if (method_exists($tabcontrol, 'check_tab_pages')) { 
+        $tab_pages = $tabcontrol->check_tab_pages($tab_pages, $data);
+    }
+
     // Go through tab pages
     $tab_html = "<a:tab_control>\n";
     foreach ($tab_pages as $tab_page => $tab_name) { 
@@ -109,6 +114,7 @@ protected function get_tab_pages(array $tab_pages, string $parent, string $packa
     // Go through extra pages
     $extra_pages = db::get_column("SELECT alias FROM internal_components WHERE type = 'tabpage' AND package = %s AND parent = %s ORDER BY order_num", $package, $parent);
     foreach ($extra_pages as $alias) { 
+        if (isset($tab_pages[$alias])) { continue; }
 
         // Try to load
         $php_file = $tab_dir . '/' . $alias . '.php';

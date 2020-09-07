@@ -1059,15 +1059,18 @@ public function gen_crud($vars)
 public function gen_model($vars)
 {
 
-    // Check for model.yml file
-    $file = $vars[0] ?? 'model.yml';
-    if (!file_exists(SITE_PATH . '/' . $file)) { 
-        throw new ApexException('error', "No file exists within the installation directory at, $file");
+    // Perform checks
+    if (!isset($vars[0])) { 
+        throw new ApexException('error', "You did not specify a comp_alias as the first argument");
+    } elseif (!isset($vars[1])) { 
+    throw new ApexException('error', "You did not specify a database table name as the second argument.");
+    } elseif (!preg_match("/^(.+?):(.+)/", $vars[0], $match)) { 
+        throw new ApexException('error', "The comp_alias first argument needs to be formatted in PACKAGE:ALIAS format");
     }
 
     // Create CRUD scaffolding
     $client = app::make(model::class);
-    list($alias, $package, $files) = $client->create($file);
+    list($alias, $package, $files) = $client->create($match[1], $match[2], $vars[1]);
 
     // Set response
     $response = "Successfully created new model libraries with alias '$alias' under the package '$package'.  The following files have been created, and may be modified as necessary:\n\n";

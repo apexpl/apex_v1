@@ -499,6 +499,46 @@ public function get_size(string $file)
 
 }
 
+/**
+ * Download file to user's browser.
+ *
+ * @param $local_file The path to the local file to download.
+ * @param string $remote_filename Optional filename to name the file being downloaded.
+ */
+public function download(string $local_file, string $remote_filename = '')
+{
+
+    // Initialize
+    if ($remote_filename == '') { 
+        $remote_filename = $local_file;
+    }
+
+    // Get the file stream
+    try {
+        $sock = $this->fs->readStream($local_file);
+    } catch (FileNotFoundException $e) { 
+        throw new StorageException('no_read_file', $this->adapter_type, '', $local_file);
+    }
+
+    // Send HTTP headers
+    header("Content-type: application/x-www-urlencoded");
+    header("Content-length: " . $this->get_size($local_file));
+    header("Content-Disposition: attachment; filename=\"$remote_filename\"");
+
+    // Send file
+    while (!feof($sock)) { 
+        echo fread($sock, 8192);
+    }
+    fclose($sock);
+
+    // Exit
+    exit(0);
+
+}
+
+
+
+
 }
 
 

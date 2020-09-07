@@ -15,7 +15,7 @@
 		<!-- About -->
 		<div class="eight columns">
 			<div class="footer-headline"><h4>About Us</h4></div>
-			<p>Envrin Group is a high quality software development firm specializing in custom SaaS solutions and distributable web applications. We offer free, commercial grade account management software via Apex Platform. Our mission is to allow business owners to easily turn their ideas into realities through all phases -- from conception to deployment.</p>
+			~site.about_us~
 		</div>
 		
 		<!-- Useful Links -->

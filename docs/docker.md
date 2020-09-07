@@ -7,7 +7,7 @@ For a quick setup you may use the auto installation features of Apex to get up
 and running with an installation including various base packages within a few minutes.  To do so, within terminal run the following commands:
 
 ~~~
-composer create-project apex/apex apex
+composer --no-dev create-project apex/apex apex
 cd apex
 mv install_example.yml install.yml
 
@@ -18,13 +18,20 @@ sudo docker-compose exec apex apex
 That's it, and your new system will be online with various base packages, and you 
 can access your admin panel at http://127.0.0.1/admin/
 
+If you receive dependency errors, you may resolve by running:
+
+~~~
+sudo apt-get update
+sudo apt-get install redis libfreetype6-dev php-tokenizer php-mbstring php-zip php-gd php-redis php-gd composer git
+~~~
+
 
 ## Standard Docker Setup 
 
 Apex comes with a docker-compose.yml file, making installation via a docker container easy.  To start, download Apex with:
 
 ~~~
-composer create-project apex/apex apex
+composer --no-dev create-project apex/apex apex
 cd apex
 ~~~
 

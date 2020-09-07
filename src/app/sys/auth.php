@@ -518,7 +518,7 @@ public function check_password(string$username, string$password)
     debug::add(2, tr("Authentication, raw user / pass check, area: {1}, username: {2}", app::get_area(), $username));
 
     // Get user row
-    if (!$profile = db::get_row("SELECT * FROM $this->users_table WHERE username = %s", $username)) { 
+    if (!$profile = db::get_row("SELECT * FROM $this->users_table WHERE username = %s OR email = %s", $username, $username)) { 
         return false;
     }
     if ($profile['status'] != 'active') { return false; }

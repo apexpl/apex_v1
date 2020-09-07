@@ -584,6 +584,7 @@ public function amount(array $attr, string $text = ''):string
 
     // Get currency
     $currency = $attr['currency'] ?? app::_config('transaction:base_currency');
+    if ($currency === null) { $currency = 'USD'; }
     $curdata = app::get_currency_data($currency);
 
     // Set variables
@@ -764,6 +765,7 @@ public function button(array $attr, string $text = ''):string
 
     // Set variables
     $href = $attr['href'] ?? '#';
+    if ($href != '#') { $href = '/' . ltrim($href, '/'); }
     $label = $attr['label'] ?? 'Submit Query';
     $size = $attr['size'] ?? 'md';
 

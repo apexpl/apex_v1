@@ -7,12 +7,12 @@ requirements with the following command via SSH.
 
 ~~~
 sudo apt-get update
-sudo apt-get install redis libfreetype6-dev php-tokenizer php-redis php-gd composer git
+sudo apt-get install redis libfreetype6-dev php-tokenizer php-mbstring php-zip php-gd php-redis php-gd composer git
 ~~~
 
 Once done, install Apex by running the following commands:
 ~~~
-composer create-project/apex/apex DIRNAME
+composer --no-dev create-project apex/apex DIRNAME
 cd DIRNAME
 ./apex
 ~~~

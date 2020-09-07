@@ -209,7 +209,7 @@ function fmoney(float $amount, string $currency = '', bool $include_abbr = true)
 { 
 
     // Use default currency, if none specified
-    if ($currency == '') { $currency = app::_config('transaction:base_currency'); }
+    if ($currency == '') { $currency = app::_config('transaction:base_currency') ?? 'USD'; }
 
     // Get currency
     $format = app::get_currency_data($currency);

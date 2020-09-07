@@ -2,50 +2,25 @@
 # Generate Models
 
 You may automatically generate the interface and PHP class for a model, using the columns of an existing database 
-table via the `gen_model` CLI command.  You simply place a model.yml file within the installation directory with the 
-necessary information, run the CLI command, and the two necessary PHP libraries will be automatically created.  Once you have the model.yml file in place, 
-you simply run the CLI command:
+table via the `gen_model` CLI command.  This command looks like:
 
-`./apex gen_model`
+**Usage:** `./apex gen_model PACKAGE:ALIAS DBTABLE`
 
+Where:
 
-## model.yml File Structure
+- `PACKAGE` - The alias of any package installed on the system.
+- `ALIAS` - Any desired alias for the model, case-sensitive.
+- `DBTABLE` - The name of any table within the database.
 
-You must place a model.yml file within the Apex installation directory (see below for example), which 
-contains the following elements:
+Upon running the above CLI command, the software will generate a mode and interface for the new model, which will be located at:
 
-Variable | Type | Notes
-------------- |------------- |------------- 
-package | string | The alias of the package to create the model PHP files under.
-alias | string | The alias of the new model.
-dbtable | string | The name of the database table to create the model from.
-exclude | array | Optional, and list any table columns you would like to exclude from the PHP code of the model.
-
-
-That's it.  Once you have your model in place, via terminal run the command:
-
-`./apex gen_model`
-
-This will go through all columns within the database table, and generate both, an interface and PHP class with the 
-necessary getter / setter methods.  The files will be placed at:
-
+- /src/PACKAGE/models/ALIAS.php
 - /src/PACKAGE/interfaces/ALIASInterface.php
-* /src/PACKAGE/models/ALIAS.php
 
+## Model Functionality
 
-## Example YAML File
-
-Below shows an example model.yml file:
-
-~~~
-package:  mypackage
-alias:  some_model
-dbtable: package_some_model
-excludes:
-  - date_created
-  - date_updated
-
-~~~
-
+As you will see within the model PHP class, instead of separate get / set methods for each property, the 
+magic `__call()` method is used instead.  This is done as it keeps the scope of properties at private, while allowing ease of flexibility as many properties are just 
+simple get / set methods.  Any properties that require additional validation or functionality can be manually added in, and they will be executed instead.
 
 
