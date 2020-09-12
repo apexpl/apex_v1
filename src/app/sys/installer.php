@@ -246,11 +246,16 @@ private function get_redis_info()
 private function connect_redis()
 {
 
-    // Connect to redis
-    $redis = new redisdb();
-    if (!$redis->connect($this->redis_host, (int) $this->redis_port, 2)) {
-        echo "Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.\n\n";
-        exit(0);
+    try {
+        // Connect to redis
+        $redis = new redisdb();
+        if (!$redis->connect($this->redis_host, (int)$this->redis_port, 2)) {
+            echo "Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.\n\n";
+            exit(0);
+        }
+    } catch (\Exception $e) {
+        echo "Error: This project requires Redis, yet we could not connect to a redis server: " . $e->getMessage();
+        exit;
     }
 
     // Redis authentication, if needed
