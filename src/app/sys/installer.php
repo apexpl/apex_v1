@@ -357,7 +357,7 @@ private function get_mysql_info()
         $ok = false;
         do {
             echo "Auto-generate mySQL database / users? (y/n): ";
-            $type = strtolower(trim(readline()));
+            $type = strtolower(getUserInput());
             if ($type != 'y' && $type != 'n') {
                 echo "\nYou did not specify 'y' or 'n'.\n\n";
             } else { $ok = true; }
@@ -742,7 +742,7 @@ private function install_error(string $message)
 private function getvar(string $label, string $default_value = '')
 {
     echo "$label ";
-    $value = trim(readline());
+    $value = getUserInput();
     echo "\n";
     if ($value == '') { $value = $default_value; }
     return $value;
@@ -799,4 +799,17 @@ private function get_priv_sql()
 
 }
 
+}
+
+if (!function_exists('getUserInput')) {
+    /**
+     * Copyright (c) 2020 PHP Experts, Inc.
+     * From https://github.com/phpexpertsinc/dockerize-php/blob/master/install.php#L202
+     *
+     * @return string
+     */
+    function getUserInput()
+    {
+        return trim(fgets(STDIN));
+    }
 }
