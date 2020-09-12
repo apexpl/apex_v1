@@ -14,12 +14,12 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use redis as redisdb;
 
 
-/** 
- * Handles the initial installation of Apex after it is 
- * downloaded.  This runs through the wizard, sets up the mySQL database and 
+/**
+ * Handles the initial installation of Apex after it is
+ * downloaded.  This runs through the wizard, sets up the mySQL database and
  * redis, etc.
  */
-class installer 
+class installer
 {
 
     // Properties
@@ -49,29 +49,29 @@ class installer
 /**
  * Run installation wizard.
  *
- * Runs the installation wizard, and is automatically executed from the 
- * the src/app.php script upon initialization if the software is not installed, 
+ * Runs the installation wizard, and is automatically executed from the
+ * the src/app.php script upon initialization if the software is not installed,
  * and begins a standard installation of Apex.
  */
-public function run_wizard() 
+public function run_wizard()
 {
 
     // Make sure we're running via CLI
-    if (php_sapi_name() != "cli") { 
+    if (php_sapi_name() != "cli") {
         echo "This system is not yet installed, and can not be installed via the web browser.  Please login to your server, ahance to the installation directory, and type: php apex.php to initiate the installer.\n\n";
         exit(0);
     }
 
     // Install checks
     $errors = $this->install_checks();
-    if (count($errors) > 0) { 
+    if (count($errors) > 0) {
         echo "One or more requirements are missing.  Please resolve the below errors and try the installation again.\n\n";
         foreach ($errors as $err) { echo "- $err\n"; }
         exit(0);
     }
 
     // Check for install.yml file
-    if (file_exists(SITE_PATH . '/install.yml') || file_exists(SITE_PATH . '/install.yaml')) { 
+    if (file_exists(SITE_PATH . '/install.yml') || file_exists(SITE_PATH . '/install.yaml')) {
         $this->process_yaml_file();
     }
 
@@ -91,7 +91,7 @@ public function run_wizard()
     $this->get_redis_info();
 
     // Get mySQL info, if needed
-    if (!redis::exists('config:db_master')) { 
+    if (!redis::exists('config:db_master')) {
         $this->get_mysql_info();
     }
 
@@ -116,7 +116,7 @@ public function process_yaml_file()
     // Parse file
     try {
         $vars = Yaml::parseFile(SITE_PATH . '/' . $file);
-    } catch (ParseException $e) { 
+    } catch (ParseException $e) {
         die("Unable to parse $file file -- " . $e->getMessage());
     }
 
@@ -128,7 +128,7 @@ public function process_yaml_file()
 
     // Get domain name
     $this->domain_name = $vars['domain_name'] ?? '';
-    if ($this->domain_name == '') { 
+    if ($this->domain_name == '') {
         die("No domain specified within install.yml file");
     }
 
@@ -147,12 +147,12 @@ public function process_yaml_file()
     $this->connect_redis();
 
     // Get mySQL database info, if needed
-    if (!redis::exists('config:db_master')) { 
+    if (!redis::exists('config:db_master')) {
 
         // Get database driver
         $db = $vars['db'] ?? [];
         $this->db_driver = $db['driver'] ?? 'mysql';
-        if (!file_exists(SITE_PATH . '/src/app/db/' . $this->db_driver . '.php')) { 
+        if (!file_exists(SITE_PATH . '/src/app/db/' . $this->db_driver . '.php')) {
             die("Invalid database driver, $this->db_driver");
         }
 
@@ -169,7 +169,7 @@ public function process_yaml_file()
         $this->dbpass_readonly = $db['readonly_password'] ?? '';
 
         // Generate random passwords, as needed
-        if ($this->type == 'quick') { 
+        if ($this->type == 'quick') {
             $this->dbpass = io::generate_random_string(24);
             $this->dbpass_readonly = io::generate_random_string(24);
         }
@@ -183,7 +183,7 @@ public function process_yaml_file()
 
     // Add repos
     $repos = $vars['repos'] ?? [];
-    foreach ($repos as $host => $repo_vars) { 
+    foreach ($repos as $host => $repo_vars) {
         $username = $repo_vars['user'] ?? '';
         $password = $repo_vars['password'] ?? '';
 
@@ -194,21 +194,21 @@ public function process_yaml_file()
 
     // Install packages
     $packages = $vars['packages'] ?? [];
-    foreach ($packages as $alias) { 
+    foreach ($packages as $alias) {
         $client = app::make(package::class);
         $client->install($alias);
     }
 
     // Install themes
     $themes = $vars['themes'] ?? [];
-    foreach ($themes as $alias) { 
+    foreach ($themes as $alias) {
         $client = app::make(theme::class);
         $client->install($alias);
     }
 
     // Configuration vars
     $config = $vars['config'] ?? [];
-    foreach ($config as $key => $value) { 
+    foreach ($config as $key => $value) {
         app::update_config_var($key, $value);
     }
 
@@ -248,13 +248,13 @@ private function connect_redis()
 
     // Connect to redis
     $redis = new redisdb();
-    if (!$redis->connect($this->redis_host, (int) $this->redis_port, 2)) { 
+    if (!$redis->connect($this->redis_host, (int) $this->redis_port, 2)) {
         echo "Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.\n\n";
         exit(0);
     }
 
     // Redis authentication, if needed
-    if ($this->redis_pass != '' && !$redis->auth($this->redis_pass)) { 
+    if ($this->redis_pass != '' && !$redis->auth($this->redis_pass)) {
         echo "Unable to authenticate to redis with the provided password.  Please check the password, and try the installer again.\n\n";
         exit(0);
     }
@@ -270,7 +270,7 @@ private function connect_redis()
 
     // Empty redis database
     $keys = $redis->keys('*');
-    foreach ($keys as $key) { 
+    foreach ($keys as $key) {
         $redis->del($key);
     }
 
@@ -308,16 +308,16 @@ private function connect_rabbitmq()
 {
 
     // Test RabbitMQ connection
-    if (!$connection = new AMQPStreamConnection($this->rabbitmq_host, $this->rabbitmq_port, $this->rabbitmq_user, $this->rabbitmq_pass)) { 
+    if (!$connection = new AMQPStreamConnection($this->rabbitmq_host, $this->rabbitmq_port, $this->rabbitmq_user, $this->rabbitmq_pass)) {
         echo "Unable to connect to the RabbitMQ server with the supplied information.  Please double check the information, and try the installer again.\n\n";
         exit(0);
     }
 
     // Set vars
     $vars = array(
-        'host' => $this->rabbitmq_host, 
-        'port' => $this->rabbitmq_port, 
-        'user' => $this->rabbitmq_user, 
+        'host' => $this->rabbitmq_host,
+        'port' => $this->rabbitmq_port,
+        'user' => $this->rabbitmq_user,
         'pass' => $this->rabbitmq_pass
     );
 
@@ -339,7 +339,7 @@ private function get_mysql_info()
 
     // Get database driver
     $this->db_driver = $this->getvar('Database Driver [mysql]: ', 'mysql');
-    if (!file_exists("./src/app/db/" . $this->db_driver . ".php")) { 
+    if (!file_exists("./src/app/db/" . $this->db_driver . ".php")) {
         echo "Invalid database driver, $this->db_driver.\n";
         exit(0);
     }
@@ -349,13 +349,13 @@ private function get_mysql_info()
     $default_port = $this->db_driver == 'postgresql' ? 5432 : 3306;
 
     // Get install type
-    if ($this->db_driver == 'mysql') { 
+    if ($this->db_driver == 'mysql') {
         echo "Would you like to auto-generate the necessary mySQL database, users, and privileges?  This requires the root mySQL password, but it is only used once and not saved.  Thiss ";
         echo "option is recommended if possible, and it helps ensure all privileges are properly and securely set.\n\n";
 
         // Check install type
         $ok = false;
-        do { 
+        do {
             echo "Auto-generate mySQL database / users? (y/n): ";
             $type = strtolower(trim(readline()));
             if ($type != 'y' && $type != 'n') {
@@ -370,21 +370,21 @@ private function get_mysql_info()
     $this->type = $type == 'y' ? 'quick' : 'standard';
 
     // Gather necessary information -- Quick Install
-    if ($this->type == 'quick') { 
+    if ($this->type == 'quick') {
 
         $this->dbname = $this->getvar("Desired Database Name:");
         $this->dbuser = $this->getvar("Desired Database Username:");
         $this->dbuser_readonly = $this->getvar("Desired Read-Only DB Username (optional):");
         $this->dbroot_password = $this->getvar("mySQL root Password:");
         $this->dbhost = $this->getvar("Database Host [localhost]:", 'localhost');
-        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", $default_port);
+        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", (string) $default_port);
 
         // Set default values
         $this->dbpass = io::generate_random_string(24);
         $this->dbpass_readonly = io::generate_random_string(24);
 
     // Gather needed information -- Standard Install
-    } else{ 
+    } else{
 
         // Get database info
         $this->dbname = $this->getvar("Database Name:");
@@ -393,7 +393,7 @@ private function get_mysql_info()
         $this->dbhost = $this->getvar("Database Host [localhost]:", 'localhost');
         $this->dbport = (int) $this->getvar("Database Port [$default_port]:", (string) $default_port);
 
-        // Read only mySQL user -- Header 
+        // Read only mySQL user -- Header
         echo "\n\nOptional, read only mySQL user.  Used for greater security as all connections to \n";
         echo "the database will be read only by default unless / until there is need for a write statement.  Requires root / super user privilege to thee database to setup privileges.\n\n";
 
@@ -402,10 +402,10 @@ private function get_mysql_info()
         $this->dbpass_readonly = $this->getvar("Read-only DB Password []:");
 
         // Get root password, if needed
-        if ($this->dbuser_readonly != '') { 
+        if ($this->dbuser_readonly != '') {
             $this->dbroot_password = $this->getvar("mySQL root Password:");
-        } else { 
-            $this->dbroot_password = ''; 
+        } else {
+            $this->dbroot_password = '';
         }
     }
 
@@ -423,20 +423,20 @@ private function complete_mysql()
 
     // Set vars
     $vars = array(
-        'dbname' => $this->dbname, 
-        'dbuser' => $this->dbuser, 
-        'dbpass' => $this->dbpass, 
-        'dbhost' => $this->dbhost, 
-        'dbport' => $this->dbport, 
-        'dbuser_readonly' => $this->dbuser_readonly, 
+        'dbname' => $this->dbname,
+        'dbuser' => $this->dbuser,
+        'dbpass' => $this->dbpass,
+        'dbhost' => $this->dbhost,
+        'dbport' => $this->dbport,
+        'dbuser_readonly' => $this->dbuser_readonly,
         'dbpass_readonly' => $this->dbpass_readonly
     );
     redis::hmset('config:db_master', $vars);
 
     // Handle installs
-    if ($this->type == 'quick') { 
+    if ($this->type == 'quick') {
         $this->handle_quick_install();
-    } else { 
+    } else {
         $this->handle_standard_install();
     }
 
@@ -446,64 +446,64 @@ private function complete_mysql()
  * Installation Checks
  *
  * Performs the necessary installation checks, and returns an array
- * of any errors found.  Automatically run during initialization of 
+ * of any errors found.  Automatically run during initialization of
  * the installation wizard.
  */
-private function install_checks() 
+private function install_checks()
 {
 
     // Initialize
     $errors = array();
 
     // Check PHP version
-    if (version_compare(phpversion(), '7.4.0', '<') === true) { 
+    if (version_compare(phpversion(), '7.4.0', '<') === true) {
         $errors[] = "This software requires PHP v7.2+.  Please upgrade your PHP installation before continuing.";
     }
 
     // Check for Composer
-    if (!file_exists(SITE_PATH . '/vendor/autoload.php')) { 
+    if (!file_exists(SITE_PATH . '/vendor/autoload.php')) {
         $errors[] = "You have not updated the system via Composer yet.  Please type the following into terminal:  composer update\n";
     }
 
     // Try to create necessary directories, if they do not exist
     $chk_dirs = array(
-        'storage/logs', 
-        'storage/logs/services', 
-        'views/components', 
-        'views/components/htmlfunc', 
-        'views/components/modal', 
+        'storage/logs',
+        'storage/logs/services',
+        'views/components',
+        'views/components/htmlfunc',
+        'views/components/modal',
         'views/components/tabpage'
-    ); 
-    foreach ($chk_dirs as $dir) { 
+    );
+    foreach ($chk_dirs as $dir) {
         if (!is_dir(SITE_PATH . '/' . $dir)) { @mkdir(SITE_PATH . '/' . $dir); }
     }
 
     // Check writable files / dirs
     $write_chk = array(
-        '.env',    
+        '.env',
         'storage/',
-        'storage/logs', 
+        'storage/logs',
         'storage/logs/services'
     );
-    foreach ($write_chk as $file) { 
+    foreach ($write_chk as $file) {
         if (!is_writable(SITE_PATH . '/' . $file)) { $errors[] = "Unable to write to $file which is required."; }
     }
 
     // Set required extensions
     $extensions = array(
-        'mysqli', 
-        'openssl', 
-        'curl', 
-        'json', 
-        'mbstring', 
-        'redis', 
-        'tokenizer', 
-        'gd', 
+        'mysqli',
+        'openssl',
+        'curl',
+        'json',
+        'mbstring',
+        'redis',
+        'tokenizer',
+        'gd',
         'zip'
     );
 
     // Check PHP extensions
-    foreach ($extensions as $ext) { 
+    foreach ($extensions as $ext) {
         if (!extension_loaded($ext)) {
             $errors[] = "The PHP extension '$ext' is not installed, and is required.";
         }
@@ -517,7 +517,7 @@ private function install_checks()
 /**
  * Complete quick installation
  */
-private function handle_quick_install() 
+private function handle_quick_install()
 {
 
     // Connect to mySQL with root, and perform checks
@@ -525,18 +525,18 @@ private function handle_quick_install()
     $this->root_conn = $root_conn;
 
     // Create database
-    if (!mysqli_query($root_conn, "CREATE DATABASE " . $this->dbname)) { 
-        $this->install_error("Unable to create the database " . $this->dbname . ".  Please contact your server administrator."); 
+    if (!mysqli_query($root_conn, "CREATE DATABASE " . $this->dbname)) {
+        $this->install_error("Unable to create the database " . $this->dbname . ".  Please contact your server administrator.");
     }
 
     // Create mySQL user
-    if (!mysqli_query($root_conn, "CREATE USER '" . $this->dbuser . "'@'localhost' IDENTIFIED BY '" . $this->dbpass . "'")) { 
+    if (!mysqli_query($root_conn, "CREATE USER '" . $this->dbuser . "'@'localhost' IDENTIFIED BY '" . $this->dbpass . "'")) {
         $this->install_error("Unable to create the mySQL user " . $this->dbuser . ".  Please contact your server administrator to resolve the issue.");
     }
 
     // Creatte read-only user,, if needed
     if ($this->dbuser_readonly != '') {
-        if (!mysqli_query($root_conn, "CREATE USER '" . $this->dbuser_readonly . "'@'localhost' IDENTIFIED BY '" . $this->dbpass_readonly . "'")) {  
+        if (!mysqli_query($root_conn, "CREATE USER '" . $this->dbuser_readonly . "'@'localhost' IDENTIFIED BY '" . $this->dbpass_readonly . "'")) {
             $this->install_error("Unable to create the mySQL user " . $this->dbuser_readonly . ".  Please contact your server administrator for further information.");
         }
     }
@@ -554,19 +554,19 @@ private function quick_checks()
     if ($this->dbuser == '') { $this->install_error("You did not specify a desired database username.\n"); }
 
     // Check root connection
-    if (!$root_conn = mysqli_connect('localhost', 'root', $this->dbroot_password, 'mysql', 3306)) { 
+    if (!$root_conn = mysqli_connect('localhost', 'root', $this->dbroot_password, 'mysql', 3306)) {
         $this->install_error("Unable to connect to the mySQL database with the provided root password.  Please double check, and try again.\n");
     }
 
     // Check if database name exists
     $result = mysqli_query($root_conn, "SHOW DATABASES");
-    while ($row = mysqli_fetch_array($result)) { 
+    while ($row = mysqli_fetch_array($result)) {
         if ($row[0] == $this->dbname) { $this->install_error("The database " . $this->dbname . " already exists.  Please try again with a database name that does not currently exist on the server."); }
     }
 
     // Check usernames
     $result = mysqli_query($root_conn, "SELECT user FROM user");
-    while ($row = mysqli_fetch_array($result)) { 
+    while ($row = mysqli_fetch_array($result)) {
         if ($row[0] == $this->dbuser) { $this->install_error("The mySQL user " . $this->dbuser . " already exists.  Please try again with a mySQL user that does not already exist."); }
         if ($this->dbuser_readonly != '' && $row[0] == $this->dbuser_readonly) { $this->install_error("The mySQL user " . $this->dbuser_readonly . " already exists.  Please try again with a username that does not already exist."); }
     }
@@ -583,20 +583,20 @@ private function handle_standard_install()
 {
 
     // Check main / read-only connection
-    if (!$conn = mysqli_connect($this->dbhost, $this->dbuser, $this->dbpass, $this->dbname, $this->dbport)) { 
+    if (!$conn = mysqli_connect($this->dbhost, $this->dbuser, $this->dbpass, $this->dbname, $this->dbport)) {
         $this->install_error("Unable to connect to the mySQL database with the supplied information.  Please double check, and try again.");
     }
 
     // Check read-only connection
-    if ($this->dbuser_readonly != '') { 
-        if (!$user_conn = mysqli_connect($this->dbhost, $this->dbuser_readonly, $this->dbpass_readonly, $this->dbname, $this->dbport)) { 
+    if ($this->dbuser_readonly != '') {
+        if (!$user_conn = mysqli_connect($this->dbhost, $this->dbuser_readonly, $this->dbpass_readonly, $this->dbname, $this->dbport)) {
             $this->install_error("Unable to connect to the mySQL database using the provided information for the read-only account.");
         }
     } else { $user_conn = $conn; }
 
     // Check root connection
-    if ($this->dbroot_password != '') { 
-        if (!$root_conn = mysqli_connect($this->dbhost, 'root', $this->dbroot_password, 'mysql', $this->dbport)) { 
+    if ($this->dbroot_password != '') {
+        if (!$root_conn = mysqli_connect($this->dbhost, 'root', $this->dbroot_password, 'mysql', $this->dbport)) {
             $this->install_error("Unable to connect to myQL using the supplied root password.  Please try again.");
         }
         $this->root_conn = $root_conn;
@@ -605,14 +605,14 @@ private function handle_standard_install()
 }
 
 /**
- * Completes the installation,  Creates the mySQL database, 
+ * Completes the installation,  Creates the mySQL database,
  * write the /etc/config.php file, and more.
  */
-private function complete_install() 
+private function complete_install()
 {
 
     // If we're setting up mySQL
-    if ($this->has_mysql === true) { 
+    if ($this->has_mysql === true) {
 
         // Grant privileges, as needed
         $this->grant_privs();
@@ -629,7 +629,7 @@ private function complete_install()
     db::update('internal_packages', array('version' => $pkg->version), "alias = %s", 'core');
 
     // Execute PHP, if needed
-    if (method_exists($pkg, 'install_before')) { 
+    if (method_exists($pkg, 'install_before')) {
         $pkg->install_before();
     }
 
@@ -645,7 +645,7 @@ private function complete_install()
     $this->install_components();
 
     // Execute PHP code, if needed
-    if (method_exists($pkg, 'install_after')) { 
+    if (method_exists($pkg, 'install_after')) {
         $pkg->install_after();
     }
 
@@ -686,13 +686,13 @@ private function install_components()
 
     // Install components
     $files = io::parse_dir(SITE_PATH . '/src/core');
-    foreach ($files as $file) { 
+    foreach ($files as $file) {
         pkg_component::add_from_filename('core', "src/$file");
     }
 
     // Add views
     $views = io::parse_dir(SITE_PATH . '/views/tpl');
-    foreach ($views as $view) { 
+    foreach ($views as $view) {
         pkg_component::add_from_filename('core', "views/$file");
     }
 
@@ -707,7 +707,7 @@ private function welcome_message()
     // Give success message
     $admin_url = 'http://' . $this->domain_name . '/admin/';
     echo "Thank you!  The Apex Platform has now been successfully installed on your server.\n\n";
-    if ($this->server_type == 'all' || $this->server_type == 'app') { 
+    if ($this->server_type == 'all' || $this->server_type == 'app') {
         echo "To complete installation, please ensure the following crontab job is added.\n\n";
         echo "\t*/2 * * * * cd " . SITE_PATH . "; /usr/bin/php -q apex core.cron > /dev/null 2>&1\n\n";
         echo "You also need to place the Apex init script in its proper location by executing the following commands at the SSH prompt:\n\n";
@@ -727,7 +727,7 @@ private function welcome_message()
  *
 * @param string $message The error message.
 */
-private function install_error(string $message) 
+private function install_error(string $message)
 {
 
     echo "Error: $message\n\n";
@@ -739,16 +739,17 @@ private function install_error(string $message)
  * @param string $label The label of the variable.
  * @param string $default_value The default value if user does not specify a value.
 */
-private function getvar(string $label, string $default_value = '') 
-{ 
+private function getvar(string $label, string $default_value = '')
+{
     echo "$label ";
     $value = trim(readline());
+    echo "\n";
     if ($value == '') { $value = $default_value; }
     return $value;
 }
 
 /**
-* Grants the necessary privilegs to the mySQL database, 
+* Grants the necessary privilegs to the mySQL database,
 * assuming we have a root password and connection.
 */
 
@@ -762,31 +763,31 @@ private function grant_privs()
     $priv_sql = $this->get_priv_sql();
 
     // Grant privileges
-    foreach ($priv_sql as $sql) { 
+    foreach ($priv_sql as $sql) {
         if (!mysqli_query($this->root_conn, $sql)) { $this->install_error("Unable to set mySQL privileges as necessary."); }
     }
 
 }
 
 /**
-* Returns the SQL statements to grant necessary privileges, and 
-* used when taking advantage of the read-only 
+* Returns the SQL statements to grant necessary privileges, and
+* used when taking advantage of the read-only
 * mySQL user.
 */
-private function get_priv_sql() 
+private function get_priv_sql()
 {
 
     // Set SQL
     $sql = array();
 
     // Grant "all" to database
-    if ($this->type == 'quick') { 
+    if ($this->type == 'quick') {
         $user = $this->dbuser;
         $sql[] = "GRANT ALTER, CREATE, DELETE, DROP, INDEX, INSERT, LOCK TABLES, REFERENCES, SELECT, UPDATE ON " . $this->dbname . ".* TO '" . $user . "'@'" . $this->dbhost . "'";
     }
 
     // Add read-only privileges
-    if ($this->dbuser_readonly != '') { 
+    if ($this->dbuser_readonly != '') {
         $sql[] = "GRANT SELECT ON " . $this->dbname . ".* TO '" . $this->dbuser_readonly . "'@'" . $this->dbhost . "'";
     }
 
@@ -799,4 +800,3 @@ private function get_priv_sql()
 }
 
 }
-
