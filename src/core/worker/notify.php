@@ -89,7 +89,10 @@ public function send_ws(event $msg)
     $message = $this->format_ws_message($data);
 
     // Get URL
-    $host = 'tcp://' . redis::hget('config:rabbitmq', 'host');
+    if (!$host = redis::hget('config:rabbitmq', 'host')) { 
+        $host = '127.0.0.1';
+    }
+    $host = 'tcp://' . $host;
     $port = app::_config('core:websocket_port');
 
     // Send message

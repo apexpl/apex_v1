@@ -376,7 +376,7 @@ public function import_pgp_key(string $type, int $userid, string $public_key, st
             'fingerprint' => $vars['fingerprint'],
             'password' => $password, 
         'pgp_key' => $public_key),
-        "id = %i", $key_id);
+        "id = %i", $row['id']);
 
     /// Add key to database
     } else { 

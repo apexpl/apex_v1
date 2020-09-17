@@ -82,7 +82,7 @@ public function get_json()
         'recipients' => $this->recipients,
         'area' => $this->area,
         'uri' => trim($this->uri, '/'), 
-        'reqtype' => app::get_reqtype()
+        'reqtype' => isset($_SERVER['apex_admin_username']) ? 'test' : app::get_reqtype()
     );
 
     // Return

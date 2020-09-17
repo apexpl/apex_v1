@@ -1,25 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit backupGlobals="false"
-         backupStaticAttributes="false"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         processIsolation="false"
-         stopOnFailure="false">
+>
     <testsuites>
         <testsuite name="unit">
             <directory suffix="_test.php">./tests</directory>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
+    <coverage processUncoveredFiles="true">
+        <include>
             <directory suffix=".php">./src/core</directory>
             <directory suffix=".php">./src/app</directory>
             <file>./src/app.php</file>
-        </whitelist>
-    </filter>
+        </include>
+    </coverage>
     <php>
         <server name="apex_admin_username" value="admin"/>
         <server name="apex_admin_password" value="admin"/>

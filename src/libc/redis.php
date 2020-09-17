@@ -5,6 +5,7 @@ namespace apex\libc;
 
 use apex\app\exceptions\ServiceException;
 use redis as redisdb;
+use RedisException;
 
 /**
  * Database service / dispatcher.  Object passed as the singleton must 
@@ -34,16 +35,23 @@ class redis
 
         // Connect to redis
         self::$instance = new redisdb();
-        if (!self::$instance->connect(getEnv('redis_host'), (int) getEnv('redis_port'), 2)) { 
+        try {
+            self::$instance->connect(getEnv('redis_host'), (int) getEnv('redis_port'), 2);
+        } catch (RedisException $e) { 
             echo "Unable to connect to redis.  We're down!";
             exit(0);
         }
 
         // Authenticate redis, if needed
-    $password = getEnv('redis_password') ?? '';
-        if ($password != '' && !self::$instance->auth($password)) { 
-            echo "Unable to authenticate into redis.  We're down!";
-            exit(0);
+        $password = getEnv('redis_password') ?? '';
+        if ($password != '') { 
+
+            try { 
+                self::$instance->auth($password);
+            } catch (RedisException $e) { 
+                echo "Unable to authenticate into redis.  We're down!";
+                exit(0);
+            }
         }
 
         // Select redis db, if needed

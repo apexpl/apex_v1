@@ -12,6 +12,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
 use redis as redisdb;
+use RedisException;
 
 
 /** 
@@ -248,15 +249,20 @@ private function connect_redis()
 
     // Connect to redis
     $redis = new redisdb();
-    if (!$redis->connect($this->redis_host, (int) $this->redis_port, 2)) { 
-        echo "Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.\n\n";
-        exit(0);
+    try { 
+        $redis->connect($this->redis_host, (int) $this->redis_port, 2);
+    } catch (RedisException $e) { 
+        $this->install_error("Unable to connect to redis database using supplied information.  Please check the host and port, and try the installer again.");
     }
 
     // Redis authentication, if needed
-    if ($this->redis_pass != '' && !$redis->auth($this->redis_pass)) { 
-        echo "Unable to authenticate to redis with the provided password.  Please check the password, and try the installer again.\n\n";
-        exit(0);
+    if ($this->redis_pass != '') { 
+
+        try { 
+            $redis->auth($this->redis_pass);
+        } catch (RedisException $e) { 
+            $this->install_error("Unable to authenticate to redis with the provided password.  Please check the password, and try the installer again.");
+        }
     }
 
     // Select redis db, if needed
@@ -377,7 +383,7 @@ private function get_mysql_info()
         $this->dbuser_readonly = $this->getvar("Desired Read-Only DB Username (optional):");
         $this->dbroot_password = $this->getvar("mySQL root Password:");
         $this->dbhost = $this->getvar("Database Host [localhost]:", 'localhost');
-        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", $default_port);
+        $this->dbport = (int) $this->getvar("Database Port [$default_port]:", (string) $default_port);
 
         // Set default values
         $this->dbpass = io::generate_random_string(24);
@@ -742,7 +748,7 @@ private function install_error(string $message)
 private function getvar(string $label, string $default_value = '') 
 { 
     echo "$label ";
-    $value = trim(readline());
+    $value = trim(fgets(STDIN));
     if ($value == '') { $value = $default_value; }
     return $value;
 }

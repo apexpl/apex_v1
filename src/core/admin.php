@@ -104,7 +104,7 @@ public function update()
 { 
 
     // Demo check
-    if (check_package('demo') && $this->admin_id == 1) { 
+    if (check_package('demo') && $this->admin_id == 1 && app::get_reqtype() != 'test') { 
         view::add_callout("Unable to modify this account, as it is required for the online demo", 'error');
         return false;
     }
@@ -143,7 +143,7 @@ public function update_status(string $status)
 { 
 
     // Demo check
-    if (check_package('demo') && $this->admin_id == 1) { 
+    if (check_package('demo') && $this->admin_id == 1 && app::get_reqtype() != 'test') { 
         view::add_callout("Unable to modify this account, as it is required for the online demo", 'error');
         return false;
     }
@@ -163,7 +163,7 @@ public function delete()
 { 
 
     // Demo check
-    if (check_package('demo') && $this->admin_id == 1) { 
+    if (check_package('demo') && $this->admin_id == 1 && app::get_reqtype() != 'test') { 
         view::add_callout("Unable to modify this account, as it is required for the online demo", 'error');
         return false;
     }

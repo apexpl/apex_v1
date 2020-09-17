@@ -19,8 +19,6 @@ class maintenance
 {
 
 
-
-
     // Properties
     public $time_interval = 'D1';
     public $name = 'Core System Maintenance';

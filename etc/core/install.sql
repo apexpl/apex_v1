@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS encrypt_keys;
 DROP TABLE IF EXISTS encrypt_pgp_keys;
 DROP TABLE IF EXISTS images_contents;
 DROP TABLE IF EXISTS images;
+DROP TABLE IF EXISTS notificationS_login_notices;
 DROP TABLE IF EXISTS notifications_attachments;
 DROP TABLE IF EXISTS notifications_mass_queue;
 DROP TABLE IF EXISTS notifications_queue;
@@ -236,7 +237,7 @@ CREATE TABLE auth_history (
     type ENUM('user','admin') NOT NULL DEFAULT 'user', 
     userid INT NOT NULL, 
     ip_address VARCHAR(60) NOT NULL, 
-    user_agent VARCHAR(150) NOT NULL, 
+    user_agent VARCHAR(255) NOT NULL, 
     date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     logout_date DATETIME NOT NULL
 ) engine=InnoDB;
@@ -350,6 +351,16 @@ CREATE TABLE notifications_mass_queue (
     message LONGTEXT NOT NULL, 
     condition_vars TEXT NOT NULL
 ) engine=InnoDB;
+
+CREATE TABLE notifications_login_notices (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+    require_agree TINYINT(1) NOT NULL DEFAULT 0, 
+    type ENUM('modal','full') NOT NULL DEFAULT 'full', 
+    title VARCHAR(255) NOT NULL, 
+    condition_vars TEXT NOT NULL, 
+    message LONGTEXT NOT NULL
+) engine=InnoDB;
+
 
 /**
  * Images
