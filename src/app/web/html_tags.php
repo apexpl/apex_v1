@@ -1476,7 +1476,7 @@ public function dropdown_messages($attr, $text)
     $html = '';
     $rows = redis::lrange($redis_key, 0, -1);
     foreach ($rows as $data) { 
-        $row = json_decode($data, true);
+        if (!$row = @json_decode($data, true)) { continue; } 
         $tmp_html = $this->tags['dropdown.message'];
 
         // Merge variables

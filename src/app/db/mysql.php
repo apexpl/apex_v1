@@ -129,6 +129,7 @@ public function clear_cache()
 {
 
     $this->columns = [];
+    $this->tables = [];
 }
 
 /**

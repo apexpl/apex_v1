@@ -508,17 +508,19 @@ public function invalid_login(string $type = 'none')
  *
  * @param string $username The username to check.
  * @param string $password The password to check.
+ * @param string $user_type Generally either 'user' or 'admin', and defines the type of user to authenticate for.  Defaults to 'user'.
  *
  * @return bool Whther or not the username / password is valid.
  */
-public function check_password(string$username, string$password)
+public function check_password(string$username, string$password, string $user_type = 'user')
 { 
 
     // Debug
     debug::add(2, tr("Authentication, raw user / pass check, area: {1}, username: {2}", app::get_area(), $username));
 
     // Get user row
-    if (!$profile = db::get_row("SELECT * FROM $this->users_table WHERE username = %s OR email = %s", $username, $username)) { 
+    $table_name = $user_type == 'admin' ? 'admin' : 'users';
+    if (!$profile = db::get_row("SELECT * FROM $table_name WHERE username = %s OR email = %s", $username, $username)) { 
         return false;
     }
     if ($profile['status'] != 'active') { return false; }

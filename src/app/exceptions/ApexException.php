@@ -162,16 +162,25 @@ protected function render_cli()
 protected function render_json()
 { 
 
+    // Get data, if in devel mode
+    $data = [];
+    if (app::_config('core:mode') == 'devel') { 
+        $data = [
+            'file' => $this->file, 
+            'line' => (int) $this->line
+        ];
+    }
+
     // Set vars
     $vars = array(
         'status' => 'error',
-        'errmsg' => $this->message,
+        'message' => $this->message, 
+        'data' => $data
     );
 
-    // Add file and line# if in devel mode
-    if (app::_config('core:mode') == 'devel') { 
-        $vars['file'] = $this->file;
-        $vars['line'] = $this->line;
+    // Check for REST API
+    if (check_package('rest_api') === true) { 
+        $vars['key_version'] = (float) app::_config('rest_api:rsa_key_version');
     }
 
     // Set content type
