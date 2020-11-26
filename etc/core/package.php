@@ -21,7 +21,7 @@ class pkg_core
      * 'commercial', or 'public'.  If set to 'private', it will not appear on the public repository at all, and 
      * if set to 'commercial', you may define a price to charge within the $price variable below.
      */
-    public $version = '1.5.31';
+    public $version = '1.5.33';
     public $access = 'public';
     public $price = 0;
     public $name = 'Core Framework';
@@ -587,7 +587,7 @@ public function reset_redis()
 
     // CMS menus
     $pkg = new package('core');
-    $pkg->update_redis_menus();
+    //$pkg->update_redis_menus();
 
     // Setup stdlists again
     $this->install_after();

@@ -272,7 +272,7 @@ public function send_repo_request(int $repo_id, string $alias, string $action, a
     // Check response status
     if ($vars['status'] != 'ok') { 
         if ($noerror === true) { return false; }
-        throw new RepoException('remote_error', 0, '', $vars['errmsg']);
+        throw new RepoException('remote_error', 0, '', $vars['message']);
     }
 
     // Upload cheunked file, if needed

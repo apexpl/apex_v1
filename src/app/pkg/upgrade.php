@@ -400,7 +400,7 @@ protected function install_from_zip(string $pkg_alias, string $version, string $
     }
 
     // Copy over files
-    $new_files = pkg_component::sync_from_dir($pkg_alias, $upgrade_dir, $rollback_dir);
+    list($new_files, $merge_errors) = pkg_component::sync_from_dir($pkg_alias, $upgrade_dir, $rollback_dir);
     file_put_contents("$rollback_dir/added.json", json_encode($new_files));
 
     // Debug

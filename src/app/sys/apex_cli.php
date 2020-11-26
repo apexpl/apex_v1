@@ -448,6 +448,65 @@ public function create_upgrade($vars)
 }
 
 /**
+ * Merge packages
+ */
+public function merge($vars)
+{
+
+    // Get package
+    $pkg_alias = $vars[0] ?? '';
+    if ($pkg_alias == '') { 
+        throw new PackageException('undefined');
+    } elseif (!$row = db::get_row("SELECT * FROM internal_upgrades WHERE package = %s AND status = 'open'", $pkg_alias)) { 
+        throw new ApexException('error', 'There is no upgrade open on this package, hence a merge is not possible.');
+    } elseif (!$repo_id = db::get_field("SELECT repo_id FROM internal_packages WHERE alias = %s", $pkg_alias)) { 
+        throw new PackageException('not_exists', $pkg_alias);
+    }
+
+    // Download the latest version of the package.
+    $client = app::make(package::class);
+    list($tmp_dir, $repo_id, $vars) = $client->download($pkg_alias, (int) $repo_id);
+
+    // Perform merge
+    list($new_files, $merge_errors) = pkg_component::sync_from_dir($pkg_alias, $tmp_dir, '', (int) $row['id']);
+
+    // Modify upgrade versions, as needed
+    if ($vars['version'] != $row['version'] && $urow = db::get_row("SELECT * FROM internal_upgrades WHERE package = %s AND status = 'opn' ORDER BY id DESC LIMIT 0,1", $pkg_alias)) { 
+        $old_upgrade_dir = SITE_PATH . '/etc/' . $pkg_alias . '/upgrades/' . $urow['version'];
+        $upgrade_dir = SITE_PATH . '/etc/' . $pkg_alias . '/upgrades/' . $vars['version'];
+
+        // Rename directory
+        rename($old_upgrade_dir, $upgrade_dir);
+
+        // Modify upgrade.php file, as needed
+        $php_code = file_get_contents("$upgrade_dir/upgrade.php");
+        $text_from = 'upgrade_' . $pkg_alias . '_' . str_replace('.', '_', $row['version']);
+        $text_to = 'upgrade_' . $pkg_alias . '_' . str_replace('.', '_', $vars['version']);
+
+        // Replace text
+        $php_code = str_replace($text_from, $text_to, $php_code);
+        file_put_contents("$upgrade_dir/upgrade.php", $php_code);
+    }
+
+    // Clean up
+    db::query("UPDATE internal_packages SET version = %s WHERE alias = %s", $vars['version'], $pkg_alias);
+    io::remove_dir($tmp_dir);
+
+    // Set response
+    $response = "The package $pkg_alias has been successfully merged due to new upgrades that were detected.\n";
+    if (count($merge_errors) > 0) { 
+        $response .= "\nHowever, some files were unable to be automatically merged and are listed below:\n\n";
+        foreach ($merge_errors as $file) { 
+            $response .= "\t$file\n";
+        }
+    }
+
+    // Return response
+    return $response;
+
+}
+
+/**
  * Publish upgrade. 
  *
  * Publishes an upgrade to the appropriate repository. Usage: php apex.php 
@@ -1235,6 +1294,29 @@ public function update_repo($vars, repo $client)
 
     // Give response
     return "Successfully updated repo with new username and password.\n";
+
+}
+
+/**
+ * Reset redus
+ */
+public function reset_redis($vars)
+{
+
+    // Go through packages
+    $packages = db::get_column("SELECT alias FROM internal_packages");
+    foreach ($packages as $alias) { 
+        if (!file_exists(SITE_PATH . '/etc/' . $alias . '/package.php')) { continue; }
+
+        $client = new Package_config($alias);
+        $pkg = $client->load();
+
+        if (!method_exists($pkg, 'reset_redis')) { continue; }
+        $pkg->reset_redis();
+    }
+
+    // Return
+    return "Successfully reset redis and all keys\n";
 
 }
 

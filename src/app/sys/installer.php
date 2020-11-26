@@ -5,7 +5,7 @@ namespace apex\app\sys;
 
 use apex\app;
 use apex\libc\{db, redis, io, debug};
-use apex\app\pkg\{package_config, pkg_component, package, theme};
+use apex\app\pkg\{package_config, pkg_component, package, theme, upgrade};
 use apex\app\sys\repo;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -681,6 +681,10 @@ private function complete_install()
     file_put_contents(SITE_PATH . '/bootstrap/apex', $init_file);
     chmod(SITE_PATH . '/bootstrap/apex', 0755);
     chmod(SITE_PATH . '/apex', 0755);
+
+    // Install any available upgrades
+    $upgrade_client = app::make(upgrade::class);
+    $upgrade_client->install('core');
 
 }
 

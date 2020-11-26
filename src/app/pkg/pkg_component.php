@@ -158,6 +158,11 @@ protected static function create_view(string $uri, string $package)
     $tpl_file = SITE_PATH . '/views/tpl/' . $uri . '.tpl';
     $php_file = SITE_PATH . '/views/php/' . $uri . '.php';
 
+    // Check if TPL file exists already
+    if (file_exists($tpl_file)) { 
+        throw new ComponentException('already_exists', 'view', $uri, $uri);
+    }
+
     // Create directories as needed
     io::create_dir(dirname($tpl_file));
     io::create_dir(dirname($php_file));
@@ -435,11 +440,21 @@ public static function remove(string $type, string $comp_alias)
  *
  * @return array List of all newly added files.
  */
-public static function sync_from_dir(string $pkg_alias, string $tmp_dir, string $rollback_dir = '')
+public static function sync_from_dir(string $pkg_alias, string $tmp_dir, string $rollback_dir = '', int $upgrade_id = 0)
 {
 
-    // Go through dest dirs
+    // Get upgrade hash, if needed
+    $upgrade_hash = [];
+    if ($upgrade_id > 0) { 
+        $upgrade_hash = db::get_hash("SELECT filename,file_hash FROM internal_file_hashes WHERE upgrade_id = %i", $upgrade_id);
+    }
+
+
+    // Set blank arrays
     $new_files = array();
+    $merge_errors = array();
+
+    // Go through dest dirs
     foreach (self::$dest_dirs as $source_dir => $dest_dir) { 
         if (!is_dir("$tmp_dir/$source_dir")) { continue; }
         $dest_dir = str_replace("~alias~", $pkg_alias, $dest_dir);
@@ -458,6 +473,18 @@ public static function sync_from_dir(string $pkg_alias, string $tmp_dir, string 
             $chk_hash = sha1_file("$tmp_dir/$source_dir/$file");
             $hash = file_exists($dest_file) ? sha1_file($dest_file) : '';
             if ($hash == $chk_hash) { continue; }
+
+            // Check upgrade hash, i fneeded
+            if ($upgrade_id > 0 && isset($upgrade_hash[$file]) && $upgrade_hash[$file] != $hash) { 
+
+                // Copy merge file
+                $merge_file = '/src/' . $pkg_alias . '/' . $source_dir . '/' . $file;
+                io::create_dir(dirname(SITE_PATH . '/' . $merge_file));
+                copy("$tmp_dir/$source_dir/$file", SITE_PATH . '/' . $merge_file);
+
+                $merge_errors[] = $merge_file;
+                continue;
+            }
 
             // Copy to rollback dir, if needed
             if (file_exists($dest_file) && $rollback_dir != '') { 
@@ -502,9 +529,14 @@ public static function sync_from_dir(string $pkg_alias, string $tmp_dir, string 
     }
 
     // Return
-    return $new_files;
+    return array($new_files, $merge_errors);
 
 }
+
+
+
+
+
 
 /**
  * Add from filename

@@ -25,7 +25,7 @@
 				<li><a href="/docs/">Developer Reference Manual</a></li>
 				<li><a href="/docs/training/index">Developer Training Guide</a></li>
 				<li><a href="https://reddit.com/r/Apex_Platform/" target="_blank">Reddis (/r/Apex_Platform)</a></li>
-				<li><a href="https://twitter.com/DizakMatt" target="_blank">Twitter (@DizakMatt)</a></li>
+				<li><a href="https://twitter.com/ApexPlatform" target="_blank">Twitter (@ApexPlatform)</a></li>
 				<li><a href="http://envrin.com/contact" target="_blank">Contact Us</a></li>
 			</ul>
 		</div>
