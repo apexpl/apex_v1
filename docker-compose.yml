@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./bootstrap/docker/Dockerfile
-    image: apex-1.3
+    image: apex-1.6
     container_name: apex
     restart: unless-stopped
     tty: true

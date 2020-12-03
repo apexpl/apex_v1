@@ -804,7 +804,7 @@ public function init_theme($vars)
     debug::add(1, tr("Starting to initialize theme {1}", $theme_alias));
 
     // Set variables
-    $client = app::make(theme::client);
+    $client = app::make(theme::class);
     $theme_dir = SITE_PATH . '/views/themes/' . $theme_alias;
     $dirs = array('sections', 'tpl', 'layouts');
 

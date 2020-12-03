@@ -50,8 +50,14 @@ function handle_exception($e)
  */
 function error(int $errno, string $message, string $file, int $line) 
 {
-    if (preg_match("/fsockopen/", $message)) { return; }
     $file = trim(str_replace(SITE_PATH, '', $file), '/');
+    if (preg_match("/fsockopen/", $message)) { return; }
+    if (preg_match("/Required parameter (.*?) follows optional parameter/", $message)) { 
+        file_put_contents(SITE_PATH . '/dep.txt', "$message -- $file -- $line\n", FILE_APPEND);
+        return;
+    }
+
+
 
     // Get level of log message
     if (in_array($errno, array(2, 32, 512))) { $level = 'warning'; }
@@ -145,7 +151,7 @@ function tr(...$args):string
 
         $pos = strpos($text, "%s");
         if ($pos !== false) {
-            $text = substr_replace($text, $value, $pos, 2);
+            $text = substr_replace($text, (string) $value, $pos, 2);
         }
 
         if (is_string($key)) { $replace['{' . $key . '}'] = $value; }
@@ -174,7 +180,7 @@ function fdate(string $date, bool $add_time = false):string
 
     // Convert date to correct timezone
     if ($offset < 0) {
-        $date = date::subtract_interval('I' . abs($offset), $date); 
+        $date = date::subtract_interval('I' . abs((int) $offset), $date); 
         } else { 
         $date = date::add_interval('I' . $offset, $date);
     }

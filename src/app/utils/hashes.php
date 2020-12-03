@@ -204,7 +204,7 @@ public function parse_data_source(string $data_source, string $value = '', strin
 
             // Parse name
             $temp = $source[3];
-            foreach ($row as $key => $val) { $temp = str_ireplace("~$key~", $val, $temp); }
+            foreach ($row as $key => $val) { $temp = str_ireplace("~$key~", (string) $val, $temp); }
 
             // Add to options
             $idcol = $source[4] ?? 'id';

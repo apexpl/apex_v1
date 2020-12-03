@@ -480,36 +480,18 @@ public function unpack_zip_archive(string $zip_file, string $dirname)
     $this->create_blank_dir($dirname);
 
     // Open zip file
-    if (!$zip = zip_open($zip_file)) { 
+    $zip = new ZipArchive;
+    if (!$zip->open($zip_file)) { 
         throw new IOException('zip_invalid', $zip_file);
     }
 
-    // Unzip package file
-    while ($file = zip_read($zip)) { 
-
-        // Format filename
-        $filename = zip_entry_name($file);
-        $filename = str_replace("\\", "/", $filename);
-        if ($filename == '') { continue; }
-
-        // Create directory, and continue
-        if (preg_match("/\/$/", $filename)) { 
-            $this->create_dir("$dirname/$filename");
-            continue;
-        }
-
-        // Get contents
-        $contents = '';
-        while ($line = zip_entry_read($file)) { $contents .= $line; }
-
-        // Debug
-        debug::add(5, tr("Unpacking file from zip archive, {1}", $filename));
-
-        // Save file
-        $this->create_dir(dirname("$dirname/$filename"));
-        file_put_contents("$dirname/$filename", $contents);
+    // Extract zip file
+    if (!$zip->extractTo($dirname)) { 
+        throw new IOException('zip_invalid', $zip_file);
     }
-    zip_close($zip);
+
+    // Close zip file
+    $zip->close();
 
     // Debug
     debug::add(2, tr("Successfully unpacked zip archive {1} to directory {2}", $zip_file, $dirname));

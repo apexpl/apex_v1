@@ -142,6 +142,7 @@ public function call(string $function_name, string $type, string $alias, string 
         debug::add(4, tr("Component PHP file does not exist, type: {1}, package: {2}, parent: {3}, alias: {4}", $type, $package, $parent, $alias), 'warning');
         return false;
     }
+    if (!isset($data['html'])) { $data['html'] = ''; }
 
     // Call function
     return app::call([$class_name, $function_name], $data);

@@ -910,7 +910,7 @@ public function data_table(array $attr, string $text = ''):string
 
     // Get table HTML
     foreach ($merge_vars as $key => $value) { 
-        $html = str_replace("~$key~", $value, $html);
+        $html = str_replace("~$key~", (string) $value, $html);
     }
 
     // Return
@@ -1007,7 +1007,7 @@ public function pagination(array $attr, string $text = ''):string
         if ($page_num > $total_pages) { break; }
 
         if ($page_num == $page) { 
-            $items .= str_replace("~page~", $page_num, $this->tags['pagination.active_item']);
+            $items .= str_replace("~page~", (string) $page_num, $this->tags['pagination.active_item']);
         } else {
             $items .= $this->pagination_item((string) $page, $url, (int) $page);
         }
@@ -1032,7 +1032,7 @@ public function pagination(array $attr, string $text = ''):string
     // Get HTML
     $html = $this->tags['pagination'];
     foreach ($merge_vars as $key => $value) { 
-        $html = str_replace("~$key~", $value, $html);
+        $html = str_replace("~$key~", (string) $value, $html);
     }
 
     // Return
@@ -1095,14 +1095,14 @@ public function tab_control($attr, $text)
 
         // Add nav item
         $navitem = $navitem_tag;
-        $navitem = str_replace("~tab_num~", $tab_num, $navitem);
+        $navitem = str_replace("~tab_num~", (string) $tab_num, $navitem);
         $navitem = str_replace("~active~", $active, $navitem);
         $navitem = str_replace("~name~", tr($name), $navitem);
         $nav_html .= $navitem;
 
         // Add tab page contents
         $page = $page_tag;
-        $page = str_replace("~tab_num~", $tab_num, $page);
+        $page = str_replace("~tab_num~", (string) $tab_num, $page);
         $page = str_replace("~active~", $active, $page);
         $page = str_replace("~contents~", $tab[2], $page);
         $tab_html .= $page;
@@ -1391,7 +1391,7 @@ public function dashboard($attr, $text)
         // Get temp HTML
         $top_html = $this->tags['dashboard.top_item'];
         $top_html = str_replace("~title~", $vars['title'], $top_html);
-        $top_html = str_replace("~contents~", $vars['contents'], $top_html);
+        $top_html = str_replace("~contents~", (string) $vars['contents'], $top_html);
         $top_html = str_replace("~divid~", $vars['divid'], $top_html);
         $top_html = str_replace("~panel_class~", $vars['panel_class'], $top_html);
         $top_items .= $top_html;
@@ -1413,7 +1413,7 @@ public function dashboard($attr, $text)
     // Replace dashboard html
     $html = str_replace("~top_items~", $top_items, $html);
     $html = str_replace("~right_items~", $right_items, $html);
-    $html = str_replace("~profile_id~", $profile['id'], $html);
+    $html = str_replace("~profile_id~", (string) $profile['id'], $html);
     $html = str_replace("~tabcontrol~", $profile['tabcontrol'], $html);
 
 

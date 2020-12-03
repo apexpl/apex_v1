@@ -87,10 +87,11 @@ public function add_interval(string $interval, $from_date = '', $return_datestam
     if (!preg_match("/^(\w)(\d+)$/", $interval, $match)) { 
         throw new ApexException('error', "Invalid date interval specified, {1}", $interval);
     }
+    if ($from_date == '') { $from_date = 0; }
 
     // Get start date / time
     if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 
-        $secs = $from_date == '' ? time() : $from_date;
+        $secs = $from_date == 0 ? time() : $from_date;
         $from_date = date('Y-m-d H:i:s', (int) $secs);
     }
 
@@ -115,6 +116,7 @@ public function subtract_interval(string $interval, $from_date = '', $return_dat
     if (!preg_match("/^(\w)(\d+)$/", $interval, $match)) { 
         throw new ApexException('error', "Invalid date interval specified, {1}", $interval);
     }
+    if ($from_date == '') { $from_date = 0; }
 
         // Get start date / time
     if (!preg_match("/^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/", (string) $from_date, $d)) { 

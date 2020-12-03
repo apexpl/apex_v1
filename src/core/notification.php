@@ -252,8 +252,8 @@ public function send($userid, int $notification_id, $data)
     $subject = $row['subject']; $message = base64_decode($row['contents']);
     foreach ($merge_vars as $key => $value) { 
         if (is_array($value)) { continue; }
-        $subject = str_replace("~$key~", $value, $subject);
-        $message = str_replace("~$key~", $value, $message);
+        $subject = str_replace("~$key~", (string) $value, $subject);
+        $message = str_replace("~$key~", (string) $value, $message);
     }
 
     // Send e-mail

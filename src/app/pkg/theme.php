@@ -412,7 +412,7 @@ public function init_file(string $file)
 
     // Page title
     $html = preg_replace("/<title>(.*?)<\/title>/si", "<title><a:page_title textonly=\"1\"></title>", $html);
-    $html = preg_replace("/(?\/)index\.html/", "/index", $html);
+    $html = preg_replace("/{?\/}index\.html/", "/index", $html);
 
     // Save file
     file_put_contents($file, $html);

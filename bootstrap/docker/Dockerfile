@@ -1,5 +1,5 @@
 
-FROM php:7.4-fpm
+FROM php:8.0-fpm
 
 COPY composer.lock composer.json /var/www/
 COPY apex /usr/bin/
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install extensions
-RUN docker-php-ext-install mysqli tokenizer gd
+RUN docker-php-ext-install mysqli tokenizer gd sockets
 #RUN docker-php-ext-configure zip --with-libzip
 #RUN docker-php-ext-install zip
 

@@ -263,7 +263,7 @@ public function log($level, $msg, array $context = array())
  * @param string $msg The log message.
  * @param array $vars Values to replace placeholders in the message with.
  */
-public function add_system_log(string $type, int $is_system = 0, string $file, int $line, string $msg, ...$vars)
+public function add_system_log(string $type, int $is_system, string $file, int $line, string $msg, ...$vars)
 { 
 
     // Set variables

@@ -649,7 +649,7 @@ protected function process_sections(string $html):string
             foreach ($vars as $key => $value) { 
         if (is_array($value)) { continue; }
                 $key = $attr['name'] . '.' . $key;
-                $temp_html = str_ireplace("~$key~", $value, $temp_html);
+                $temp_html = str_ireplace("~$key~", (string) $value, $temp_html);
             }
             $replace_html .= $temp_html;
         }

@@ -11,11 +11,11 @@
     "homepage": "https://apexpl.io",
     "license": "MIT",
     "require": {
-        "php": ">=7.4.0",
+        "php": ">=8.0.0",
         "cboden/ratchet": ">=0.4.1",
         "michelf/php-markdown": ">=1.9.0",
         "league/flysystem": ">=1.0.6",
-        "php-amqplib/php-amqplib": ">=2.11",
+        "php-amqplib/php-amqplib": ">=2.12",
         "symfony/inflector": ">=5.0.2",
         "symfony/yaml": ">=5.0.2"
     },

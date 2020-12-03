@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS encrypt_keys;
 DROP TABLE IF EXISTS encrypt_pgp_keys;
 DROP TABLE IF EXISTS images_contents;
 DROP TABLE IF EXISTS images;
-DROP TABLE IF EXISTS notificationS_login_notices;
+DROP TABLE IF EXISTS notifications_login_notices;
 DROP TABLE IF EXISTS notifications_attachments;
 DROP TABLE IF EXISTS notifications_mass_queue;
 DROP TABLE IF EXISTS notifications_queue;

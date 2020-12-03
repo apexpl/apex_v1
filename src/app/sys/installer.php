@@ -658,10 +658,10 @@ private function complete_install()
     // Get .env file
     $config = base64_decode('CiMKIyBBcGV4IC5lbnYgZmlsZS4KIwojIEluIG1vc3QgY2FzZXMsIHlvdSBzaG91bGQgbmV2ZXIgbmVlZCB0byBtb2RpZnkgdGhpcyBmaWxlIGFzaWRlIGZyb20gdGhlIAojIHJlZGlzIGNvbm5lY3Rpb24gaW5mb3JtYXRpb24uICBUaGUgZXhjZXB0aW9uIGlzIGlmIHlvdSdyZSBydW5uaW5nIEFwZXggb24gIAojIGEgY2x1c3RlciBvZiBzZXJ2ZXJzLiAgVGhpcyBmaWxlIGFsbG93cyB5b3UgdG8gb3ZlcnJpZGUgdmFyaW91cyAKIyBzeXN0ZW0gY29uZmlndXJhdGlvbiB2YXJpYWJsZXMgZm9yIHRoaXMgc3BlY2lmaWMgc2VydmVyIGluc3RhbmNlLCBzdWNoIGFzIGxvZ2dpbmcgYW5kIGRlYnVnZ2luZyBsZXZlbHMuCiMKCiMgUmVkaXMgY29ubmVjdGlvbiBpbmZvcm1hdGlvbgpyZWRpc19ob3N0ID0gfnJlZGlzX2hvc3R+CnJlZGlzX3BvcnQgPSB+cmVkaXNfcG9ydH4KcmVkaXNfcGFzc3dvcmQgPSB+cmVkaXNfcGFzc34KcmVkaXNfZGJpbmRleCA9IH5yZWRpc19kYmluZGV4fgoKIyBFbmFibGUgYWRtaW4gcGFuZWw/ICgxPW9uLCAwPW9mZikKZW5hYmxlX2FkbWluID0gfmVuYWJsZV9hZG1pbn4KCiMgVGhlIG5hbWUgb2YgdGhpcyBpbnN0YW5jZS4gIENhbiBiZSBhbnl0aGluZyB5b3Ugd2lzaCwgCiMgYnV0IG5lZWRzIHRvIGJlIHVuaXF1ZSB0byB0aGUgY2x1c3Rlci4KO2luc3RhbmNlX25hbWUgPSBtYXN0ZXIKCiMgVGhlIHR5cGUgb2YgaW5zdGFuY2UsIHdoaWNoIGRldGVybWluZXMgaG93IHRoaXMgaW5zdGFuY2UgCiMgb3BlcmF0ZXMgKGllLiB3aGV0aGVyIGl0IHNlbmRzIG9yIHJlY2VpdmVzIHJlcXVlc3RzIHZpYSBSYWJiaXRNUSkuCiMKIyBTdXBwb3J0ZWQgdmFsdWVzIGFyZToKIyAgICAgYWxsICA9IEFsbC1pbi1PbmUgKGRlZmF1bHQpCiMgICAgIHdlYiAgPSBGcm9udC1lbmQgSFRUUCBzZXJ2ZXIKIyAgICAgYXBwICA9IEJhY2stZW5kIGFwcGxpY2F0aW9uIHNlcnZlcgojICAgICBtaXNjID0gT3RoZXIKIwo7c2VydmVyX3R5cGUgPSBhbGwKCiMgU2VydmVyIG1vZGUsIGNhbiBiZSAncHJvZCcgb3IgJ2RldmVsJwo7bW9kZSA9IGRldmVsCgojIExvZyBsZXZlbC4gIFN1cHBvcnRlZCB2YWx1ZXMgYXJlOgojICAgICBhbGwgPSBBbGwgbG9nIGxldmVscwojICAgICBtb3N0ID0gQWxsIGxldmVscywgZXhjZXB0ICdpbmZvJyBhbmQgJ25vdGljZScuCiMgICAgIGVycm9yX29ubHkgPSBPbmx5IGVycm9yIG1lc3NhZ2VzCiMgICAgIG5vbmUgPSBObyBsb2dnaW5nCjtsb2dfbGV2ZWwgPSBtb3N0CgojIERlYnVnIGxldmVsLiAgU3VwcG9ydGVkIHZhbHVlcyBhcmU6CiMgICAgIDAgPSBPZmYKIyAgICAgMSA9IFZlcnkgbGltaXRlZAojICAgICAyID0gTGltaXRlZAojICAgICAzID0gTW9kZXJhdGUKIyAgICAgNCA9IEV4dGVuc2l2ZQojICAgICA1ID0gVmVyeSBFeHRlbnNpdmUKO2RlYnVnX2xldmVsID0gMAoKCg==');
     $config = str_replace("~redis_host~", $this->redis_host, $config);
-    $config = str_replace("~redis_port~", $this->redis_port, $config);
+    $config = str_replace("~redis_port~", (string) $this->redis_port, $config);
     $config = str_replace("~redis_pass~", $this->redis_pass, $config);
-    $config = str_replace("~redis_dbindex~", $this->redis_dbindex, $config);
-    $config = str_replace('~enable_admin~', $this->enable_admin, $config);
+    $config = str_replace("~redis_dbindex~", (string) $this->redis_dbindex, $config);
+    $config = str_replace('~enable_admin~', (string) $this->enable_admin, $config);
     file_put_contents(SITE_PATH . '/.env', $config);
 
     // Update redis config
