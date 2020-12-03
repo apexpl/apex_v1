@@ -52,12 +52,7 @@ function error(int $errno, string $message, string $file, int $line)
 {
     $file = trim(str_replace(SITE_PATH, '', $file), '/');
     if (preg_match("/fsockopen/", $message)) { return; }
-    if (preg_match("/Required parameter (.*?) follows optional parameter/", $message)) { 
-        file_put_contents(SITE_PATH . '/dep.txt', "$message -- $file -- $line\n", FILE_APPEND);
-        return;
-    }
-
-
+    if (preg_match("/Required parameter (.*?) follows optional parameter/", $message)) { return; }
 
     // Get level of log message
     if (in_array($errno, array(2, 32, 512))) { $level = 'warning'; }
