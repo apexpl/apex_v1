@@ -1,4 +1,6 @@
 
+[grd_count user="apexpl" repo="apex"]
+
 # Apex Software Platform
 
 Powerful PHP software platform that allows you to efficiently develop, deploy and maintain robust 
